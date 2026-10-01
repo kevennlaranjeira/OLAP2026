@@ -168,7 +168,7 @@ _JORNADA = {"MANHA": "PARCIAL DIURNO", "INTERMEDIARIO": "PARCIAL DIURNO",
 
 
 def jornada(turno_normalizado: str | None) -> str:
-    return _JORNADA.get(turno_normalizado, "NAO INFORMADA")
+    return _JORNADA.get(turno_normalizado or "", "NAO INFORMADA")
 
 
 _RACAS = {"BRANCA", "PRETA", "PARDA", "AMARELA", "INDIGENA", "NAO DECLARADA"}
@@ -184,7 +184,7 @@ def raca_cor(valor: str | None) -> str:
 
 
 def sexo(valor: str | None) -> str:
-    return {"F": "FEMININO", "M": "MASCULINO"}.get(texto(valor), "NAO INFORMADO")
+    return {"F": "FEMININO", "M": "MASCULINO"}.get(texto(valor) or "", "NAO INFORMADO")
 
 
 def situacao_escola(valor: str | None) -> str:

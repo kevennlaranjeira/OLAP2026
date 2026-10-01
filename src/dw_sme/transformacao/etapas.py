@@ -121,7 +121,7 @@ def classificar(modalidade: str | None, segmento: str | None, serie: str | None)
     if m in _POR_MODALIDADE:
         etapa = _POR_MODALIDADE[m]
     else:
-        etapa = _POR_SEGMENTO.get(seg) or _etapa_pela_serie(s)
+        etapa = _POR_SEGMENTO.get(seg or "") or _etapa_pela_serie(s)
     if etapa is None:
         return None
     return Classificacao(

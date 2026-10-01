@@ -39,7 +39,7 @@ def data_publicada(valor: str | None, ano_letivo: int) -> date | None:
     else:
         for formato in FORMATOS:
             try:
-                d = datetime.strptime(s, formato).date()
+                d = datetime.strptime(s, formato).date()  # noqa: DTZ007 (só a data interessa)
                 break
             except ValueError:
                 continue

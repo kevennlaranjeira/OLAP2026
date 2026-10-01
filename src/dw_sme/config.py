@@ -1,6 +1,7 @@
 """Configuração do pipeline: onde ficam os dados, qual recorte, qual banco."""
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -14,13 +15,13 @@ ANOS_PADRAO = range(2015, 2025)
 class Configuracao:
     dir_dados: Path = Path("data")
     anos: range = ANOS_PADRAO
-    banco: Path | None = None
+    banco: Path = None  # type: ignore[assignment]  # preenchido em __post_init__
     user_agent: str = "dw-sme/0.1 (trabalho academico SCC0245 ICMC-USP; dados abertos SME-SP)"
     ckan_base: str = CKAN_BASE
-    sete_zip: object = AUTO
+    sete_zip: str | Path | None = AUTO
     manter_staging: bool = False
     forcar: bool = False
-    log: object = field(default=print, repr=False)
+    log: Callable[..., None] = field(default=print, repr=False)
 
     def __post_init__(self):
         self.dir_dados = Path(self.dir_dados)

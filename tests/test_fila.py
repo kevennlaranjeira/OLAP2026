@@ -165,9 +165,9 @@ def _sem_linha(origem: Path, destino: Path, trecho: str, substituto: str | None 
     texto = origem.read_text(encoding="latin1")
     linhas = texto.splitlines()
     if substituto is None:
-        linhas = [l for l in linhas if not l.startswith(trecho)]
+        linhas = [linha for linha in linhas if not linha.startswith(trecho)]
     else:
-        linhas = [substituto if l.startswith(trecho) else l for l in linhas]
+        linhas = [substituto if linha.startswith(trecho) else linha for linha in linhas]
     destino.write_text("\n".join(linhas) + "\n", encoding="latin1")
     return destino
 

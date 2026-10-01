@@ -9,8 +9,9 @@ from dw_sme.consultas import executar as ex
 
 @pytest.fixture(scope="module")
 def con(tmp_path_factory):
-    from conftest import _gravar, microdado_2019, microdado_2021, microdado_2023, FIXTURES
     import shutil
+
+    from conftest import FIXTURES, _gravar, microdado_2021, microdado_2023
     raiz = tmp_path_factory.mktemp("consultas")
     dados = raiz / "data"
     bruto = dados / "interim" / "bruto"
@@ -31,6 +32,7 @@ def con(tmp_path_factory):
 def microdado_2019_com_fundamental():
     """2019 sintético mais duas matrículas de fundamental numa EMEF da DRE Penha (uma aprovada, uma abandono)."""
     import pandas as pd
+
     from conftest import _linha, microdado_2019
     emef = {"CD_UNIDADE_EDUCACAO": "000123", "NOME_ESCOLA": "MARIO COVAS, GOV.", "TIPO_ESCOLA": "EMEF",
             "NOME_DISTRITO": "AGUA RASA", "DRE": "PENHA", "CD_SETOR": "1001", "CD_INEP_ESCOLA": "35000123",
@@ -51,7 +53,7 @@ def test_cobre_os_tipos_exigidos_pelo_enunciado():
     consultas = ex.listar()
     assert len(consultas) >= 5
     tipos = [c.tipo for c in consultas]
-    assert ex.TIPOS_EXIGIDOS <= set(tipos)
+    assert set(tipos) >= ex.TIPOS_EXIGIDOS
     assert sum(t in ("roll-up", "drill-down") for t in tipos) >= 2
     assert all(c.pergunta and c.justificativa for c in consultas)
 
