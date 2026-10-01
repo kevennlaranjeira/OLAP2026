@@ -103,6 +103,14 @@ def test_escolhe_csv_e_a_versao_mais_recente():
                                        "demografia": BASE + "csv/Agregados_por_setores_demografia_BR_20250417.zip"}
 
 
+def test_arquivo_de_dados_ganha_de_dicionario_com_o_tema_no_nome():
+    arquivos = [BASE + "doc/dicionario_demografia_basico.csv",
+                BASE + "csv/Agregados_por_setores_demografia_BR.zip",
+                BASE + "csv/Agregados_por_setores_basico_BR.zip"]
+    assert ibge.escolher(arquivos) == {"basico": BASE + "csv/Agregados_por_setores_basico_BR.zip",
+                                       "demografia": BASE + "csv/Agregados_por_setores_demografia_BR.zip"}
+
+
 def test_baixa_os_dois_temas_com_manifesto(tmp_path):
     rotas = {BASE: b'<a href="csv/">c</a>',
              BASE + "csv/": b'<a href="Agregados_por_setores_basico_BR.zip">b</a>'
