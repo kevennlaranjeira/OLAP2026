@@ -41,6 +41,19 @@ CHAVES_ESTRANGEIRAS = {
         ("chave_territorio", "dim_territorio", "chave_territorio"),
         ("chave_serie", "dim_serie", "chave_serie"),
     ],
+    "fato_turma": [
+        ("chave_ano_letivo", "dim_ano_letivo", "chave_ano_letivo"),
+        ("chave_escola", "dim_escola", "chave_escola"),
+        ("chave_territorio", "dim_territorio", "chave_territorio"),
+        ("chave_serie", "dim_serie", "chave_serie"),
+        ("chave_turno", "dim_turno", "chave_turno"),
+    ],
+    "fato_populacao": [
+        ("chave_tempo", "dim_tempo", "chave_tempo"),
+        ("chave_setor_censitario", "dim_setor_censitario", "chave_setor_censitario"),
+        ("chave_territorio", "dim_territorio", "chave_territorio"),
+        ("chave_faixa_etaria", "dim_faixa_etaria", "chave_faixa_etaria"),
+    ],
 }
 ETAPAS_RECONCILIADAS = ("CRECHE", "PRE", "FUND_I", "FUND_II")
 TOLERANCIA_RECONCILIACAO = 0.02
@@ -222,10 +235,62 @@ def observacoes_ano(con) -> Verificacao:
                        det)
 
 
+def ocupacao_turmas(con) -> Verificacao:
+    """O fato de turma conserva as matrículas e tem uma linha por turma; turma sem nome é alerta."""
+    det = _df(con, """
+        WITH m AS (
+            SELECT a.ano, sum(f.qtd_matricula) AS matriculas, count(DISTINCT f.id_turma) AS turmas_distintas,
+                   sum(f.qtd_matricula) FILTER (WHERE f.id_turma LIKE '%-?-%') AS matriculas_sem_nome_de_turma
+            FROM dw.fato_matricula f JOIN dw.dim_ano_letivo a USING (chave_ano_letivo) GROUP BY 1),
+        t AS (
+            SELECT a.ano, sum(t.qtd_matriculas) AS matriculas_no_fato_turma, count(*) AS linhas_fato_turma,
+                   round(sum(t.qtd_matriculas_ativas_junho) / NULLIF(sum(t.qtd_turmas_ativas_junho), 0), 1)
+                       AS alunos_por_turma_junho
+            FROM dw.fato_turma t JOIN dw.dim_ano_letivo a USING (chave_ano_letivo) GROUP BY 1)
+        SELECT m.ano, m.matriculas, t.matriculas_no_fato_turma, m.turmas_distintas, t.linhas_fato_turma,
+               coalesce(m.matriculas_sem_nome_de_turma, 0) AS matriculas_sem_nome_de_turma,
+               t.alunos_por_turma_junho
+        FROM m LEFT JOIN t USING (ano) ORDER BY 1""")
+    if det.empty:
+        return Verificacao("Q11", "Ocupação das turmas", OK, "Nenhuma matrícula carregada.", det)
+    quebra = det[(det["matriculas"] != det["matriculas_no_fato_turma"])
+                 | (det["turmas_distintas"] != det["linhas_fato_turma"])]
+    sem_nome = det["matriculas_sem_nome_de_turma"].sum() / det["matriculas"].sum()
+    status = FALHA if len(quebra) else (ALERTA if sem_nome > 0.01 else OK)
+    return Verificacao("Q11", "Ocupação das turmas", status,
+                       f"{int(det['linhas_fato_turma'].sum()):,} turmas; {len(quebra)} anos em que o fato de turma "
+                       f"não conserva as matrículas ou as turmas do fato de matrícula; {sem_nome:.2%} das "
+                       f"matrículas em turma sem nome publicado.".replace(",", "."), det)
+
+
+def populacao(con) -> Verificacao:
+    """População do Censo 2022: carregada, ligada à dimensão Território e com poucos valores não publicados."""
+    det = _df(con, """
+        SELECT t.ano_mes, count(DISTINCT p.chave_setor_censitario) AS setores,
+               count(DISTINCT p.chave_territorio) AS distritos,
+               count(DISTINCT p.chave_setor_censitario) FILTER (WHERE d.distrito = 'NAO INFORMADO')
+                   AS setores_sem_distrito_da_sme,
+               count(*) FILTER (WHERE p.qtd_pessoas IS NULL) AS valores_nao_publicados,
+               sum(p.qtd_pessoas) AS pessoas
+        FROM dw.fato_populacao p JOIN dw.dim_tempo t USING (chave_tempo)
+        JOIN dw.dim_territorio d USING (chave_territorio) GROUP BY 1""")
+    if det.empty:
+        return Verificacao("Q12", "População do Censo 2022", ALERTA,
+                           "População não carregada: coloque os temas Básico e Demografia dos Agregados por "
+                           "Setores Censitários em data/raw/ibge (ou rode dw-sme baixar) e carregue de novo.", det)
+    r = det.iloc[0]
+    status = ALERTA if r.setores_sem_distrito_da_sme or r.valores_nao_publicados else OK
+    return Verificacao("Q12", "População do Censo 2022", status,
+                       f"{int(r.pessoas):,} pessoas em {int(r.setores):,} setores e {int(r.distritos)} distritos; "
+                       f"{int(r.setores_sem_distrito_da_sme)} setores sem distrito correspondente na SME; "
+                       f"{int(r.valores_nao_publicados)} valores não publicados.".replace(",", "."), det)
+
+
 def verificar(con: duckdb.DuckDBPyConnection, fila_meta: list[dict]) -> list[Verificacao]:
     return [integridade(con), versoes_escola(con), conservacao(con), completude_fila(con),
             totais_publicados(fila_meta), total_e_partes(fila_meta), reconciliacao(con),
-            vinculo_escolas(con), membros_desconhecidos(con), observacoes_ano(con)]
+            vinculo_escolas(con), membros_desconhecidos(con), observacoes_ano(con),
+            ocupacao_turmas(con), populacao(con)]
 
 
 # ----------------------------------------------------------------------------- relatório

@@ -164,3 +164,58 @@ def test_dimensao_data_com_dois_papeis(dw):
 def test_leitura_de_indicador(valor, esperado):
     con = duckdb.connect()
     assert con.execute(f"select {carregar._flag('v')} from (select CAST(? AS VARCHAR) AS v)", [valor]).fetchone()[0] == esperado
+
+
+def test_fato_turma_agrega_o_fato_de_matricula(dw):
+    con, resumo = dw
+    assert resumo["fato_turma"] == 6                     # duas turmas em cada um dos três anos
+    linhas = con.execute("""select a.ano, s.codigo_etapa, t.qtd_turmas, t.qtd_matriculas,
+                                   t.qtd_matriculas_ativas_junho, t.qtd_turmas_ativas_junho
+                            from dw.fato_turma t join dw.dim_ano_letivo a using (chave_ano_letivo)
+                            join dw.dim_serie s using (chave_serie) order by 1, 2""").fetchall()
+    assert linhas == [
+        (2019, "CRECHE", 1, 1, 1, 1),
+        (2019, "PRE", 1, 2, 1, 1),        # um dos dois alunos saiu em 10/06: não está ativo em 30/06
+        (2021, "CRECHE", 1, 1, None, None),   # 2021 não publicou datas: nulo, não zero
+        (2021, "PRE", 1, 1, None, None),
+        (2023, "CRECHE", 1, 1, 1, 1),
+        (2023, "PRE", 1, 1, 1, 1),
+    ]
+    assert um(con, "select sum(qtd_matriculas) from dw.fato_turma") == um(
+        con, "select sum(qtd_matricula) from dw.fato_matricula")
+    media = um(con, """select alunos_por_turma_junho from dw.vw_ocupacao_turma t
+                       join dw.dim_ano_letivo a using (chave_ano_letivo) join dw.dim_serie s using (chave_serie)
+                       where a.ano = 2019 and s.codigo_etapa = 'PRE'""")
+    assert media == 1.0
+
+
+def test_populacao_do_censo(dw):
+    con, resumo = dw
+    assert resumo["populacao"]["carregada"] and resumo["populacao"]["distritos_sem_territorio"] == 1
+    assert resumo["fato_populacao"] == 6 * 11
+    assert um(con, "select count(*) from dw.dim_faixa_etaria") == 11
+    assert um(con, "select count(*) from dw.dim_setor_censitario") == 6
+    # um único mês de referência, julho de 2022, anotado na dimensão Tempo
+    assert con.execute("""select distinct t.ano_mes from dw.fato_populacao p
+                          join dw.dim_tempo t using (chave_tempo)""").fetchall() == [("2022-07",)]
+    assert "Censo" in um(con, "select observacao from dw.dim_tempo where ano_mes = '2022-07'")
+    por_distrito = dict(con.execute("""
+        select d.distrito, sum(p.qtd_pessoas) from dw.fato_populacao p
+        join dw.dim_territorio d using (chave_territorio) join dw.dim_faixa_etaria f using (chave_faixa_etaria)
+        where f.faixa_ibge = '0 A 4 ANOS' group by 1""").fetchall())
+    from conftest import POPULACAO_0_4
+    assert por_distrito == {**POPULACAO_0_4, "NAO INFORMADO": 1}
+    # o valor não publicado fica nulo, não zero
+    assert um(con, "select count(*) from dw.fato_populacao where qtd_pessoas is null") == 1
+    # conformidade: toda faixa da dimensão Idade existe na dimensão Faixa Etária
+    assert um(con, """select count(*) from (select distinct faixa_ibge from dw.dim_idade
+                      where faixa_ibge <> 'NAO INFORMADA') i
+                      left join dw.dim_faixa_etaria f using (faixa_ibge) where f.chave_faixa_etaria is null""") == 0
+
+
+def test_populacao_fora_do_recorte_nao_carrega(dados_sinteticos, tmp_path):
+    cfg = Configuracao(dir_dados=dados_sinteticos, anos=range(2019, 2022), banco=tmp_path / "recorte.duckdb",
+                       log=lambda *_: None)
+    resumo = carregar.carregar_tudo(cfg)
+    assert resumo["populacao"]["carregada"] is False and resumo["populacao"]["motivo"] == "2022 fora do recorte"
+    assert resumo["fato_populacao"] == 0

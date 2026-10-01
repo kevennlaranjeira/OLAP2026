@@ -1,7 +1,9 @@
 """Dados sintéticos com o formato dos arquivos reais, para os testes de carga, qualidade e consultas."""
 from __future__ import annotations
 
+import io
 import shutil
+import zipfile
 from pathlib import Path
 
 import duckdb
@@ -97,6 +99,51 @@ def microdado_2023() -> tuple[pd.DataFrame, pd.DataFrame]:
     return pd.DataFrame(infantil), pd.DataFrame(complementar)
 
 
+# Censo 2022 sintético no layout dos Agregados por Setores (temas Básico e Demografia).
+# Códigos de setor de 15 dígitos; os de São Paulo começam por 3550308.
+IBGE_BASICO = [
+    ("355030801000001", "3550308", "São Paulo", "Água Rasa"),
+    ("355030801000002", "3550308", "São Paulo", "Água Rasa"),
+    ("355030802000001", "3550308", "São Paulo", "Alto de Pinheiros"),
+    ("355030803000001", "3550308", "São Paulo", "Anhanguera"),
+    ("355030899000001", "3550308", "São Paulo", "Distrito Sintético"),     # sem correspondente na SME
+    ("350010505000001", "3500105", "Adamantina", "Adamantina"),            # outro município: fica fora
+]
+# CD_SETOR -> V01031 ... V01041 (0 a 4, 5 a 9, ..., 70 ou mais); 'X' = valor não publicado
+IBGE_DEMOGRAFIA = {
+    "355030801000001": [30, 25, 20, 22, 30, 31, 60, 55, 50, 40, 35],
+    "355030801000002": [10, 12, 11, 9, 14, 15, 30, 28, 22, 18, 12],
+    "355030801000003": [5, 4, "X", 3, 6, 6, 10, 9, 8, 7, 5],             # ausente do Básico: herda o distrito
+    "355030802000001": [8, 9, 10, 12, 15, 16, 30, 30, 28, 25, 30],
+    "355030803000001": [40, 35, 30, 28, 30, 33, 55, 45, 35, 20, 10],
+    "355030899000001": [1] * 11,
+    "350010505000001": [99] * 11,
+}
+POPULACAO_0_4 = {"AGUA RASA": 45, "ALTO DE PINHEIROS": 8, "ANHANGUERA": 40}
+
+
+def gravar_ibge(destino: Path) -> None:
+    """Tema Básico num .zip (latin-1, ';') e Demografia em .csv (UTF-8, ',', 'CD_setor' em caixa mista)."""
+    destino.mkdir(parents=True, exist_ok=True)
+    basico = "CD_SETOR;CD_MUN;NM_MUN;NM_DIST;v0001\n" + "".join(
+        f"{s};{m};{nm};{d};10\n" for s, m, nm, d in IBGE_BASICO)
+    with zipfile.ZipFile(destino / "Agregados_por_setores_basico_BR.zip", "w") as z:
+        z.writestr("Agregados_por_setores_basico_BR.csv", basico.encode("latin-1"))
+    variaveis = [f"V{1031 + i:05d}" for i in range(11)]
+    linhas = ["CD_setor,V01006," + ",".join(variaveis)]
+    for setor, valores in IBGE_DEMOGRAFIA.items():
+        linhas.append(f"{setor},999," + ",".join(str(v) for v in valores))
+    (destino / "Agregados_por_setores_demografia_BR.csv").write_bytes(("\n".join(linhas) + "\n").encode("utf-8"))
+
+
+def zip_em_memoria(arquivos: dict[str, bytes]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as z:
+        for nome, conteudo in arquivos.items():
+            z.writestr(nome, conteudo)
+    return buffer.getvalue()
+
+
 def _gravar(df: pd.DataFrame, caminho: Path) -> None:
     caminho.parent.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect()
@@ -106,7 +153,7 @@ def _gravar(df: pd.DataFrame, caminho: Path) -> None:
 
 @pytest.fixture
 def dados_sinteticos(tmp_path) -> Path:
-    """Árvore data/ mínima: bruto dos microdados (3 anos) e planilhas de fila de exemplo."""
+    """Árvore data/ mínima: bruto dos microdados (3 anos), planilhas de fila de exemplo e Censo 2022 sintético."""
     dados = tmp_path / "data"
     bruto = dados / "interim" / "bruto"
     _gravar(microdado_2019(), bruto / "ano=2019" / "Microdados_EOL_Matriculas_Ano_2019.parquet")
@@ -118,4 +165,5 @@ def dados_sinteticos(tmp_path) -> Path:
     fila.mkdir(parents=True)
     for f in (FIXTURES / "fila").glob("*.csv"):
         shutil.copy(f, fila / f.name)
+    gravar_ibge(dados / "raw" / "ibge")
     return dados

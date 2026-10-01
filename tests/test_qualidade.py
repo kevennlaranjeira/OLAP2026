@@ -19,12 +19,64 @@ def dw(dados_sinteticos, tmp_path):
 def test_nenhuma_falha_no_dw_sintetico(dw):
     con, resumo = dw
     resultado = q.verificar(con, resumo["fila_metadados"])
-    assert [v.codigo for v in resultado] == [f"Q{i:02d}" for i in range(1, 11)]
+    assert [v.codigo for v in resultado] == [f"Q{i:02d}" for i in range(1, 13)]
     assert all(v.status in (q.OK, q.ALERTA) for v in resultado)
     por_codigo = {v.codigo: v for v in resultado}
     assert por_codigo["Q01"].status == q.OK
     assert por_codigo["Q02"].status == q.OK
     assert por_codigo["Q03"].status == q.OK
+    assert por_codigo["Q11"].status == q.OK
+    assert "27 chaves estrangeiras" in por_codigo["Q01"].resumo
+
+
+def test_ocupacao_conserva_matriculas_e_turmas(dw):
+    con, _ = dw
+    v = q.ocupacao_turmas(con)
+    assert v.status == q.OK
+    det = v.detalhe.set_index("ano")
+    assert (det["matriculas"] == det["matriculas_no_fato_turma"]).all()
+    assert (det["turmas_distintas"] == det["linhas_fato_turma"]).all()
+
+
+def test_populacao_com_setor_sem_distrito_e_valor_nao_publicado_vira_alerta(dw):
+    con, _ = dw
+    v = q.populacao(con)
+    assert v.status == q.ALERTA
+    r = v.detalhe.iloc[0]
+    assert r.setores == 6 and r.setores_sem_distrito_da_sme == 1 and r.valores_nao_publicados == 1
+
+
+def test_populacao_ausente_vira_alerta(tmp_path):
+    from conftest import FIXTURES, _gravar, microdado_2019
+    dados = tmp_path / "data"
+    _gravar(microdado_2019(), dados / "interim" / "bruto" / "ano=2019" / "Microdados_EOL_Matriculas_Ano_2019.parquet")
+    (dados / "raw" / "demanda").mkdir(parents=True)
+    for f in (FIXTURES / "fila").glob("*.csv"):
+        (dados / "raw" / "demanda" / f.name).write_bytes(f.read_bytes())
+    cfg = Configuracao(dir_dados=dados, banco=tmp_path / "sem_ibge.duckdb", log=lambda *_: None)
+    resumo = carregar.carregar_tudo(cfg)
+    assert resumo["populacao"] == {"carregada": False, "motivo": "arquivos ausentes"}
+    con = duckdb.connect(str(cfg.banco), read_only=True)
+    try:
+        v = q.populacao(con)
+        assert v.status == q.ALERTA and "não carregada" in v.resumo
+        assert con.execute("select count(*) from dw.dim_faixa_etaria").fetchone()[0] == 11
+    finally:
+        con.close()
+
+
+def test_fato_de_turma_que_nao_conserva_e_falha():
+    con = duckdb.connect()
+    con.execute("create schema dw")
+    con.execute("create table dw.dim_ano_letivo(chave_ano_letivo int, ano int)")
+    con.execute("create table dw.fato_matricula(chave_ano_letivo int, id_turma varchar, qtd_matricula int)")
+    con.execute("""create table dw.fato_turma(chave_ano_letivo int, qtd_matriculas int,
+                   qtd_matriculas_ativas_junho int, qtd_turmas_ativas_junho int)""")
+    con.execute("insert into dw.dim_ano_letivo values (1, 2019)")
+    con.execute("insert into dw.fato_matricula values (1, 't1', 1), (1, 't1', 1), (1, 't2', 1)")
+    con.execute("insert into dw.fato_turma values (1, 2, 2, 1)")
+    v = q.ocupacao_turmas(con)
+    assert v.status == q.FALHA
 
 
 def test_observacoes_dos_anos_viram_alerta(dw):

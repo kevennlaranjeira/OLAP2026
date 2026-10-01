@@ -9,7 +9,8 @@ Fluxo (todo dentro de um único arquivo .duckdb):
 4. stgdb.stg.matricula_preparada: cada matrícula com as chaves naturais de todas as
    dimensões já resolvidas;
 5. dimensões, fatos e observações de qualidade por ano;
-6. o arquivo de staging é apagado (a menos que manter_staging seja pedido).
+6. população do Censo 2022, quando os arquivos do IBGE estão em data/raw/ibge;
+7. o arquivo de staging é apagado (a menos que manter_staging seja pedido).
 
 O texto bruto nunca é alterado no staging. As junções com as tabelas de
 correspondência usam o valor bruto, com nulo trocado por um marcador.
@@ -25,7 +26,7 @@ import pandas as pd
 
 from ..config import Configuracao
 from ..preparacao import preparar_fila
-from ..transformacao import datas, etapas, idade, microdados, situacao
+from ..transformacao import datas, etapas, idade, microdados, populacao, situacao
 from ..transformacao import escolas as esc
 from ..transformacao import normalizacao as n
 
@@ -34,6 +35,8 @@ NULO = "<nulo>"
 # final só recebe dimensões e fatos e não guarda os blocos livres de 13 milhões de
 # linhas apagadas (o DuckDB não devolve ao disco o espaço de tabela apagada).
 STG = "stgdb.stg"
+# Data de referência do Censo 2022: noite de 31 de julho para 1º de agosto de 2022.
+MES_REFERENCIA_CENSO = date(2022, 7, 1)
 _MESES = ("JANEIRO", "FEVEREIRO", "MARCO", "ABRIL", "MAIO", "JUNHO", "JULHO",
           "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO")
 
@@ -316,6 +319,13 @@ def _dim_idade(con) -> None:
                     [i, v, idade.faixa_escolar(v), idade.faixa_ibge(v), idade.grupo_etario(v)])
 
 
+def _dim_faixa_etaria(con) -> None:
+    """Catálogo das faixas do IBGE; existe mesmo sem a população carregada, como dim_etapa."""
+    for ordem, (variavel, rotulo, inicio, fim) in enumerate(populacao.VARIAVEIS_FAIXA, 1):
+        con.execute("INSERT INTO dw.dim_faixa_etaria VALUES (?, ?, ?, ?, ?, ?)",
+                    [ordem, rotulo, inicio, fim, variavel, ordem])
+
+
 def _dims_bugiganga(con) -> None:
     con.execute("""
         INSERT INTO dw.dim_perfil_aluno
@@ -410,6 +420,84 @@ def _fato_desfecho(con) -> int:
     return con.execute("SELECT count(*) FROM dw.fato_desfecho").fetchone()[0]
 
 
+def _fato_turma(con) -> int:
+    """Uma linha por turma e ano, agregada do fato de matrícula.
+
+    Matrícula ativa em 30/06 segue a regra da consulta C5: início até a data e fim
+    depois dela ou não informado. Nos anos sem nenhuma data publicada (2021) as
+    medidas de junho ficam nulas, e não zero.
+    """
+    con.execute("""
+        INSERT INTO dw.fato_turma
+        WITH base AS (
+            SELECT f.chave_ano_letivo, f.chave_escola, f.chave_territorio, f.chave_serie, f.chave_turno,
+                   f.id_turma, f.qtd_matricula, a.ano, di.data AS inicio, df.data AS fim
+            FROM dw.fato_matricula f
+            JOIN dw.dim_ano_letivo a USING (chave_ano_letivo)
+            JOIN dw.dim_data di ON di.chave_data = f.chave_data_inicio
+            JOIN dw.dim_data df ON df.chave_data = f.chave_data_fim
+        ), anos_com_datas AS (
+            SELECT ano FROM base GROUP BY ano HAVING count(inicio) > 0
+        ), turma AS (
+            SELECT chave_ano_letivo, chave_escola, chave_territorio, chave_serie, chave_turno, id_turma, ano,
+                   sum(qtd_matricula) AS matriculas,
+                   coalesce(sum(qtd_matricula) FILTER (
+                       WHERE inicio <= make_date(ano, 6, 30) AND (fim IS NULL OR fim > make_date(ano, 6, 30))
+                   ), 0) AS ativas
+            FROM base GROUP BY ALL
+        )
+        SELECT t.chave_ano_letivo, t.chave_escola, t.chave_territorio, t.chave_serie, t.chave_turno, t.id_turma,
+               1, t.matriculas,
+               CASE WHEN c.ano IS NOT NULL THEN t.ativas END,
+               CASE WHEN c.ano IS NOT NULL THEN (t.ativas > 0)::SMALLINT END
+        FROM turma t LEFT JOIN anos_com_datas c USING (ano)""")
+    return con.execute("SELECT count(*) FROM dw.fato_turma").fetchone()[0]
+
+
+def _populacao(con, cfg: Configuracao) -> dict:
+    """Setores e fato de população do Censo 2022. Sem os arquivos, ou fora do recorte, não carrega nada."""
+    pop = populacao.ler(cfg.dir_raw_ibge)
+    if pop is None:
+        cfg.log(f"  população do Censo 2022 não carregada: arquivos ausentes em {cfg.dir_raw_ibge}")
+        return {"carregada": False, "motivo": "arquivos ausentes"}
+    chave_tempo = con.execute("SELECT chave_tempo FROM dw.dim_tempo WHERE data_referencia = ?",
+                              [MES_REFERENCIA_CENSO]).fetchone()
+    if chave_tempo is None:
+        cfg.log("  população do Censo 2022 não carregada: 2022 fora do recorte")
+        return {"carregada": False, "motivo": "2022 fora do recorte", **pop.meta}
+
+    setores = pop.setores.copy()
+    setores.insert(0, "chave_setor_censitario", range(1, len(setores) + 1))
+    setores["municipio"], setores["uf"] = "SAO PAULO", "SP"
+    con.register("_tmp", setores)
+    con.execute("""INSERT INTO dw.dim_setor_censitario
+                   SELECT chave_setor_censitario, cd_setor, cd_distrito_ibge, nome_distrito_ibge, distrito,
+                          municipio, uf FROM _tmp""")
+    con.unregister("_tmp")
+
+    con.register("_pessoas", pop.pessoas)
+    con.execute("""
+        INSERT INTO dw.fato_populacao
+        SELECT ?, s.chave_setor_censitario, coalesce(t.chave_territorio, tni.chave_territorio),
+               fe.chave_faixa_etaria, p.qtd_pessoas
+        FROM _pessoas p
+        JOIN dw.dim_setor_censitario s ON s.cd_setor = p.cd_setor
+        JOIN dw.dim_faixa_etaria fe ON fe.faixa_ibge = p.faixa_ibge
+        LEFT JOIN dw.dim_territorio t ON t.distrito = s.distrito
+        CROSS JOIN (SELECT chave_territorio FROM dw.dim_territorio WHERE distrito = 'NAO INFORMADO') tni""",
+                [chave_tempo[0]])
+    con.unregister("_pessoas")
+    nota = "Data de referência do Censo Demográfico 2022 (noite de 31/07 para 01/08/2022)."
+    con.execute("""UPDATE dw.dim_tempo
+                   SET observacao = CASE WHEN observacao IS NULL THEN ? ELSE observacao || ' | ' || ? END
+                   WHERE chave_tempo = ?""", [nota, nota, chave_tempo[0]])
+    sem_territorio = con.execute("""
+        SELECT count(DISTINCT s.distrito) FROM dw.dim_setor_censitario s
+        LEFT JOIN dw.dim_territorio t ON t.distrito = s.distrito AND t.distrito <> 'NAO INFORMADO'
+        WHERE t.chave_territorio IS NULL""").fetchone()[0]
+    return {"carregada": True, **pop.meta, "distritos_sem_territorio": sem_territorio}
+
+
 # ----------------------------------------------------------------------------- qualidade por ano
 
 def _observacoes_ano(con, identificadas: pd.DataFrame) -> None:
@@ -476,6 +564,7 @@ def carregar_tudo(cfg: Configuracao) -> dict:
         _dim_etapa_e_serie(con)
         _dim_turno(con)
         _dim_idade(con)
+        _dim_faixa_etaria(con)
         _dims_bugiganga(con)
 
         cfg.log("  fatos")
@@ -485,11 +574,15 @@ def carregar_tudo(cfg: Configuracao) -> dict:
             "fato_matricula": _fato_matricula(con),
             "fato_fila": _fato_fila(con, fila_df),
             "fato_desfecho": _fato_desfecho(con),
+            "fato_turma": _fato_turma(con),
         }
+        cfg.log("  população do Censo 2022")
+        resumo["populacao"] = _populacao(con, cfg)
+        resumo["fato_populacao"] = con.execute("SELECT count(*) FROM dw.fato_populacao").fetchone()[0]
         _observacoes_ano(con, aux["identificadas"])
         for tabela in ("dim_tempo", "dim_data", "dim_ano_letivo", "dim_territorio", "dim_escola", "dim_etapa",
-                       "dim_serie", "dim_turno", "dim_idade", "dim_perfil_aluno", "dim_deficiencia",
-                       "dim_situacao_matricula"):
+                       "dim_serie", "dim_turno", "dim_idade", "dim_faixa_etaria", "dim_setor_censitario",
+                       "dim_perfil_aluno", "dim_deficiencia", "dim_situacao_matricula"):
             resumo[tabela] = con.execute(f"SELECT count(*) FROM dw.{tabela}").fetchone()[0]
         resumo["vinculo_escola"] = esc.resumo_vinculo(aux["identificadas"]).astype(int).to_dict(orient="index")
         resumo["fila_metadados"] = fila_meta

@@ -1,6 +1,7 @@
 """Extração: cliente CKAN, manifesto de downloads, seleção pelo recorte e pacotes."""
 import hashlib
 import json
+import urllib.error
 import zipfile
 from pathlib import Path
 
@@ -38,6 +39,8 @@ class ServidorFalso:
         if self.falhas:
             self.falhas -= 1
             raise OSError("conexão recusada")
+        if req.full_url not in self.rotas:
+            raise urllib.error.HTTPError(req.full_url, 404, "Not Found", hdrs=None, fp=None)  # type: ignore[arg-type]
         return RespostaFalsa(self.rotas[req.full_url])
 
 
