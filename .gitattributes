@@ -1,0 +1,9 @@
+# Fim de linha LF em todo o texto do repositório.
+* text=auto eol=lf
+
+# Binários.
+*.pdf binary
+*.png binary
+
+# Planilhas reais reduzidas: o leitor precisa vê-las com os bytes originais.
+tests/fixtures/** -text
