@@ -1,5 +1,7 @@
 # Rede Municipal Paulistana: oferta escolar e demanda não atendida
 
+[![testes](https://github.com/kevennlaranjeira/OLAP2026/actions/workflows/testes.yml/badge.svg)](https://github.com/kevennlaranjeira/OLAP2026/actions/workflows/testes.yml)
+
 Data warehouse sobre a rede municipal de educação de São Paulo, construído para os trabalhos práticos da disciplina **SCC0245 Processamento Analítico de Dados** (ICMC-USP, profa. Cristina Dutra de Aguiar).
 
 A pergunta que organiza o modelo: **onde existe fila por vaga, onde existe oferta, e o que acontece com quem consegue a vaga**. Ela só é respondível porque a Secretaria Municipal de Educação publica, ao mesmo tempo, o microdado de cada matrícula e a fila de espera por distrito.
@@ -13,7 +15,7 @@ A pergunta que organiza o modelo: **onde existe fila por vaga, onde existe ofert
 | Volume | 13,4 milhões de matrículas, 44 meses de fila × 96 distritos × 8 etapas |
 | Modelo | constelação com 3 tabelas de fatos e 12 dimensões |
 | Banco | DuckDB, um arquivo de ~290 MB, carregado em ~3 minutos |
-| Testes | testes unitários e de integração, sem depender de internet nem dos dados reais |
+| Testes | 341 testes unitários e de integração, cobertura de 96%, sem depender de internet nem dos dados reais |
 | Consultas | roll-up, drill-down, slice and dice, pivot e dois drill-across |
 
 ## O que os dados mostram
@@ -38,9 +40,17 @@ python -m venv .venv
 
 O comando baixa as bases do portal da prefeitura, prepara, carrega o DuckDB em `data/dw/dw_sme.duckdb`, roda as verificações de qualidade e as consultas. Detalhes, etapas separadas e opções em [docs/07-como-executar.md](docs/07-como-executar.md). O pacote de 2019 a 2021 vem em `.rar` e exige o 7-Zip.
 
+## Verificações
+
 ```bash
-.venv/Scripts/python -m pytest
+.venv/Scripts/python -m pytest --cov=dw_sme
 ```
+
+```bash
+.venv/Scripts/python -m ruff check src tests
+```
+
+O GitHub Actions roda as duas a cada push, em Python 3.11 e 3.13, e falha se a cobertura cair abaixo de 85%. Com os dados reais, `dw-sme verificar` acrescenta dez verificações sobre o banco carregado (integridade referencial, conservação entre fatos, reconciliação entre as bases); o resultado da última carga está em [docs/relatorios/qualidade.md](docs/relatorios/qualidade.md).
 
 ## Documentação
 
@@ -71,12 +81,15 @@ src/dw_sme/
   cli.py           linha de comando dw-sme
 tests/             testes, fixtures reais da fila e microdado sintético
 docs/              documentação e relatório
+.github/workflows/ testes e lint a cada push
+pyproject.toml     pacote, dependências e configuração de pytest, ruff e pyright
 ```
 
 ## Grupo
 
 | Nome | Nº USP |
 |---|---|
+| [NOME COMPLETO] | [Nº USP] |
 | [NOME COMPLETO] | [Nº USP] |
 | [NOME COMPLETO] | [Nº USP] |
 | [NOME COMPLETO] | [Nº USP] |
