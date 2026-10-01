@@ -2,7 +2,7 @@
 -- tipo: roll-up
 -- titulo: Matrículas subindo da etapa para o nível de ensino, ano a ano
 -- pergunta: Como evoluiu o número de matrículas da rede municipal entre 2015 e 2024, por etapa e, agregando, por nível de ensino?
--- justificativa: A série mostra se a rede cresceu onde a demanda pressiona (creche) e encolheu onde a demanda cai com a natalidade (fundamental). Subir de etapa para nível e para o total do ano usa a hierarquia série ⊑ etapa ⊑ nível da dimensão Série. A medida é aditiva: a soma dos vínculos aluno-turma é válida em qualquer nível.
+-- justificativa: A série mostra em quais etapas a rede cresceu e em quais encolheu, para comparar com a evolução da fila em cada etapa. Subir de etapa para nível e para o total do ano usa a hierarquia série ≤ etapa ≤ nível da dimensão Série. A medida é aditiva: a soma dos vínculos aluno-turma é válida em qualquer nível.
 -- fatos: fato_matricula
 SELECT
     a.ano,

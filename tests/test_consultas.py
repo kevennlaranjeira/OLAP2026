@@ -14,7 +14,7 @@ def con(tmp_path_factory):
     raiz = tmp_path_factory.mktemp("consultas")
     dados = raiz / "data"
     bruto = dados / "interim" / "bruto"
-    _gravar(microdado_2019(), bruto / "ano=2019" / "Microdados_EOL_Matriculas_Ano_2019.parquet")
+    _gravar(microdado_2019_com_fundamental(), bruto / "ano=2019" / "Microdados_EOL_Matriculas_Ano_2019.parquet")
     _gravar(microdado_2021(), bruto / "ano=2021" / "Microdados_EOL_Matriculas_Ano_2021.parquet")
     infantil, _ = microdado_2023()
     _gravar(infantil, bruto / "ano=2023" / "Microdados_Matricula_EOL_Escolarizacao_Educacao_Infantil_2023.parquet")
@@ -26,6 +26,21 @@ def con(tmp_path_factory):
     c = duckdb.connect(str(cfg.banco), read_only=True)
     yield c
     c.close()
+
+
+def microdado_2019_com_fundamental():
+    """2019 sintético mais duas matrículas de fundamental numa EMEF da DRE Penha (uma aprovada, uma abandono)."""
+    import pandas as pd
+    from conftest import _linha, microdado_2019
+    emef = {"CD_UNIDADE_EDUCACAO": "000123", "NOME_ESCOLA": "MARIO COVAS, GOV.", "TIPO_ESCOLA": "EMEF",
+            "NOME_DISTRITO": "AGUA RASA", "DRE": "PENHA", "CD_SETOR": "1001", "CD_INEP_ESCOLA": "35000123",
+            "SITUACAO_ESCOLA": "ATIVA"}
+    turma = {"CD_TURMA": "777", "NOME_TURMA": "6D", "CD_TURNO": "01", "DESC_TURNO": "MANHA",
+             "HORA_IN_TURMA": "0700", "HORA_FIM_TURMA": "1200", "TURMA_ESCOL": "S"}
+    serie = {"MODALIDADE": "FUND", "MODALIDADE_SEGMENTO": "Fund2", "DESC_SERIE": "C.II 6.ANO F9", "CD_SERIE": "2096"}
+    extra = [_linha(2019, emef, turma, serie, {"nasc": "2008", "mat": "300"}, "APROV", IDADE_ALUNO_3103="11"),
+             _linha(2019, emef, turma, serie, {"nasc": "2008", "mat": "301"}, "ABAND", IDADE_ALUNO_3103="11")]
+    return pd.concat([microdado_2019(), pd.DataFrame(extra)], ignore_index=True)
 
 
 def consulta(codigo):
@@ -60,9 +75,9 @@ def test_c1_municipio_igual_a_soma_dos_distritos(con):
 def test_c2_total_do_ano_igual_a_soma_das_etapas(con):
     r = ex.executar(con, consulta("C2"))
     totais = dict(r[r.agregacao == "TOTAL DO ANO"][["ano", "matriculas"]].values.tolist())
-    assert totais == {2019: 3, 2021: 2, 2023: 2}
+    assert totais == {2019: 5, 2021: 2, 2023: 2}
     etapas_2019 = r[(r.ano == 2019) & (r.agregacao == "ETAPA")]["matriculas"].sum()
-    assert etapas_2019 == 3
+    assert etapas_2019 == 5
 
 
 def test_c3_fatia_creche_e_corta_anos(con):
@@ -94,10 +109,13 @@ def test_c5_une_fila_e_matricula_pelas_dimensoes_conformadas(con):
 
 def test_c6_cruza_tres_fatos_por_dre(con):
     r = ex.executar(con, consulta("C6"))
-    assert {"matriculas", "fila_junho", "abandonos", "taxa_abandono"} <= set(r.columns)
-    linha = r[(r.ano == 2019) & (r.dre == "PENHA")].iloc[0]
-    assert linha["matriculas"] == 2 and linha["abandonos"] == 1
-    assert linha["taxa_abandono"] == pytest.approx(0.5)
+    assert {"matriculas_creche", "fila_creche_junho", "abandonos_fundamental",
+            "taxa_abandono_fundamental"} <= set(r.columns)
+    penha = r[(r.ano == 2019) & (r.dre == "PENHA")].iloc[0]
+    # o abandono da pré-escola sintética (EMEI) não entra: só o fundamental conta
+    assert penha["abandonos_fundamental"] == 1 and penha["taxa_abandono_fundamental"] == pytest.approx(0.5)
+    pirituba = r[(r.ano == 2019) & (r.dre == "PIRITUBA/JARAGUA")].iloc[0]
+    assert pirituba["matriculas_creche"] == 1
 
 
 def test_executar_todas_grava_csv(con, tmp_path):

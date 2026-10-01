@@ -1,0 +1,509 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fontspec}
+\usepackage[brazil]{babel}
+\usepackage[a4paper,margin=2.3cm]{geometry}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.multipart,positioning,calc}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{underscore}
+\usepackage[hidelinks]{hyperref}
+
+\setlist{itemsep=2pt,topsep=4pt}
+\renewcommand{\arraystretch}{1.18}
+\captionsetup{font=small,labelfont=bf}
+\titleformat{\section}{\Large\bfseries}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.7em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.6em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small SCC0245 Processamento Analítico de Dados}
+\fancyhead[R]{\small Primeiro Trabalho Prático}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\newcommand{\cod}[1]{\texttt{#1}}
+\newcommand{\hier}[1]{$#1$}
+
+% ------------------------------------------------------------------ notação dos esquemas
+\tikzset{
+  dim/.style={rectangle split, rectangle split parts=2, draw, font=\scriptsize,
+              text width=4.15cm, inner sep=2.6pt, rectangle split part align={center,left}},
+  fato/.style={dim, line width=1.1pt, text width=4.55cm},
+  nome/.style={draw, font=\scriptsize\bfseries, minimum width=2.9cm, minimum height=0.62cm, align=center},
+  nomefato/.style={nome, line width=1.1pt, minimum width=3.3cm},
+  liga/.style={line width=0.5pt},
+}
+
+\begin{document}
+
+% ================================================================== CAPA
+\begin{titlepage}
+\centering
+{\large Universidade de São Paulo\\Instituto de Ciências Matemáticas e de Computação\\Departamento de Ciências de Computação\par}
+\vspace{1.2cm}
+{\large [NOME DO CURSO]\par}
+\vspace{0.4cm}
+{\large SCC0245 Processamento Analítico de Dados\par}
+{\normalsize Profa. Dra. Cristina Dutra de Aguiar\par}
+\vspace{2.6cm}
+{\LARGE\bfseries Primeiro Trabalho Prático\par}
+\vspace{0.5cm}
+{\Large Rede Municipal Paulistana:\\oferta escolar e demanda não atendida\par}
+\vspace{2.8cm}
+\begin{tabular}{ll}
+\toprule
+\textbf{Integrante} & \textbf{Nº USP} \\
+\midrule
+{[NOME COMPLETO]} & {[Nº USP]} \\
+{[NOME COMPLETO]} & {[Nº USP]} \\
+{[NOME COMPLETO]} & {[Nº USP]} \\
+{[NOME COMPLETO]} & {[Nº USP]} \\
+\bottomrule
+\end{tabular}
+\vfill
+{\large São Carlos, [DATA DE ENTREGA]\par}
+\end{titlepage}
+
+% ================================================================== ÍNDICE
+\tableofcontents
+\clearpage
+
+% ================================================================== 1
+\section{Descrição do problema}
+
+\subsection{Tema geral}
+
+O trabalho modela a oferta escolar e a demanda não atendida na rede municipal de educação de São Paulo entre 2015 e 2024. A pergunta que organiza o modelo é onde existe fila por vaga, onde existe oferta e o que acontece com o aluno que consegue a vaga.
+
+A escolha se justifica por duas razões. A primeira é de relevância: a falta de vaga em creche foi por anos o principal problema de acesso da educação infantil paulistana, e a prefeitura publica a fila de espera por distrito justamente para dar transparência a ele. A segunda é de viabilidade: a Secretaria Municipal de Educação (SME) publica ao mesmo tempo o microdado de cada matrícula e a fila de espera, o que permite medir a demanda não atendida em vez de estimá-la. Poucas redes no país publicam as duas informações.
+
+\subsection{Fontes de dados}
+
+As duas fontes vêm do Portal de Dados Abertos da Prefeitura de São Paulo, publicadas pela SME sob licença Creative Commons. Elas têm grão, formato e vocabulário diferentes.
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{3.2cm}X X}
+\toprule
+& \textbf{Microdados da Rede Municipal de Educação, Matrículas} & \textbf{Demanda Registrada e Matrículas} \\
+\midrule
+Grão publicado & uma matrícula (vínculo de um aluno com uma turma) & um distrito, com uma coluna por etapa de ensino \\
+Periodicidade & anual & trimestral até 2022, bimestral a partir de 2023; série histórica de 2006 a 2017 \\
+Volume no recorte & 13,4 milhões de matrículas de escolarização & 44 planilhas, 96 distritos cada \\
+Conteúdo & escola, turma, turno, série, idade, sexo, raça e cor, deficiência, datas e desfecho da matrícula & matrículas, matrículas em processo e demanda registrada (fila) por etapa \\
+\bottomrule
+\end{tabularx}
+\caption{Fontes de dados.}
+\end{table}
+
+\subsection{Processos de negócio}
+
+O modelo tem três processos de negócio, cada um com sua tabela de fatos.
+
+\begin{enumerate}
+\item \textbf{Matrícula.} Registra a ocupação de vagas: cada vínculo de um aluno com uma turma em um ano letivo. É a oferta efetivamente utilizada.
+\item \textbf{Fila por vaga.} Registra a demanda não atendida: quantas crianças estão inscritas esperando vaga, por distrito e etapa, em cada mês de referência publicado.
+\item \textbf{Desfecho da matrícula.} Registra o que aconteceu com quem conseguiu a vaga: aprovação, reprovação, abandono, transferência ou conclusão, agregados por escola, ano e série.
+\end{enumerate}
+
+\subsubsection{Grão, dimensões e fatos de cada processo}
+
+\begin{table}[H]
+\centering\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{2.3cm}>{\raggedright}p{3.6cm}X>{\raggedright\arraybackslash}p{3.4cm}}
+\toprule
+\textbf{Processo} & \textbf{Grão} & \textbf{Dimensões} & \textbf{Fatos} \\
+\midrule
+Matrícula & vínculo aluno-turma em um ano letivo & Ano Letivo, Data (início e fim), Escola, Território, Série, Turno, Idade, Perfil do Aluno, Deficiência, Situação da Matrícula & quantidade de matrículas (campo artificial), dias de matrícula \\
+Fila por vaga & distrito, mês de referência e etapa & Tempo, Território, Etapa & matrículas, matrículas em processo, demanda total e suas categorias \\
+Desfecho & escola, ano letivo e série & Ano Letivo, Escola, Território, Série & matrículas e contagem por desfecho; taxas derivadas \\
+\bottomrule
+\end{tabularx}
+\caption{Grão, dimensões e fatos.}
+\end{table}
+
+No processo de matrícula, o grão é o mais fino que a fonte permite. Isso preserva o perfil de cada aluno, que se perderia em qualquer agregação. No processo de fila, o grão é aquele em que a prefeitura publica, pois não há dado abaixo do distrito. O processo de desfecho é um fato agregado: taxas de rendimento só fazem sentido sobre um conjunto de alunos, e o grão escolhido é o de escola, ano e série.
+
+\subsection{Dimensões e atributos}
+
+Todas as dimensões têm chave primária artificial. As chaves naturais da origem são guardadas como atributos. Nas tabelas, a coluna ``Papel'' indica se o atributo participa de uma hierarquia ou se é apenas descritivo.
+
+\subsubsection{Dimensão Tempo}
+Representa o mês de referência da fila. Grão: mês.
+
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{3.3cm}X>{\raggedright\arraybackslash}p{3.3cm}}
+\toprule\textbf{Atributo} & \textbf{Significado} & \textbf{Papel}\\\midrule
+chave tempo & chave artificial & chave \\
+data referência & primeiro dia do mês & descritivo \\
+mês, nome mês & mês do ano & hierarquia \\
+bimestre, trimestre, semestre & agrupamentos do mês & hierarquia \\
+ano & ano civil & hierarquia \\
+fila publicada & indica se há planilha de fila para o mês & descritivo \\
+observação & nota técnica publicada no rodapé da planilha do mês & descritivo \\
+\bottomrule\end{tabularx}
+\end{table}
+
+\subsubsection{Dimensão Data (visão para dois papéis)}
+Representa um dia do calendário. É usada duas vezes pelo fato de matrícula: data de início e data de fim da matrícula, da mesma forma que a Dimensão Data do artigo da disciplina representa a data de internação e a data de alta. As duas datas permitem contar as matrículas ativas em um dia, que é a medida comparável com a fila. Atributos: chave data, data, dia, mês, nome mês, trimestre, semestre, ano, dia da semana, nome do dia da semana e indicador de fim de semana. O membro com data nula representa ``não informada''.
+
+\subsubsection{Dimensão Ano Letivo}
+Representa o ano letivo do microdado. Atributos: chave ano letivo, ano, qualidade do código da escola naquele ano (confiável, consistente só no ano ou corrompido) e observação com as limitações do microdado do ano. É o rollup encolhido das dimensões Tempo e Data, conformada com elas pelo atributo ano.
+
+\subsubsection{Dimensão Território}
+Representa um distrito do município. Grão: distrito.
+
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{3.3cm}X>{\raggedright\arraybackslash}p{3.3cm}}
+\toprule\textbf{Atributo} & \textbf{Significado} & \textbf{Papel}\\\midrule
+chave território & chave artificial & chave \\
+distrito & um dos 96 distritos, ou ``não informado'' & hierarquia \\
+DRE & Diretoria Regional de Educação predominante do distrito & hierarquia \\
+participação DRE & fração das matrículas do distrito que pertencem a essa DRE & descritivo \\
+município, UF & São Paulo, SP & hierarquia \\
+\bottomrule\end{tabularx}
+\end{table}
+
+\subsubsection{Dimensão Escola (mudança lenta tipo 2)}
+Representa uma versão de uma unidade escolar. Uma nova versão começa quando nome, tipo, distrito ou DRE mudam; setor e situação guardam o último valor dentro da versão.
+
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{3.3cm}X>{\raggedright\arraybackslash}p{3.3cm}}
+\toprule\textbf{Atributo} & \textbf{Significado} & \textbf{Papel}\\\midrule
+chave escola & chave artificial da versão & chave \\
+código escola & código SME (ou código sintético quando não há código confiável) & chave natural \\
+código sintético & a escola nunca teve código confiável publicado & descritivo \\
+versão, ano início, ano fim, versão atual & controle da vigência da versão & descritivo \\
+nome escola & nome da unidade & descritivo \\
+tipo escola & EMEI, EMEF, CEI, creche conveniada, CEU e outros & hierarquia \\
+rede & direta, conveniada, outras secretarias ou particular & hierarquia \\
+distrito, DRE & localização administrativa da escola & descritivo \\
+setor SME & setor administrativo da Secretaria (não é setor censitário) & descritivo \\
+situação & ativa, extinta, paralisada ou criada & descritivo \\
+\bottomrule\end{tabularx}
+\end{table}
+
+\subsubsection{Dimensões Etapa e Série}
+A dimensão Série representa a série publicada no microdado, identificada pela combinação de modalidade, segmento e série. Seus atributos são chave série, modalidade, segmento, série, ciclo, ordem da série, indicador de educação especial, código da etapa, etapa e nível. A dimensão Etapa é o seu rollup encolhido, com chave etapa, código, nome da etapa, nível e ordem; é usada pelo fato de fila, que a prefeitura publica por etapa. As etapas são creche, pré-escola, ensino fundamental anos iniciais e anos finais, ensino médio, EJA anos iniciais e anos finais, MOVA, ProJovem e educação profissional.
+
+\subsubsection{Dimensão Turno}
+Atributos: chave turno, turno (manhã, intermediário, tarde, vespertino, noite, integral ou não informado), jornada (parcial diurno, noturno ou integral) e origem do turno (publicado, deduzido do código de 2021, deduzido do horário ou não informado).
+
+\subsubsection{Dimensão Idade}
+Representa a idade do aluno em 31 de março do ano letivo. Atributos: chave idade, idade, faixa escolar (0 a 3, 4 e 5, 6 a 10, 11 a 14, 15 a 17, 18 a 29, 30 ou mais), faixa do IBGE (mesmo corte quinquenal do Censo 2022) e grupo etário.
+
+\subsubsection{Dimensões bugiganga}
+Três dimensões agrupam indicadores de baixa cardinalidade que, sozinhos, gerariam dezenas de dimensões de duas ou três linhas:
+\begin{itemize}
+\item \textbf{Perfil do Aluno}: sexo, raça e cor, altas habilidades e indicador de idade estimada;
+\item \textbf{Deficiência}: os 17 indicadores de deficiência e transtorno do microdado, mais o indicador de possuir alguma deficiência e a quantidade delas;
+\item \textbf{Situação da Matrícula}: os 12 indicadores de situação final do aluno, a situação textual e o desfecho resumido.
+\end{itemize}
+Em todas elas, um indicador inexistente no arquivo de um ano fica nulo (não coletado), não falso. Quatro indicadores de deficiência só passam a existir em 2024, e marcá-los como falso antes disso faria parecer que nenhum aluno tinha a condição.
+
+\subsection{Fatos}
+
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{4.2cm}>{\raggedright}p{2.3cm}X}
+\toprule\textbf{Fato} & \textbf{Aditividade} & \textbf{Observação}\\\midrule
+\multicolumn{3}{l}{\textit{Tabela de fatos Matrícula}}\\
+quantidade de matrículas & aditivo & campo artificial sempre igual a 1, como a contagem de utilização do esquema de ocupação do artigo da disciplina; a tabela é praticamente sem fato \\
+dias de matrícula & aditivo & duração do vínculo; nulo em 2021, que não publicou datas \\
+\midrule
+\multicolumn{3}{l}{\textit{Tabela de fatos Fila}}\\
+matrículas, matrículas em processo & semiaditivo & estoques na data de referência: somam entre distritos e etapas, não ao longo do tempo \\
+demanda total & semiaditivo & idem; somar meses contaria a mesma criança várias vezes \\
+demanda sem opção, sem opção até 30 dias, sem opção mais de 30 dias, com opção por unidade & semiaditivo & nulos nos períodos em que a prefeitura não publicou a quebra \\
+\midrule
+\multicolumn{3}{l}{\textit{Tabela de fatos Desfecho}}\\
+matrículas e contagens por desfecho & aditivo & as contagens são exclusivas e somam o total de matrículas \\
+taxas de aprovação, reprovação e abandono & não aditivo, derivado & divisão da contagem pela soma de aprovados, reprovados e abandonos; recalculada em cada nível, nunca como média de taxas; nula na educação infantil \\
+\bottomrule\end{tabularx}
+\caption{Classificação dos fatos.}
+\end{table}
+
+\subsection{Povoamento e integração}
+
+\subsubsection{Origem de cada parte do modelo}
+
+\begin{table}[H]\centering\small
+\begin{tabularx}{\linewidth}{>{\raggedright}p{4.4cm}X}
+\toprule\textbf{Parte do modelo} & \textbf{Origem}\\\midrule
+Fato Matrícula; dimensões Escola, Série, Turno, Idade, Data, Perfil, Deficiência e Situação & Microdados de Matrículas \\
+Fato Fila; dimensão Tempo & Demanda Registrada e Matrículas \\
+Fato Desfecho & agregado a partir do Fato Matrícula \\
+Dimensão Território & distritos das duas fontes; DRE predominante calculada a partir do microdado \\
+Dimensão Etapa & catálogo do projeto, conformado com o vocabulário das duas fontes \\
+Dimensão Ano Letivo & anos do microdado; qualidade e observações medidas no próprio dado \\
+\bottomrule\end{tabularx}
+\end{table}
+
+\subsubsection{Integração entre as duas fontes}
+
+\paragraph{Distrito.} As duas fontes identificam o distrito pelo nome, em maiúsculas e sem acento, com variação de espaços. Normalizados, os 96 nomes de uma fonte coincidem um a um com os da outra.
+
+\paragraph{DRE.} A planilha de fila não traz a DRE. Ela é obtida do microdado: para cada distrito, a DRE com mais matrículas. Entre 2015 e 2021, no máximo dois distritos por ano têm escolas em mais de uma DRE, e o atributo participação DRE registra a fração coberta pela regra. É essa integração que permite subir a fila de distrito para DRE.
+
+\paragraph{Etapa.} A planilha usa rótulos como ``Creche'', ``Pré Escola'' e ``Ens. Fund.I''; o microdado usa modalidade, segmento e série (por exemplo, \cod{FUND} com segmento \cod{Fund1} e série ``C.II 5.ANO F9''). As duas são levadas ao mesmo catálogo de etapas. O ciclo interdisciplinar cobre o 4º, 5º e 6º anos e por isso atravessa a fronteira entre anos iniciais e finais; ciclo e etapa formam hierarquias paralelas.
+
+\paragraph{Sinônimos e homônimos.} São os dois problemas clássicos de integração citados no artigo da disciplina. Exemplos de sinônimos: ``PIRITUBA'' e ``PIRITUBA/JARAGUA'' (mesma DRE); \cod{idade\_aluno\_31\_03}, \cod{IDADE\_ALUNO\_3103} e \cod{IDADE\_ALUNO\_MAR} (mesma coluna em anos diferentes). Exemplos de homônimos: o campo \cod{CD\_SETOR} da SME é um setor administrativo de quatro dígitos e não tem relação com o setor censitário do IBGE, de quinze; e escolas diferentes com mesmo nome, tipo e distrito (de 14 a 34 casos por ano).
+
+\subsubsection{Problemas da fonte e decisões}
+
+\begin{longtable}{>{\raggedright}p{5.2cm}>{\raggedright\arraybackslash}p{9.6cm}}
+\toprule\textbf{Problema encontrado} & \textbf{Decisão de integração}\\\midrule\endhead
+Sete formatos da planilha de fila entre 2006 e 2026 & o significado de cada coluna é lido do cabeçalho de duas linhas, e o de (1), (2) e (3) das notas de rodapé de cada arquivo \\
+Quebra da fila por tempo de espera publicada só a partir de 2020 & medida nula onde não foi publicada, nunca zero \\
+Código da escola corrompido de 2022 a 2024 (notação científica, centenas de escolas no mesmo código) & a qualidade do código é medida por ano no próprio dado; o código real é recuperado casando nome, tipo e distrito com o último ano confiável (94,8\% a 98,6\% das matrículas); o restante recebe código sintético \\
+Escola que muda de nome mantendo o código & dimensão Escola de mudança lenta tipo 2 \\
+Turno não publicado em 2021 & deduzido do código da turma, que em 2021 é o de 2020 somado de 3, conferido pelos horários \\
+Idade com vírgula decimal, nula ou com ano de nascimento 1900 & idade recalculada pelo nascimento; valores impossíveis tratados como não informados \\
+Datas em cinco formatos, inclusive número serial do Excel & leitura de todos os formatos; datas fora da janela do ano letivo descartadas \\
+Indicadores de desfecho conflitantes (aprovado e reprovado ao mesmo tempo) & desfecho resumido com prioridade explícita: falecido, transferido, abandono, reprovado, aprovado, concluído, outra saída, em curso \\
+Atividades complementares no mesmo arquivo de escolarização & excluídas, pois a fila só conta vagas de escolarização \\
+\bottomrule
+\end{longtable}
+
+% ================================================================== 2
+\clearpage
+\section{Esquemas}
+
+A notação segue a do artigo da disciplina: cada dimensão é uma caixa com o nome da dimensão, a chave primária e os atributos; a tabela de fatos fica no centro, com as chaves estrangeiras e os fatos. Por espaço, as caixas mostram os atributos principais; a lista completa está na Seção~1.4.
+
+% ------------------------------------------------------------------ esquema 1
+\subsection{Esquema estrela Matrícula}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=0.4cm]
+\node[fato] (F) at (0,0) {\textbf{Tabela de Fatos Matrícula}
+\nodepart{two}(FK) chave ano letivo\\(FK) chave data início\\(FK) chave data fim\\(FK) chave escola\\(FK) chave território\\(FK) chave série\\(FK) chave turno\\(FK) chave idade\\(FK) chave perfil aluno\\(FK) chave deficiência\\(FK) chave situação\\id turma \hfill\textit{(degenerada)}\\código matrícula \hfill\textit{(degenerada)}\\quantidade matrículas \hfill\textit{(campo artificial)}\\dias de matrícula};
+
+\node[dim, anchor=north east] (A) at (-3.75,7.2) {\textbf{Dimensão Ano Letivo}\nodepart{two}(PK) chave ano letivo\\ano\\qualidade código escola\\observação};
+\node[dim, below=of A] (D) {\textbf{Dimensão Data}\\\textit{(visão para dois papéis)}\nodepart{two}(PK) chave data\\data\\dia, mês, nome mês\\trimestre, semestre, ano\\dia semana, fim de semana};
+\node[dim, below=of D] (E) {\textbf{Dimensão Escola}\nodepart{two}(PK) chave escola\\código escola, versão\\ano início, ano fim\\nome escola, tipo escola\\rede, DRE, situação\\...};
+\node[dim, below=of E] (T) {\textbf{Dimensão Território}\nodepart{two}(PK) chave território\\distrito\\DRE\\município, UF};
+\node[dim, below=of T] (S) {\textbf{Dimensão Série}\nodepart{two}(PK) chave série\\modalidade, segmento, série\\ciclo, educação especial\\código etapa, etapa, nível};
+
+\node[dim, anchor=north west] (TU) at (3.75,7.2) {\textbf{Dimensão Turno}\nodepart{two}(PK) chave turno\\turno\\jornada\\origem turno};
+\node[dim, below=of TU] (I) {\textbf{Dimensão Idade}\nodepart{two}(PK) chave idade\\idade\\faixa escolar, faixa IBGE\\grupo etário};
+\node[dim, below=of I] (P) {\textbf{Dimensão Perfil Aluno}\nodepart{two}(PK) chave perfil aluno\\sexo, raça e cor\\altas habilidades\\idade estimada};
+\node[dim, below=of P] (DF) {\textbf{Dimensão Deficiência}\nodepart{two}(PK) chave deficiência\\possui deficiência\\autismo, intelectual, ...\\(17 indicadores)};
+\node[dim, below=of DF] (SI) {\textbf{Dimensão Situação Matrícula}\nodepart{two}(PK) chave situação\\situação matrícula, desfecho\\aprovado, reprovado, ...\\(12 indicadores)};
+
+\foreach \n in {A,E,T,S} \draw[liga] (\n.east) -- ($(F.west)!0.5!(\n.east)$) |- (F.west);
+\draw[liga] ([yshift=5pt]D.east) -- node[above,font=\tiny,pos=0.45]{início} ++(0.3,0) |- ([yshift=51pt]F.west);
+\draw[liga] ([yshift=-5pt]D.east) -- node[below,font=\tiny,pos=0.45]{fim} ++(0.6,0) |- ([yshift=42pt]F.west);
+\foreach \n in {TU,I,P,DF,SI} \draw[liga] (\n.west) -- ($(F.east)!0.5!(\n.west)$) |- (F.east);
+\end{tikzpicture}
+\caption{Esquema estrela do processo Matrícula. A Dimensão Data aparece com dois papéis (início e fim da matrícula).}
+\end{figure}
+
+\paragraph{Hierarquias.}
+\begin{itemize}
+\item Data: \hier{\text{dia} \leq \text{mês} \leq \text{trimestre} \leq \text{semestre} \leq \text{ano}}
+\item Território: \hier{\text{distrito} \leq \text{DRE} \leq \text{município} \leq \text{UF}}
+\item Escola: \hier{\text{escola} \leq \text{tipo de unidade} \leq \text{rede}}
+\item Série: \hier{\text{série} \leq \text{etapa} \leq \text{nível}} e, em paralelo, \hier{\text{série} \leq \text{ciclo}}
+\item Turno: \hier{\text{turno} \leq \text{jornada}}
+\item Idade: \hier{\text{idade} \leq \text{faixa escolar} \leq \text{grupo etário}} e, em paralelo, \hier{\text{idade} \leq \text{faixa IBGE}}
+\item Ano Letivo, Perfil do Aluno, Deficiência e Situação: sem hierarquia; atributos descritivos.
+\end{itemize}
+
+\paragraph{Funções de agregação.} quantidade de matrículas: SOMA. Dias de matrícula: SOMA, e a média é obtida dividindo pela quantidade de matrículas.
+
+% ------------------------------------------------------------------ esquema 2
+\subsection{Esquema estrela Fila}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=0.5cm]
+\node[fato] (F) at (0,0) {\textbf{Tabela de Fatos Fila}
+\nodepart{two}(FK) chave tempo\\(FK) chave território\\(FK) chave etapa\\formato planilha \hfill\textit{(degenerada)}\\matrículas\\matrículas em processo\\demanda total\\demanda sem opção\\demanda sem opção até 30 dias\\demanda sem opção mais de 30 dias\\demanda com opção por unidade};
+\node[dim, anchor=north east] (TE) at (-3.2,2.6) {\textbf{Dimensão Tempo}\nodepart{two}(PK) chave tempo\\data referência\\mês, nome mês\\bimestre, trimestre, semestre\\ano\\fila publicada, observação};
+\node[dim, below=of TE] (TR) {\textbf{Dimensão Território}\nodepart{two}(PK) chave território\\distrito\\DRE, participação DRE\\município, UF};
+\node[dim, anchor=west] (ET) at (3.2,0) {\textbf{Dimensão Etapa}\nodepart{two}(PK) chave etapa\\código\\etapa\\nível\\ordem};
+\foreach \n in {TE,TR} \draw[liga] (\n.east) -- ($(F.west)!0.5!(\n.east)$) |- (F.west);
+\draw[liga] (ET.west) -- (F.east);
+\end{tikzpicture}
+\caption{Esquema estrela do processo Fila por vaga.}
+\end{figure}
+
+\paragraph{Hierarquias.}
+\begin{itemize}
+\item Tempo: \hier{\text{mês} \leq \text{trimestre} \leq \text{semestre} \leq \text{ano}} e \hier{\text{mês} \leq \text{bimestre} \leq \text{ano}}. São duas porque a fila foi publicada por trimestre até 2022 e por bimestre depois.
+\item Território: \hier{\text{distrito} \leq \text{DRE} \leq \text{município} \leq \text{UF}}
+\item Etapa: \hier{\text{etapa} \leq \text{nível}}
+\end{itemize}
+
+\paragraph{Funções de agregação.} Todos os fatos são estoques: SOMA nas dimensões Território e Etapa; na dimensão Tempo, o valor de um único mês (o último do período, ou MÉDIA entre meses). Somar meses contaria a mesma criança mais de uma vez.
+
+% ------------------------------------------------------------------ esquema 3
+\subsection{Esquema estrela Desfecho}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance=0.5cm]
+\node[fato] (F) at (0,0) {\textbf{Tabela de Fatos Desfecho}
+\nodepart{two}(FK) chave ano letivo\\(FK) chave escola\\(FK) chave território\\(FK) chave série\\matrículas\\aprovados, reprovados, abandonos\\transferidos, concluintes, falecidos\\outras saídas, em curso, sem desfecho\\\textit{taxa aprovação (derivada)}\\\textit{taxa reprovação (derivada)}\\\textit{taxa abandono (derivada)}};
+\node[dim, anchor=north east] (A) at (-3.2,2.5) {\textbf{Dimensão Ano Letivo}\nodepart{two}(PK) chave ano letivo\\ano\\qualidade código escola\\observação};
+\node[dim, below=of A] (E) {\textbf{Dimensão Escola}\nodepart{two}(PK) chave escola\\código escola, versão\\nome escola, tipo escola\\rede, DRE\\...};
+\node[dim, anchor=north west] (T) at (3.2,2.5) {\textbf{Dimensão Território}\nodepart{two}(PK) chave território\\distrito\\DRE\\município, UF};
+\node[dim, below=of T] (S) {\textbf{Dimensão Série}\nodepart{two}(PK) chave série\\modalidade, série\\ciclo\\etapa, nível};
+\foreach \n in {A,E} \draw[liga] (\n.east) -- ($(F.west)!0.5!(\n.east)$) |- (F.west);
+\foreach \n in {T,S} \draw[liga] (\n.west) -- ($(F.east)!0.5!(\n.west)$) |- (F.east);
+\end{tikzpicture}
+\caption{Esquema estrela do processo Desfecho da matrícula.}
+\end{figure}
+
+\paragraph{Funções de agregação.} Matrículas e contagens por desfecho: SOMA. Taxas: não aditivas; em qualquer nível de agregação são recalculadas como contagem dividida pela soma de aprovados, reprovados e abandonos agregados naquele nível. Na educação infantil, que não tem aprovação nem reprovação, as taxas são nulas.
+
+% ------------------------------------------------------------------ constelação
+\subsection{Constelação de fatos}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.93, every node/.append style={transform shape}]
+\node[nomefato] (FM) at (-5.2,0) {Tabela de Fatos\\Matrícula};
+\node[nomefato] (FF) at (5.2,1.6) {Tabela de Fatos\\Fila};
+\node[nomefato] (FD) at (5.2,-2.4) {Tabela de Fatos\\Desfecho};
+
+\node[nome] (TR) at (0,0) {Dimensão\\Território};
+\node[nome] (AL) at (0,-2.0) {Dimensão\\Ano Letivo};
+\node[nome] (ES) at (0,-3.5) {Dimensão\\Escola};
+\node[nome] (SE) at (0,-5.0) {Dimensão\\Série};
+\node[nome] (TE) at (0,2.2) {Dimensão\\Tempo};
+\node[nome] (ET) at (0,3.7) {Dimensão\\Etapa};
+
+\node[nome] (DA) at (-5.2,3.0) {Dimensão Data\\(dois papéis)};
+\node[nome] (TU) at (-8.6,1.7) {Dimensão\\Turno};
+\node[nome] (ID) at (-8.6,0.2) {Dimensão\\Idade};
+\node[nome] (PA) at (-8.6,-1.3) {Dimensão\\Perfil Aluno};
+\node[nome] (DE) at (-8.6,-2.8) {Dimensão\\Deficiência};
+\node[nome] (SM) at (-5.2,-3.2) {Dimensão\\Situação};
+
+\foreach \d in {TR,AL,ES,SE} \draw[liga] (FM) -- (\d);
+\draw[liga] (FM.north) -- (DA.south);
+\draw[liga] ([xshift=6pt]FM.north) -- ([xshift=6pt]DA.south);
+\foreach \d in {TU,ID,PA,DE} \draw[liga] (FM) -- (\d);
+\draw[liga] (FM.south) -- (SM.north);
+\foreach \d in {TR,TE,ET} \draw[liga] (FF) -- (\d);
+\foreach \d in {TR,AL,ES,SE} \draw[liga] (FD) -- (\d);
+
+\draw[dashed,gray] (DA.east) -- node[above,font=\tiny,text=black]{rollup} (TE.west);
+\draw[dashed,gray] (TE.east) .. controls +(1.3,-0.4) and +(1.3,0.4) .. node[right,font=\tiny,text=black,pos=0.5]{rollup} (AL.east);
+\draw[dashed,gray] (SE.east) .. controls +(1.6,0) and +(1.6,0) .. node[right,font=\tiny,text=black,pos=0.5]{rollup} (ET.east);
+\end{tikzpicture}
+\caption{Constelação de fatos. Linhas contínuas ligam fatos a dimensões; linhas tracejadas ligam cada dimensão ao seu rollup encolhido conformado.}
+\end{figure}
+
+\paragraph{Processo de projeto da constelação.}
+\begin{enumerate}
+\item Cada processo foi modelado como uma estrela, começando pela declaração do grão.
+\item As dimensões das três estrelas foram comparadas. Território, Escola, Série e Ano Letivo aparecem em mais de uma estrela com o mesmo significado e o mesmo grão; viraram dimensões compartilhadas.
+\item Tempo e Etapa exigiram decisão, porque a fila é publicada em grão mais alto (mês e etapa) que a matrícula (dia e série). Em vez de forçar um grão único, cada fato manteve o seu, e as dimensões de grão mais alto foram definidas como rollups encolhidos conformados: Ano Letivo e Tempo contêm um subconjunto dos atributos de Data, e Etapa contém um subconjunto dos atributos de Série. A conformidade é garantida pelos valores dos atributos comuns (ano, mês, código da etapa).
+\item Território exigiu outra decisão: no fato de matrícula e no de desfecho ele é o distrito da escola; no fato de fila, o distrito da planilha. A reconciliação descrita no Apêndice mostrou que as matrículas da planilha de fila também são contadas pelo distrito da escola, o que torna as duas leituras compatíveis.
+\item As consultas de drill-across agregam cada fato até o grão comum e unem os resultados pelos atributos das dimensões conformadas.
+\end{enumerate}
+
+\paragraph{Outros aspectos de modelagem.} Chave artificial em todas as dimensões; três tabelas bugiganga (Perfil do Aluno, Deficiência e Situação da Matrícula); dimensões degeneradas (id da turma e código da matrícula no fato Matrícula, formato da planilha no fato Fila); tabela de fatos sem fato (Matrícula, com campo artificial); dimensão com visão para dois papéis (Data); dimensão de mudança lenta tipo 2 (Escola); membro ``não informado'' em Território, Data, Idade e Turno.
+
+% ================================================================== 3
+\clearpage
+\section{Consultas}
+
+As consultas a seguir estão especificadas na forma textual, conforme o enunciado. O modelo foi desenhado para respondê-las.
+
+\subsection{Consulta 1: drill-down}
+\textbf{Consulta.} No último mês publicado, quantas crianças esperavam vaga em creche no município, em cada Diretoria Regional de Educação e, dentro de cada DRE, em cada distrito?
+
+\textbf{Operação.} Drill-down na hierarquia \hier{\text{distrito} \leq \text{DRE} \leq \text{município}} da dimensão Território, sobre o fato Fila, com a dimensão Etapa fixada em creche.
+
+\textbf{Importância e justificativa.} A DRE é a instância que administra a rede; o distrito é a menor unidade em que a fila é publicada e, por isso, a mais fina para localizar onde falta vaga. A hierarquia distrito, DRE só existe porque foi construída na integração com o microdado, já que a planilha de fila traz apenas o distrito.
+
+\subsection{Consulta 2: roll-up}
+\textbf{Consulta.} Qual o número de matrículas da rede municipal em cada ano de 2015 a 2024, por etapa de ensino, subindo para o nível de ensino e para o total do ano?
+
+\textbf{Operação.} Roll-up na hierarquia \hier{\text{série} \leq \text{etapa} \leq \text{nível}} da dimensão Série, sobre o fato Matrícula, para cada ano letivo.
+
+\textbf{Importância e justificativa.} Mostra em quais etapas a rede cresceu e em quais encolheu, o que pode ser comparado com a evolução da fila em cada etapa. Como a quantidade de matrículas é aditiva, a soma é válida em qualquer nível.
+
+\subsection{Consulta 3: slice and dice}
+\textbf{Consulta.} Na creche, como as matrículas se dividem entre rede direta e rede conveniada e entre jornada integral e parcial, em 2019 e em 2024?
+
+\textbf{Operação.} Slice na dimensão Série (etapa igual a creche); dice nas dimensões Escola (rede direta ou conveniada) e Ano Letivo (2019 e 2024), cruzando rede por jornada da dimensão Turno, sobre o fato Matrícula.
+
+\textbf{Importância e justificativa.} A rede conveniada tem papel central na oferta de creche, e a jornada importa porque vaga de período parcial não atende famílias em que os responsáveis trabalham o dia inteiro. 2019 é o último ano antes da pandemia.
+
+\subsection{Consulta 4: pivot}
+\textbf{Consulta.} No ano mais recente, quantas matrículas cada DRE tem em jornada integral, parcial diurna e noturna, com a jornada nas colunas e a DRE nas linhas?
+
+\textbf{Operação.} Pivot do eixo jornada (dimensão Turno) para as colunas, mantendo a DRE (dimensão Escola) nas linhas, sobre o fato Matrícula. Girando de novo, a etapa pode substituir a DRE nas linhas.
+
+\textbf{Importância e justificativa.} Com a jornada nas colunas, a tabela mostra de relance quais regiões dependem de turno parcial e quais concentram jornada integral. Num resultado sem pivot, a jornada ficaria repetida nas linhas e a comparação entre regiões exigiria leitura linha a linha.
+
+\subsection{Consulta 5: drill-across}
+\textbf{Consulta.} Em cada distrito e ano, quantas crianças esperavam vaga em creche e em pré-escola em junho, quantas estavam matriculadas na mesma data, e qual a fração da demanda que ficou fora da rede?
+
+\textbf{Operação.} Drill-across entre os fatos Fila e Matrícula. Cada fato é agregado até distrito, etapa e ano; a fila pelo mês de junho (dimensão Tempo) e a matrícula pelas matrículas ativas no fim de junho, usando os dois papéis da dimensão Data (início anterior e fim posterior à data). Os resultados são unidos pelas dimensões conformadas Território, Etapa (rollup de Série) e Tempo (rollup de Data).
+
+\textbf{Importância e justificativa.} É a pergunta central do tema. Junho é publicado em todos os anos e cai no meio do ano letivo; em dezembro o ano já terminou e quase nenhuma matrícula está ativa. A fila é estoque e por isso entra pelo valor de um único mês.
+
+\subsection{Consulta 6: drill-across}
+\textbf{Consulta.} Em cada DRE e ano, qual foi a fila de creche em junho por mil matrículas de creche, e qual foi a taxa de abandono no ensino fundamental?
+
+\textbf{Operação.} Drill-across entre os fatos Fila, Matrícula e Desfecho, cada um agregado até DRE e ano. A fila sobe de distrito para DRE pela hierarquia da dimensão Território. A taxa de abandono é recalculada a partir das contagens de abandonos, aprovados e reprovados, restrita ao nível ensino fundamental da dimensão Série.
+
+\textbf{Importância e justificativa.} Fila e abandono são sintomas diferentes de vulnerabilidade territorial: falta de vaga no começo da trajetória escolar e evasão no meio dela. Cruzar os três fatos permite verificar se as regiões que mais sofrem com um sofrem também com o outro. A taxa é restrita ao fundamental porque na educação infantil não há aprovação.
+
+\begin{table}[H]\centering\small
+\begin{tabular}{lll}
+\toprule\textbf{Consulta} & \textbf{Operação} & \textbf{Fatos}\\\midrule
+1 & drill-down & Fila \\
+2 & roll-up & Matrícula \\
+3 & slice and dice & Matrícula \\
+4 & pivot & Matrícula \\
+5 & drill-across & Fila, Matrícula \\
+6 & drill-across & Fila, Matrícula, Desfecho \\
+\bottomrule\end{tabular}
+\caption{Cobertura das operações exigidas.}
+\end{table}
+
+% ================================================================== APÊNDICE
+\clearpage
+\appendix
+\section{Viabilidade: o modelo povoado com os dados reais}
+
+O enunciado recomenda fortemente o uso de dados reais e volumosos. Para confirmar que as fontes sustentam o modelo, os esquemas foram implementados em DuckDB e povoados com os dados de 2015 a 2024. O código, os testes e a documentação estão no repositório do grupo.
+
+\begin{table}[H]\centering\small
+\begin{tabular}{lr}
+\toprule\textbf{Tabela} & \textbf{Linhas}\\\midrule
+Fato Matrícula & 13.412.178 \\
+Fato Fila & 33.792 \\
+Fato Desfecho & 159.369 \\
+Dimensão Escola (versões) & 9.927 \\
+Dimensão Data & 4.384 \\
+Dimensão Série & 122 \\
+Dimensão Território & 97 \\
+\bottomrule\end{tabular}
+\caption{Volumes carregados.}
+\end{table}
+
+\paragraph{Reconciliação entre as fontes.} A planilha de fila publica também a matrícula por distrito e etapa. Contando no microdado as matrículas ativas no fim de junho pelo distrito da escola, as duas fontes concordam com diferença abaixo de 1\% em todos os anos de 2015 a 2020 (na creche: +0,03\% em 2015, +0,17\% em 2019, $-$0,89\% em 2020). Isso confirma a integração e mostra que a planilha conta a matrícula pelo distrito da escola. De 2022 em diante a concordância cai (+8,6\% na creche em 2022), porque o arquivo publicado passou a trazer vínculos encerrados sem data de fim; contando alunos distintos, a diferença de 2022 cai para $-$2,5\%. Por isso a fração de demanda fora da rede da Consulta 5 usa a matrícula da própria planilha, e a do microdado é apresentada ao lado como comparação.
+
+\paragraph{Resultado preliminar.} A fila de creche em junho caiu de 124.741 crianças em 2015 para 3.633 em 2024; a fração da demanda fora da rede passou de 34\% para 1\%.
+
+\end{document}

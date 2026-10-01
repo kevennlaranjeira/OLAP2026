@@ -2,7 +2,7 @@
 -- tipo: drill-down
 -- titulo: Fila de creche descendo da DRE para o distrito
 -- pergunta: No último mês publicado, quantas crianças esperavam vaga em creche em cada Diretoria Regional de Educação, e em quais distritos dessa DRE a fila se concentra?
--- justificativa: A DRE é a instância que administra a rede, mas é no distrito que a prefeitura decide onde abrir vaga. A consulta parte do total do município, desce para a DRE e depois para o distrito, seguindo a hierarquia distrito ⊑ DRE ⊑ município da dimensão Território. Essa hierarquia não existe na planilha de fila, que só traz o distrito: ela vem da integração com o microdado (DRE predominante de cada distrito).
+-- justificativa: A DRE é a instância que administra a rede; o distrito é a menor unidade em que a fila é publicada, e por isso a mais fina para localizar onde falta vaga. A consulta parte do total do município, desce para a DRE e depois para o distrito, seguindo a hierarquia distrito ≤ DRE ≤ município da dimensão Território. Essa hierarquia não existe na planilha de fila, que só traz o distrito: ela vem da integração com o microdado (DRE predominante de cada distrito).
 -- fatos: fato_fila
 WITH referencia AS (
     -- a fila é estoque: usa-se um único mês, nunca a soma de meses

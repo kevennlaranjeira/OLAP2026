@@ -7,7 +7,7 @@
 CREATE SCHEMA IF NOT EXISTS dw;
 
 -- Tempo, grão de mês. Usada pelo fato de fila, que é publicado por mês de referência.
--- Hierarquias: mês ⊑ trimestre ⊑ semestre ⊑ ano  e  mês ⊑ bimestre ⊑ ano
+-- Hierarquias: mês ≤ trimestre ≤ semestre ≤ ano  e  mês ≤ bimestre ≤ ano
 CREATE TABLE dw.dim_tempo (
     chave_tempo              INTEGER PRIMARY KEY,
     data_referencia          DATE     NOT NULL UNIQUE,   -- primeiro dia do mês
@@ -24,7 +24,7 @@ CREATE TABLE dw.dim_tempo (
 
 -- Data, grão de dia. Usada com visão para dois papéis no fato de matrícula
 -- (data de início e data de fim), como a Dimensão Data do artigo da disciplina.
--- Conformada com dim_tempo por (ano, mes). Hierarquia: dia ⊑ mês ⊑ trimestre ⊑ semestre ⊑ ano
+-- Conformada com dim_tempo por (ano, mes). Hierarquia: dia ≤ mês ≤ trimestre ≤ semestre ≤ ano
 -- A linha com data nula é o membro 'não informada' (2021 não publicou datas).
 CREATE TABLE dw.dim_data (
     chave_data               INTEGER PRIMARY KEY,
@@ -50,7 +50,7 @@ CREATE TABLE dw.dim_ano_letivo (
 );
 
 -- Território, grão de distrito (os 96 distritos do município).
--- Hierarquia: distrito ⊑ DRE ⊑ município ⊑ UF
+-- Hierarquia: distrito ≤ DRE ≤ município ≤ UF
 CREATE TABLE dw.dim_territorio (
     chave_territorio         INTEGER PRIMARY KEY,
     distrito                 VARCHAR  NOT NULL UNIQUE,
@@ -62,7 +62,7 @@ CREATE TABLE dw.dim_territorio (
 
 -- Escola, mudança lenta tipo 2: uma linha por versão.
 -- Nome, tipo, distrito e DRE abrem versão nova; setor e situação são tipo 1 dentro da versão.
--- Hierarquia: escola ⊑ tipo de unidade ⊑ rede
+-- Hierarquia: escola ≤ tipo de unidade ≤ rede
 CREATE TABLE dw.dim_escola (
     chave_escola             INTEGER PRIMARY KEY,
     cod_escola               VARCHAR  NOT NULL,          -- código SME, ou SINT-... quando sintético
@@ -83,7 +83,7 @@ CREATE TABLE dw.dim_escola (
 
 -- Etapa de ensino, grão de etapa. Rollup encolhido de dim_serie, conformado por `codigo`.
 -- Usada pelo fato de fila, que a prefeitura publica por etapa.
--- Hierarquia: etapa ⊑ nível
+-- Hierarquia: etapa ≤ nível
 CREATE TABLE dw.dim_etapa (
     chave_etapa              INTEGER PRIMARY KEY,
     codigo                   VARCHAR  NOT NULL UNIQUE,
@@ -93,7 +93,7 @@ CREATE TABLE dw.dim_etapa (
 );
 
 -- Série, grão de série (combinação de modalidade, segmento e série publicada).
--- Hierarquias paralelas: série ⊑ etapa ⊑ nível  e  série ⊑ ciclo
+-- Hierarquias paralelas: série ≤ etapa ≤ nível  e  série ≤ ciclo
 -- (o ciclo interdisciplinar atravessa a fronteira entre anos iniciais e finais)
 CREATE TABLE dw.dim_serie (
     chave_serie              INTEGER PRIMARY KEY,
@@ -108,7 +108,7 @@ CREATE TABLE dw.dim_serie (
     nivel                    VARCHAR  NOT NULL
 );
 
--- Turno da turma. Hierarquia: turno ⊑ jornada
+-- Turno da turma. Hierarquia: turno ≤ jornada
 CREATE TABLE dw.dim_turno (
     chave_turno              INTEGER PRIMARY KEY,
     turno                    VARCHAR  NOT NULL,
@@ -118,7 +118,7 @@ CREATE TABLE dw.dim_turno (
 );
 
 -- Idade em 31 de março do ano letivo.
--- Hierarquias paralelas: idade ⊑ faixa escolar ⊑ grupo etário  e  idade ⊑ faixa IBGE
+-- Hierarquias paralelas: idade ≤ faixa escolar ≤ grupo etário  e  idade ≤ faixa IBGE
 CREATE TABLE dw.dim_idade (
     chave_idade              INTEGER PRIMARY KEY,
     idade                    SMALLINT UNIQUE,            -- nulo = não informada
