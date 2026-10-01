@@ -1,0 +1,36 @@
+# Ambiente
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Dados: baixados e gerados pelo pipeline, nunca versionados
+data/
+
+# LaTeX: arquivos auxiliares (o PDF final é versionado)
+docs/relatorio/*.aux
+docs/relatorio/*.log
+docs/relatorio/*.out
+docs/relatorio/*.toc
+docs/relatorio/*.lof
+docs/relatorio/*.lot
+docs/relatorio/*.fls
+docs/relatorio/*.fdb_latexmk
+docs/relatorio/*.synctex.gz
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Material da disciplina (enunciados e artigo): fica local, fora do repositório
+/scc0245projeto1.pdf
+/scc0245projeto2.pdf
+/artigo.camera-ready.pdf
+/SCC0245012022OLAPexemplosAplicacao.pdf
+
+# Caderno de trabalho da sessão (o conteúdo útil é consolidado em docs/)
+/_planejamento/
