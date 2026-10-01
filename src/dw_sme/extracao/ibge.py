@@ -6,9 +6,10 @@ não num portal CKAN. O cliente lê a listagem do diretório e das subpastas,
 procura os arquivos dos temas Básico e Demografia pelo nome e baixa os dois
 com o mesmo manifesto SHA-256 usado para as bases da SME.
 
-Quando há mais de um candidato, prefere o CSV (ou o ZIP com o CSV) ao XLSX e,
-entre os restantes, o de nome maior em ordem alfabética, que é a versão mais
-recente quando o nome carrega a data de publicação.
+Quando há mais de um candidato, prefere o arquivo de dados
+(Agregados_por_setores_*) a dicionários e notas, o CSV (ou o ZIP com o CSV)
+ao XLSX e, entre os restantes, o de nome maior em ordem alfabética, que é a
+versão mais recente quando o nome carrega a data de publicação.
 
 Se o diretório mudar de estrutura, a etapa avisa e o pipeline segue sem a
 população; os dois arquivos podem ser colocados à mão em data/raw/ibge.
@@ -71,6 +72,9 @@ def escolher(arquivos: list[str]) -> dict[str, str]:
         candidatos = [u for u in arquivos
                       if tema in _nome(u).lower() and _nome(u).lower().endswith((".zip", ".csv"))
                       and "xls" not in _nome(u).lower()]
+        # dicionários e notas também podem citar o tema no nome; o arquivo de dados é o "Agregados_por_setores_*"
+        dados = [u for u in candidatos if _nome(u).lower().startswith("agregados_por_setores")]
+        candidatos = dados or candidatos
         if candidatos:
             escolhidos[tema] = max(candidatos, key=lambda u: ("csv" in u.lower(), _nome(u)))
     return escolhidos

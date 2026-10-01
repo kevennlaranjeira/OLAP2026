@@ -18,7 +18,7 @@ Tema da disciplina: política pública municipal. O data warehouse serve para o 
 | Volume | 13,4 milhões de matrículas, 44 meses de fila × 96 distritos × 8 etapas |
 | Modelo | constelação com 5 tabelas de fatos e 14 dimensões |
 | Banco | DuckDB, um arquivo de ~290 MB na última carga medida (antes dos fatos de turma e população), carregado em ~3 minutos |
-| Testes | 372 testes unitários e de integração, cobertura de 94%, sem depender de internet nem dos dados reais |
+| Testes | 373 testes unitários e de integração, cobertura de 94%, sem depender de internet nem dos dados reais |
 | Consultas | dois drill-down, um roll-up, slice and dice, pivot e três drill-across |
 
 ## O que os dados mostram
