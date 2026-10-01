@@ -55,10 +55,20 @@ def _b(coluna: str) -> str:
     return f"coalesce({coluna}, '{NULO}')"
 
 
+VALORES_VERDADEIROS = ("1", "1,00")
+VALORES_FALSOS = ("0", "0,00")
+
+
 def _flag(coluna: str) -> str:
-    """'1' -> '1', '0' -> '0', ausente ou ilegível -> '-'."""
-    v = idade.sql_inteiro_br(coluna)
-    return f"(CASE {v} WHEN 1 THEN '1' WHEN 0 THEN '0' ELSE '-' END)"
+    """Indicador 0/1 da origem -> '1', '0' ou '-' (ausente, ilegível ou o '2' que aparece em 5 linhas).
+
+    Os valores publicados são só '0', '1', '0,00', '1,00' (2020), '2' e nulo;
+    comparar texto é bem mais barato que converter número em 13 milhões de linhas.
+    """
+    v = f"trim({coluna})"
+    sim = ", ".join(f"'{x}'" for x in VALORES_VERDADEIROS)
+    nao = ", ".join(f"'{x}'" for x in VALORES_FALSOS)
+    return f"(CASE WHEN {v} IN ({sim}) THEN '1' WHEN {v} IN ({nao}) THEN '0' ELSE '-' END)"
 
 
 def _bool_da_posicao(coluna: str, posicao: int) -> str:
@@ -149,31 +159,44 @@ def _mapas(con) -> dict:
 def _preparar_matricula(con) -> tuple[int, int]:
     def_cod = " || ".join(_flag(f"s.def_{d}") for d in microdados.DEFICIENCIAS)
     sit_cod = " || ".join(_flag(f"s.sit_{k}") for k in situacao.INDICADORES)
-    idade_sql = idade.sql_idade("s.ano_letivo", "s.idade_publicada", "s.ano_nascimento", "s.mes_nascimento")
-    estimada_sql = idade.sql_idade_estimada("s.ano_letivo", "s.idade_publicada", "s.ano_nascimento", "s.mes_nascimento")
-    ah = idade.sql_inteiro_br("s.nee_altas_habilidades")
+    idade_sql = idade.sql_idade_inteiros("c.ano_letivo", "c._pub", "c._an", "c._mes")
+    estimada_sql = idade.sql_idade_estimada_inteiros("c.ano_letivo", "c._pub", "c._an", "c._mes")
+    ah = _flag("s.nee_altas_habilidades")
     con.execute(f"""
         CREATE OR REPLACE TABLE stg.matricula_preparada AS
+        WITH convertida AS (
+            -- cada conversão cara é feita uma única vez por linha
+            SELECT m.*,
+                   {idade.sql_inteiro_br('m.idade_publicada')} AS _pub,
+                   {idade.sql_inteiro_br('m.ano_nascimento')} AS _an,
+                   {idade.sql_inteiro_br('m.mes_nascimento')} AS _mes,
+                   {datas.sql_data_bruta('m.dt_inicio')} AS _dti,
+                   {datas.sql_data_bruta('m.dt_fim')} AS _dtf
+            FROM stg.matricula m
+        ), com_idade AS (
+            SELECT c.*, {idade_sql} AS _idade, coalesce({estimada_sql}, false) AS _estimada
+            FROM convertida c
+        )
         SELECT
             s.ano_letivo,
             me.chave_escola,
             me.vinculo,
             ms.modalidade || '|' || coalesce(ms.segmento, '') || '|' || coalesce(ms.serie, '') AS chave_serie_nat,
             mt.turno, mt.origem_turno,
-            {idade_sql} AS idade,
-            coalesce({estimada_sql}, false) AS idade_estimada,
+            s._idade AS idade,
+            s._estimada AS idade_estimada,
             coalesce(mx.sexo, 'NAO INFORMADO') || '|' || coalesce(mr.raca_cor, 'NAO INFORMADA') || '|'
-                || coalesce(CASE {ah} WHEN 1 THEN 'true' WHEN 0 THEN 'false' END, '-') || '|'
-                || CAST(coalesce({estimada_sql}, false) AS VARCHAR) AS cod_perfil,
+                || (CASE {ah} WHEN '1' THEN 'true' WHEN '0' THEN 'false' ELSE '-' END) || '|'
+                || CAST(s._estimada AS VARCHAR) AS cod_perfil,
             {def_cod} AS cod_deficiencia,
             {sit_cod} || '|' || coalesce(msit.situacao, '') AS cod_situacao,
             upper(trim(s.nome_turma)) AS nome_turma,
             trim(s.cd_matricula_origem) AS cd_matricula,
             {idade.sql_inteiro_br('s.qtd_dias')} AS qtd_dias,
             s.dt_inicio IS NOT NULL AS tem_datas,
-            {datas.sql_data('s.dt_inicio', 's.ano_letivo')} AS data_inicio,
-            {datas.sql_data('s.dt_fim', 's.ano_letivo')} AS data_fim
-        FROM stg.matricula s
+            {datas.sql_na_janela('s._dti', 's.ano_letivo')} AS data_inicio,
+            {datas.sql_na_janela('s._dtf', 's.ano_letivo')} AS data_fim
+        FROM com_idade s
         JOIN stg.map_serie ms
           ON ms.modalidade_b = {_b('s.modalidade')} AND ms.segmento_b = {_b('s.segmento')} AND ms.serie_b = {_b('s.serie')}
         JOIN stg.map_escola me

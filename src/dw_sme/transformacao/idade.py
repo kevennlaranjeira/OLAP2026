@@ -54,39 +54,47 @@ def idade_referencia(ano_letivo: int, idade_publicada: str | None,
 
 
 def sql_inteiro_br(coluna: str) -> str:
-    """Equivalente SQL de `normalizacao.inteiro_br`."""
+    """Equivalente SQL de `normalizacao.inteiro_br`, só com operações de texto (sem regex)."""
     limpo = f"replace(trim({coluna}), '.', '')"
     return (
-        f"(CASE WHEN {coluna} IS NULL OR upper({coluna}) LIKE '%E%' THEN NULL "
-        f"WHEN regexp_matches(split_part({limpo}, ',', 2), '[1-9]') THEN NULL "
+        f"(CASE WHEN {coluna} IS NULL OR strpos(upper({coluna}), 'E') > 0 THEN NULL "
+        f"WHEN replace(split_part({limpo}, ',', 2), '0', '') <> '' THEN NULL "
         f"ELSE TRY_CAST(split_part({limpo}, ',', 1) AS INTEGER) END)"
     )
 
 
-def _sql_partes(ano: str, idade: str, ano_nasc: str, mes_nasc: str) -> tuple[str, str, str, str]:
-    pub, an, mes = sql_inteiro_br(idade), sql_inteiro_br(ano_nasc), sql_inteiro_br(mes_nasc)
-    calculada = (f"({ano} - {an} - (CASE WHEN {mes} BETWEEN 1 AND 12 "
-                 f"THEN (CASE WHEN {mes} > 3 THEN 1 ELSE 0 END) ELSE 1 END))")
-    return pub, an, mes, calculada
+def _calculada(ano: str, an: str, mes: str) -> str:
+    return (f"({ano} - {an} - (CASE WHEN {mes} BETWEEN 1 AND 12 "
+            f"THEN (CASE WHEN {mes} > 3 THEN 1 ELSE 0 END) ELSE 1 END))")
 
 
-def sql_idade(ano: str, idade: str, ano_nasc: str, mes_nasc: str) -> str:
-    pub, an, _, calculada = _sql_partes(ano, idade, ano_nasc, mes_nasc)
+def sql_idade_inteiros(ano: str, pub: str, an: str, mes: str) -> str:
+    """Regra da idade sobre colunas já convertidas para inteiro (conversão feita uma vez por linha)."""
+    calc = _calculada(ano, an, mes)
     return (
         f"(CASE WHEN {pub} BETWEEN 0 AND {IDADE_MAXIMA} THEN {pub} "
         f"WHEN {an} IS NULL OR {an} < {ANO_NASCIMENTO_MINIMO} OR {an} > {ano} THEN NULL "
-        f"WHEN {calculada} BETWEEN 0 AND {IDADE_MAXIMA} THEN {calculada} END)"
+        f"WHEN {calc} BETWEEN 0 AND {IDADE_MAXIMA} THEN {calc} END)"
     )
 
 
-def sql_idade_estimada(ano: str, idade: str, ano_nasc: str, mes_nasc: str) -> str:
-    pub, an, mes, calculada = _sql_partes(ano, idade, ano_nasc, mes_nasc)
+def sql_idade_estimada_inteiros(ano: str, pub: str, an: str, mes: str) -> str:
+    calc = _calculada(ano, an, mes)
     return (
         f"(CASE WHEN {pub} BETWEEN 0 AND {IDADE_MAXIMA} THEN false "
         f"WHEN {an} IS NULL OR {an} < {ANO_NASCIMENTO_MINIMO} OR {an} > {ano} THEN false "
-        f"WHEN NOT ({calculada} BETWEEN 0 AND {IDADE_MAXIMA}) THEN false "
+        f"WHEN NOT ({calc} BETWEEN 0 AND {IDADE_MAXIMA}) THEN false "
         f"WHEN {mes} BETWEEN 1 AND 12 THEN false ELSE true END)"
     )
+
+
+def sql_idade(ano: str, idade: str, ano_nasc: str, mes_nasc: str) -> str:
+    return sql_idade_inteiros(ano, sql_inteiro_br(idade), sql_inteiro_br(ano_nasc), sql_inteiro_br(mes_nasc))
+
+
+def sql_idade_estimada(ano: str, idade: str, ano_nasc: str, mes_nasc: str) -> str:
+    return sql_idade_estimada_inteiros(ano, sql_inteiro_br(idade), sql_inteiro_br(ano_nasc),
+                                       sql_inteiro_br(mes_nasc))
 
 
 def _faixa(idade: int | None, faixas, nulo: str) -> str:

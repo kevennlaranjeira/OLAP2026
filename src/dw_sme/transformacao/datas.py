@@ -46,15 +46,24 @@ def data_publicada(valor: str | None, ano_letivo: int) -> date | None:
     return d if d is not None and _na_janela(d, ano_letivo) else None
 
 
-def sql_data(coluna: str, ano: str) -> str:
-    """Equivalente SQL de `data_publicada`."""
+def sql_data_bruta(coluna: str) -> str:
+    """Leitura da data em qualquer dos formatos, sem a checagem de janela."""
     v = f"trim({coluna})"
     formatos = ", ".join(f"'{f}'" for f in FORMATOS)
-    bruta = (f"(CASE WHEN regexp_full_match({v}, '[0-9]{{5}}([.][0-9]+)?') "
-             f"THEN DATE '1899-12-30' + CAST(floor(CAST({v} AS DOUBLE)) AS INTEGER) "
-             f"ELSE CAST(try_strptime({v}, [{formatos}]) AS DATE) END)")
-    return (f"(CASE WHEN {bruta} BETWEEN make_date({ano} - 1, 1, 1) AND make_date({ano} + 1, 12, 31) "
-            f"THEN {bruta} END)")
+    return (f"(CASE WHEN regexp_full_match({v}, '[0-9]{{5}}([.][0-9]+)?') "
+            f"THEN DATE '1899-12-30' + CAST(floor(CAST({v} AS DOUBLE)) AS INTEGER) "
+            f"ELSE CAST(try_strptime({v}, [{formatos}]) AS DATE) END)")
+
+
+def sql_na_janela(data: str, ano: str) -> str:
+    """Mantém a data só se estiver entre 1o de janeiro do ano anterior e 31 de dezembro do seguinte."""
+    return (f"(CASE WHEN {data} BETWEEN make_date({ano} - 1, 1, 1) "
+            f"AND make_date({ano} + 1, 12, 31) THEN {data} END)")
+
+
+def sql_data(coluna: str, ano: str) -> str:
+    """Equivalente SQL de `data_publicada`."""
+    return sql_na_janela(sql_data_bruta(coluna), ano)
 
 
 def calendario(ano_inicial: int, ano_final: int) -> list[dict]:
