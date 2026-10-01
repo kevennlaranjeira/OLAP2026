@@ -1,5 +1,6 @@
 """As consultas rodam sobre o DW e o modelo as suporta (Observação 2 do enunciado)."""
 import duckdb
+import pandas as pd
 import pytest
 
 from dw_sme.carga import carregar
@@ -11,12 +12,14 @@ from dw_sme.consultas import executar as ex
 def con(tmp_path_factory):
     import shutil
 
-    from conftest import FIXTURES, _gravar, microdado_2021, microdado_2023
+    from conftest import FIXTURES, _gravar, gravar_ibge, microdado_2021, microdado_2023
     raiz = tmp_path_factory.mktemp("consultas")
     dados = raiz / "data"
     bruto = dados / "interim" / "bruto"
     _gravar(microdado_2019_com_fundamental(), bruto / "ano=2019" / "Microdados_EOL_Matriculas_Ano_2019.parquet")
     _gravar(microdado_2021(), bruto / "ano=2021" / "Microdados_EOL_Matriculas_Ano_2021.parquet")
+    _gravar(microdado_2022(), bruto / "ano=2022" / "Microdados_EOL_Matriculas_Ano_2022.parquet")
+    gravar_ibge(dados / "raw" / "ibge")
     infantil, _ = microdado_2023()
     _gravar(infantil, bruto / "ano=2023" / "Microdados_Matricula_EOL_Escolarizacao_Educacao_Infantil_2023.parquet")
     (dados / "raw" / "demanda").mkdir(parents=True)
@@ -31,8 +34,6 @@ def con(tmp_path_factory):
 
 def microdado_2019_com_fundamental():
     """2019 sintético mais duas matrículas de fundamental numa EMEF da DRE Penha (uma aprovada, uma abandono)."""
-    import pandas as pd
-
     from conftest import _linha, microdado_2019
     emef = {"CD_UNIDADE_EDUCACAO": "000123", "NOME_ESCOLA": "MARIO COVAS, GOV.", "TIPO_ESCOLA": "EMEF",
             "NOME_DISTRITO": "AGUA RASA", "DRE": "PENHA", "CD_SETOR": "1001", "CD_INEP_ESCOLA": "35000123",
@@ -43,6 +44,20 @@ def microdado_2019_com_fundamental():
     extra = [_linha(2019, emef, turma, serie, {"nasc": "2008", "mat": "300"}, "APROV", IDADE_ALUNO_3103="11"),
              _linha(2019, emef, turma, serie, {"nasc": "2008", "mat": "301"}, "ABAND", IDADE_ALUNO_3103="11")]
     return pd.concat([microdado_2019(), pd.DataFrame(extra)], ignore_index=True)
+
+
+def microdado_2022():
+    """Ano do Censo: três crianças de 0 a 4 anos, uma delas com matrícula encerrada antes de 31/07."""
+    from conftest import CRECHE_INTEGRAL, ESCOLA_A_2019, ESCOLA_B_2019, PRE_TARDE, SERIE_CRECHE, SERIE_PRE, _linha
+    linhas = [
+        _linha(2022, ESCOLA_A_2019, CRECHE_INTEGRAL, SERIE_CRECHE, {"nasc": "2019", "mes": "5", "mat": "400"}, "ATIVO",
+               IDADE_ALUNO_MAR="2", DT_IN_MAT="2022-02-07 00:00:00"),
+        _linha(2022, ESCOLA_A_2019, CRECHE_INTEGRAL, SERIE_CRECHE, {"nasc": "2019", "mes": "1", "mat": "401"}, "TRANSF",
+               IDADE_ALUNO_MAR="3", DT_IN_MAT="2022-02-07 00:00:00", DT_FIM_MAT="2022-05-10 00:00:00"),
+        _linha(2022, ESCOLA_B_2019, PRE_TARDE, SERIE_PRE, {"nasc": "2017", "mes": "6", "mat": "402"}, "ATIVO",
+               IDADE_ALUNO_MAR="4", DT_IN_MAT="2022-02-07 00:00:00"),
+    ]
+    return pd.DataFrame(linhas)
 
 
 def consulta(codigo):
@@ -77,7 +92,7 @@ def test_c1_municipio_igual_a_soma_dos_distritos(con):
 def test_c2_total_do_ano_igual_a_soma_das_etapas(con):
     r = ex.executar(con, consulta("C2"))
     totais = dict(r[r.agregacao == "TOTAL DO ANO"][["ano", "matriculas"]].values.tolist())
-    assert totais == {2019: 5, 2021: 2, 2023: 2}
+    assert totais == {2019: 5, 2021: 2, 2022: 3, 2023: 2}
     etapas_2019 = r[(r.ano == 2019) & (r.agregacao == "ETAPA")]["matriculas"].sum()
     assert etapas_2019 == 5
 
@@ -118,6 +133,37 @@ def test_c6_cruza_tres_fatos_por_dre(con):
     assert penha["abandonos_fundamental"] == 1 and penha["taxa_abandono_fundamental"] == pytest.approx(0.5)
     pirituba = r[(r.ano == 2019) & (r.dre == "PIRITUBA/JARAGUA")].iloc[0]
     assert pirituba["matriculas_creche"] == 1
+
+
+def test_c7_cruza_populacao_matricula_e_fila_por_distrito(con):
+    r = ex.executar(con, consulta("C7")).set_index("distrito")
+    assert "NAO INFORMADO" not in r.index
+    agua_rasa = r.loc["AGUA RASA"]
+    assert agua_rasa["criancas_0_4_residentes"] == 45
+    assert agua_rasa["matriculas_0_4_ativas"] == 1          # a transferida em maio não conta em 31/07
+    assert agua_rasa["mes_fila"] == "2020-09"               # último mês publicado até a data do Censo
+    fila = con.execute("""select sum(f.qtd_demanda_total) from dw.fato_fila f join dw.dim_tempo t using (chave_tempo)
+                          join dw.dim_territorio d using (chave_territorio) join dw.dim_etapa e using (chave_etapa)
+                          where t.ano_mes = '2020-09' and d.distrito = 'AGUA RASA'
+                            and e.codigo in ('CRECHE', 'PRE')""").fetchone()[0]
+    assert agua_rasa["fila_creche_pre"] == fila
+    assert agua_rasa["matriculas_por_100_criancas"] == pytest.approx(round(100 / 45, 1))
+    assert agua_rasa["fila_por_mil_criancas"] == pytest.approx(round(1000 * fila / 45, 1))
+    assert r.loc["ANHANGUERA", "matriculas_0_4_ativas"] == 1
+    assert pd.isna(r.loc["ALTO DE PINHEIROS", "matriculas_0_4_ativas"])
+
+
+def test_c8_media_por_turma_recalculada_em_cada_nivel(con):
+    r = ex.executar(con, consulta("C8"))
+    assert set(r["ano"]) == {2019, 2023}
+    pre_2019 = r[(r.ano == 2019) & (r.etapa == "PRE-ESCOLA")]
+    municipio = pre_2019[pre_2019.nivel == "MUNICIPIO"].iloc[0]
+    assert municipio["turmas_ativas_junho"] == 1 and municipio["alunos_ativos_junho"] == 1
+    assert municipio["alunos_por_turma"] == pytest.approx(1.0)
+    for ano, etapa in r[["ano", "etapa"]].drop_duplicates().itertuples(index=False):
+        bloco = r[(r.ano == ano) & (r.etapa == etapa)]
+        topo = bloco[bloco.nivel == "MUNICIPIO"]["alunos_ativos_junho"].sum()
+        assert topo == bloco[bloco.nivel == "DISTRITO"]["alunos_ativos_junho"].sum()
 
 
 def test_executar_todas_grava_csv(con, tmp_path):

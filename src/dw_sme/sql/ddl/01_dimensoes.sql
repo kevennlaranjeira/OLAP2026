@@ -163,3 +163,29 @@ CREATE TABLE dw.dim_situacao_matricula (
     transferido BOOLEAN, falecido BOOLEAN, nao_compareceu BOOLEAN, excluido BOOLEAN,
     cessado BOOLEAN, remanejado BOOLEAN, reclassificado BOOLEAN, ativo BOOLEAN
 );
+
+-- Faixa etária do IBGE, grão de faixa quinquenal (0 a 4, 5 a 9, ...). Rollup encolhido
+-- de dim_idade, conformado pelo atributo `faixa_ibge`. Usada pelo fato de população,
+-- que o Censo 2022 publica por grupo de idade, e não por idade simples.
+-- Sem hierarquia própria: idade_inicial, idade_final e variavel_ibge são descritivos.
+CREATE TABLE dw.dim_faixa_etaria (
+    chave_faixa_etaria       INTEGER  PRIMARY KEY,
+    faixa_ibge               VARCHAR  NOT NULL UNIQUE,   -- mesmo rótulo de dim_idade.faixa_ibge
+    idade_inicial            SMALLINT NOT NULL,
+    idade_final              SMALLINT,                   -- nulo na faixa aberta (70 anos ou mais)
+    variavel_ibge            VARCHAR  NOT NULL,          -- V01031 ... V01041 do tema Demografia
+    ordem                    SMALLINT NOT NULL
+);
+
+-- Setor censitário do IBGE (Censo 2022), grão de setor. É a menor unidade territorial
+-- publicada pelo Censo. Conformada com dim_territorio pelo atributo `distrito`.
+-- Hierarquia: setor censitário ≤ distrito ≤ DRE ≤ município ≤ UF (DRE vem de dim_territorio)
+CREATE TABLE dw.dim_setor_censitario (
+    chave_setor_censitario   INTEGER  PRIMARY KEY,
+    cd_setor                 VARCHAR  NOT NULL UNIQUE,   -- 15 dígitos: UF, município, distrito, subdistrito, setor
+    cd_distrito_ibge         VARCHAR  NOT NULL,          -- 9 primeiros dígitos do setor
+    nome_distrito_ibge       VARCHAR,                    -- grafia publicada pelo IBGE (com acento)
+    distrito                 VARCHAR  NOT NULL,          -- forma normalizada, chave de dim_territorio
+    municipio                VARCHAR  NOT NULL,
+    uf                       VARCHAR  NOT NULL
+);
