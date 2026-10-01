@@ -152,3 +152,13 @@ def test_dimensao_data_com_dois_papeis(dw):
     assert (2019, dt.date(2019, 2, 4), dt.date(2019, 6, 10)) in datas
     assert all(ini is None and fim is None for ano, ini, fim in datas if ano == 2021)   # 2021 sem datas
     assert all(fim is None for ano, _, fim in datas if ano == 2023)                     # sem DT_FIM no exemplo
+
+
+@pytest.mark.parametrize("valor, esperado", [
+    ("1", "1"), ("0", "0"), ("1,00", "1"), ("0,00", "0"), (" 1 ", "1"),
+    ("2", "-"),      # aparece em 5 linhas de deficiência em dez anos: ruído de digitação
+    (None, "-"), ("x", "-"),
+])
+def test_leitura_de_indicador(valor, esperado):
+    con = duckdb.connect()
+    assert con.execute(f"select {carregar._flag('v')} from (select CAST(? AS VARCHAR) AS v)", [valor]).fetchone()[0] == esperado
