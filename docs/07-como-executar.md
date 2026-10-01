@@ -6,8 +6,8 @@
 |---|---|---|
 | Python | 3.11 ou mais novo (testado no 3.13) | todo o pipeline |
 | 7-Zip | qualquer | abrir o pacote `.rar` de microdados de 2019 a 2021 |
-| Espaço em disco | cerca de 2 GB livres | 0,9 GB de pacotes baixados, 0,4 GB de Parquet, 1 a 2 GB de banco |
-| Memória | 8 GB recomendados | a gravação do fato de matrícula chega a 4,5 GB |
+| Espaço em disco | cerca de 3 GB livres | 0,9 GB de pacotes, 0,4 GB de Parquet, 0,3 GB de banco e ~1,5 GB de staging temporário durante a carga |
+| Memória | 8 GB recomendados | a carga usa de 2 a 4 GB |
 
 Sem o 7-Zip o pipeline roda todos os anos exceto 2019, 2020 e 2021, e avisa com uma mensagem clara.
 
@@ -37,7 +37,7 @@ Isso roda as cinco etapas em sequência. Na primeira vez o download leva alguns 
 |---|---|---|---|
 | `python -m dw_sme baixar` | portal de dados abertos da prefeitura | `data/raw/` e `manifesto.json` | depende da rede (~900 MB) |
 | `python -m dw_sme preparar` | pacotes em `data/raw/microdados` | `data/interim/bruto/ano=AAAA/*.parquet` | 3 minutos |
-| `python -m dw_sme carregar` | Parquet bruto e planilhas de fila | `data/dw/dw_sme.duckdb` | ver relatório de carga |
+| `python -m dw_sme carregar` | Parquet bruto e planilhas de fila | `data/dw/dw_sme.duckdb` | 3 minutos |
 | `python -m dw_sme verificar` | banco | `data/relatorios/qualidade.md` | segundos |
 | `python -m dw_sme consultar` | banco | `data/relatorios/consultas/*.csv` | segundos |
 
