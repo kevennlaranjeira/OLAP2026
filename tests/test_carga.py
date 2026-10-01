@@ -138,3 +138,17 @@ def test_staging_e_removido_por_padrao(dw):
 def test_nome_de_banco_que_colide_com_o_esquema_e_recusado(tmp_path):
     with pytest.raises(ValueError, match="dw.duckdb"):
         Configuracao(dir_dados=tmp_path, banco=tmp_path / "dw.duckdb")
+
+
+def test_dimensao_data_com_dois_papeis(dw):
+    con, _ = dw
+    assert um(con, "select count(*) from dw.dim_data") == 4383 + 1      # 2014 a 2025 e 'não informada'
+    datas = con.execute("""select a.ano, di.data, df.data from dw.fato_matricula f
+                           join dw.dim_ano_letivo a using (chave_ano_letivo)
+                           join dw.dim_data di on di.chave_data = f.chave_data_inicio
+                           join dw.dim_data df on df.chave_data = f.chave_data_fim
+                           order by 1, 2""").fetchall()
+    import datetime as dt
+    assert (2019, dt.date(2019, 2, 4), dt.date(2019, 6, 10)) in datas
+    assert all(ini is None and fim is None for ano, ini, fim in datas if ano == 2021)   # 2021 sem datas
+    assert all(fim is None for ano, _, fim in datas if ano == 2023)                     # sem DT_FIM no exemplo
