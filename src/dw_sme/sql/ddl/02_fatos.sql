@@ -9,6 +9,8 @@
 -- campo artificial sempre igual a 1, que existe para somar e agrupar.
 CREATE TABLE dw.fato_matricula (
     chave_ano_letivo     INTEGER  NOT NULL REFERENCES dw.dim_ano_letivo (chave_ano_letivo),
+    chave_data_inicio    INTEGER  NOT NULL REFERENCES dw.dim_data (chave_data),   -- papel 1: início da matrícula
+    chave_data_fim       INTEGER  NOT NULL REFERENCES dw.dim_data (chave_data),   -- papel 2: fim da matrícula
     chave_escola         INTEGER  NOT NULL REFERENCES dw.dim_escola (chave_escola),
     chave_territorio     INTEGER  NOT NULL REFERENCES dw.dim_territorio (chave_territorio),
     chave_serie          INTEGER  NOT NULL REFERENCES dw.dim_serie (chave_serie),

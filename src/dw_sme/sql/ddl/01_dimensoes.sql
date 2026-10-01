@@ -22,6 +22,24 @@ CREATE TABLE dw.dim_tempo (
     observacao               VARCHAR                     -- notas técnicas da planilha do mês
 );
 
+-- Data, grão de dia. Usada com visão para dois papéis no fato de matrícula
+-- (data de início e data de fim), como a Dimensão Data do artigo da disciplina.
+-- Conformada com dim_tempo por (ano, mes). Hierarquia: dia ⊑ mês ⊑ trimestre ⊑ semestre ⊑ ano
+-- A linha com data nula é o membro 'não informada' (2021 não publicou datas).
+CREATE TABLE dw.dim_data (
+    chave_data               INTEGER PRIMARY KEY,
+    data                     DATE UNIQUE,
+    dia                      SMALLINT,
+    mes                      SMALLINT,
+    nome_mes                 VARCHAR,
+    trimestre                SMALLINT,
+    semestre                 SMALLINT,
+    ano                      SMALLINT,
+    dia_semana               SMALLINT,                   -- 1 = segunda ... 7 = domingo
+    nome_dia_semana          VARCHAR,
+    fim_de_semana            BOOLEAN
+);
+
 -- Ano letivo, grão de ano. Rollup encolhido de dim_tempo, conformado pelo atributo `ano`.
 -- Usada pelos fatos de matrícula e de desfecho, publicados por ano letivo.
 CREATE TABLE dw.dim_ano_letivo (

@@ -27,7 +27,7 @@ import pandas as pd
 from ..config import Configuracao
 from ..preparacao import preparar_fila
 from ..transformacao import escolas as esc
-from ..transformacao import etapas, idade, microdados
+from ..transformacao import datas, etapas, idade, microdados
 from ..transformacao import normalizacao as n
 from ..transformacao import situacao
 
@@ -170,7 +170,9 @@ def _preparar_matricula(con) -> tuple[int, int]:
             upper(trim(s.nome_turma)) AS nome_turma,
             trim(s.cd_matricula_origem) AS cd_matricula,
             {idade.sql_inteiro_br('s.qtd_dias')} AS qtd_dias,
-            s.dt_inicio IS NOT NULL AS tem_datas
+            s.dt_inicio IS NOT NULL AS tem_datas,
+            {datas.sql_data('s.dt_inicio', 's.ano_letivo')} AS data_inicio,
+            {datas.sql_data('s.dt_fim', 's.ano_letivo')} AS data_fim
         FROM stg.matricula s
         JOIN stg.map_serie ms
           ON ms.modalidade_b = {_b('s.modalidade')} AND ms.segmento_b = {_b('s.segmento')} AND ms.serie_b = {_b('s.serie')}
@@ -209,6 +211,16 @@ def _dim_tempo(con, cfg: Configuracao, fila_meta: list[dict]) -> None:
     con.register("_tmp", pd.DataFrame(linhas))
     con.execute("INSERT INTO dw.dim_tempo SELECT * FROM _tmp")
     con.unregister("_tmp")
+
+
+def _dim_data(con, cfg: Configuracao) -> None:
+    dias = datas.calendario(min(cfg.anos) - 1, max(cfg.anos) + 1)
+    df = pd.DataFrame(dias)
+    df.insert(0, "chave_data", range(1, len(df) + 1))
+    con.register("_tmp", df)
+    con.execute("INSERT INTO dw.dim_data SELECT * FROM _tmp")
+    con.unregister("_tmp")
+    con.execute("""INSERT INTO dw.dim_data (chave_data) SELECT max(chave_data) + 1 FROM dw.dim_data""")
 
 
 def _dim_ano_letivo(con, qualidade: dict[int, str]) -> None:
@@ -304,6 +316,8 @@ def _fato_matricula(con) -> int:
         INSERT INTO dw.fato_matricula
         SELECT
             al.chave_ano_letivo,
+            coalesce(dti.chave_data, dni.chave_data),
+            coalesce(dtf.chave_data, dni.chave_data),
             p.chave_escola,
             coalesce(t.chave_territorio, tni.chave_territorio),
             ds.chave_serie,
@@ -321,6 +335,9 @@ def _fato_matricula(con) -> int:
         JOIN dw.dim_escola e ON e.chave_escola = p.chave_escola
         LEFT JOIN dw.dim_territorio t ON t.distrito = e.distrito
         CROSS JOIN (SELECT chave_territorio FROM dw.dim_territorio WHERE distrito = 'NAO INFORMADO') tni
+        CROSS JOIN (SELECT chave_data FROM dw.dim_data WHERE data IS NULL) dni
+        LEFT JOIN dw.dim_data dti ON dti.data = p.data_inicio
+        LEFT JOIN dw.dim_data dtf ON dtf.data = p.data_fim
         JOIN dw.dim_serie ds
           ON ds.modalidade || '|' || coalesce(ds.segmento, '') || '|' || coalesce(ds.serie, '') = p.chave_serie_nat
         JOIN dw.dim_turno dt ON dt.turno = p.turno AND dt.origem_turno = p.origem_turno
@@ -417,6 +434,7 @@ def carregar_tudo(cfg: Configuracao) -> dict:
 
         cfg.log("  dimensões")
         _dim_tempo(con, cfg, fila_meta)
+        _dim_data(con, cfg)
         _dim_ano_letivo(con, aux["qualidade"])
         _dim_territorio(con, fila_df)
         _dim_escola(con, aux["versoes"])
@@ -434,7 +452,7 @@ def carregar_tudo(cfg: Configuracao) -> dict:
             "fato_desfecho": _fato_desfecho(con),
         }
         _observacoes_ano(con, aux["identificadas"])
-        for tabela in ("dim_tempo", "dim_ano_letivo", "dim_territorio", "dim_escola", "dim_etapa", "dim_serie",
+        for tabela in ("dim_tempo", "dim_data", "dim_ano_letivo", "dim_territorio", "dim_escola", "dim_etapa", "dim_serie",
                        "dim_turno", "dim_idade", "dim_perfil_aluno", "dim_deficiencia", "dim_situacao_matricula"):
             resumo[tabela] = con.execute(f"SELECT count(*) FROM dw.{tabela}").fetchone()[0]
         resumo["vinculo_escola"] = esc.resumo_vinculo(aux["identificadas"]).astype(int).to_dict(orient="index")
