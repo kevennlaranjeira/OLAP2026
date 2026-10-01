@@ -1,0 +1,18 @@
+% Notação dos esquemas (a mesma do artigo da disciplina): cada tabela é uma caixa com
+% o nome no topo e os atributos embaixo; (PK) marca a chave primária artificial e (FK)
+% as chaves estrangeiras da tabela de fatos. A tabela de fatos tem borda mais grossa.
+\tikzset{
+  dim/.style={rectangle split, rectangle split parts=2, draw, font=\scriptsize,
+              text width=3.95cm, inner sep=2.4pt, rectangle split part align={center,left},
+              rectangle split part fill={black!7,white}},
+  fato/.style={dim, line width=1.1pt, text width=4.35cm, rectangle split part fill={black!17,white}},
+  nome/.style={draw, font=\scriptsize\bfseries, minimum width=2.55cm, minimum height=0.66cm,
+               align=center, fill=black!7, inner sep=2pt},
+  nomefato/.style={nome, line width=1.1pt, minimum width=2.75cm, fill=black!17},
+  liga/.style={line width=0.55pt},
+  rollup/.style={dashed, black!55, line width=0.6pt},
+  papel/.style={font=\tiny\itshape, fill=white, inner sep=1pt, text=black},
+}
+% ponto k de n ao longo do lado esquerdo / direito da tabela de fatos
+\newcommand{\ladoesq}[3]{($(#1.north west)!{#2/(#3+1)}!(#1.south west)$)}
+\newcommand{\ladodir}[3]{($(#1.north east)!{#2/(#3+1)}!(#1.south east)$)}

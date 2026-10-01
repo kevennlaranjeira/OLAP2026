@@ -1,6 +1,12 @@
 # Fontes de dados
 
-As duas bases vêm do [Portal de Dados Abertos da Prefeitura de São Paulo](https://dados.prefeitura.sp.gov.br/organization/educacao1), publicadas pela Secretaria Municipal de Educação (SME) sob licença Creative Commons. O enunciado permite que as fontes venham da mesma plataforma; aqui elas têm grãos, formatos e vocabulários diferentes, e a integração entre elas é trabalho de verdade.
+O modelo usa três fontes, as mesmas registradas na planilha do grupo. As duas principais vêm do [Portal de Dados Abertos da Prefeitura de São Paulo](https://dados.prefeitura.sp.gov.br/organization/educacao1), publicadas pela Secretaria Municipal de Educação (SME) sob licença Creative Commons. O enunciado permite que as fontes venham da mesma plataforma; aqui elas têm grãos, formatos e vocabulários diferentes, e a integração entre elas é trabalho de verdade. A terceira é o Censo Demográfico 2022 do IBGE, que traz a população residente por idade, ou seja, a demanda potencial que nenhuma das bases da prefeitura mede.
+
+| | Fonte | Instituição | Assunto de interesse que sustenta |
+|---|---|---|---|
+| 1 | Microdados da Rede Municipal de Educação, Matrículas | SME-SP | matrículas; capacidade e ocupação das turmas; oferta escolar |
+| 2 | Demanda Registrada e Matrículas | SME-SP | fila (demanda registrada) |
+| 3 | Censo Demográfico 2022, Agregados por Setores Censitários | IBGE | população em idade escolar |
 
 | | Microdados da Rede Municipal de Educação, Matrículas | Demanda Registrada e Matrículas |
 |---|---|---|
@@ -69,10 +75,34 @@ O significado das colunas numeradas mudou junto com o formato e só é dado pela
 
 As notas ficam na coluna `observacao` da dimensão Tempo.
 
+## Censo Demográfico 2022: Agregados por Setores Censitários
+
+O IBGE publica os resultados do universo do Censo 2022 por setor censitário, a menor unidade territorial do Censo, em arquivos CSV e XLSX no diretório [Agregados_por_Setores_Censitarios](https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/). O modelo usa dois temas:
+
+| Tema | Arquivo | Colunas usadas | Para quê |
+|---|---|---|---|
+| Demografia | `Agregados_por_setores_demografia_BR` | `CD_SETOR`, `V01031` a `V01041` | pessoas residentes por grupo de idade: 0 a 4, 5 a 9, 10 a 14, 15 a 19, 20 a 24, 25 a 29, 30 a 39, 40 a 49, 50 a 59, 60 a 69, 70 anos ou mais |
+| Básico | `Agregados_por_setores_basico_BR` | `CD_SETOR`, `NM_DIST` | nome do distrito a que o setor pertence |
+
+| Aspecto | Valor |
+|---|---|
+| Grão publicado | setor censitário x grupo de idade |
+| Data de referência | noite de 31 de julho para 1º de agosto de 2022 |
+| Cobertura | o país inteiro; entram só os setores do município de São Paulo (código IBGE 3550308) |
+| Código do setor | 15 dígitos: UF (2), município (5), distrito (2), subdistrito (2), setor (4) |
+| Idade | grupos quinquenais até 29 anos e decenais depois; não há idade simples por setor |
+
+Duas limitações orientam o uso:
+
+- **Os grupos de idade não recortam nas etapas.** A creche atende de 0 a 3 anos e a pré-escola de 4 e 5; o grupo do IBGE é 0 a 4. A faixa comparável entre as bases é, portanto, 0 a 4 anos, e a dimensão Idade carrega o mesmo corte (`faixa_ibge`) para que a matrícula possa ser agregada nele.
+- **A população é contada onde a criança mora; a matrícula, onde a escola fica.** O microdado não traz endereço do aluno. A razão entre matrícula e população por distrito é oferta por criança residente, não taxa de atendimento dos moradores.
+
+**Situação no repositório.** A leitura, a carga e as verificações estão implementadas e testadas com arquivos sintéticos no layout descrito acima. A leitura procura as colunas pelo nome e para com erro se alguma faltar, de modo que a primeira carga com os arquivos reais confirma o layout. Os números da população ainda não aparecem na documentação porque os arquivos reais não foram carregados no ambiente em que esta parte foi escrita; nada foi estimado no lugar deles.
+
 ## Dicionários de dados
 
 A etapa `baixar` também guarda os dicionários publicados pela SME em `data/raw/dicionarios/`, como documentação da origem: dicionário de variáveis dos microdados, dicionário da planilha de demanda e dicionário da série histórica.
 
 ## Proveniência
 
-Cada arquivo baixado fica registrado num `manifesto.json` com URL, identificador do recurso no portal, tamanho, SHA-256 e data do download. Rodar o pipeline de novo confere o hash e só baixa o que mudou ou está corrompido.
+Cada arquivo baixado fica registrado num `manifesto.json` com URL, identificador do recurso no portal, tamanho, SHA-256 e data do download. Rodar o pipeline de novo confere o hash e só baixa o que mudou ou está corrompido. Os arquivos do IBGE seguem a mesma regra, com manifesto próprio em `data/raw/ibge/`.

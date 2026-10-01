@@ -1,0 +1,41 @@
+\begin{tikzpicture}
+% tabelas de fatos (linha central)
+\node[nomefato] (FM) at (-7.5,0) {Tabela de Fatos\\Matrícula};
+\node[nomefato] (FD) at (-2.5,0) {Tabela de Fatos\\Desfecho};
+\node[nomefato] (FT) at (1.5,0) {Tabela de Fatos\\Ocupação de Turma};
+\node[nomefato] (FF) at (6.0,0) {Tabela de Fatos\\Fila};
+\node[nomefato] (FP) at (10.5,0) {Tabela de Fatos\\População};
+% dimensões de cima
+\node[nome] (DA) at (-9.6,3.2) {Dimensão Data\\(dois papéis)};
+\node[nome] (AL) at (-5.6,3.2) {Dimensão\\Ano Letivo};
+\node[nome] (ES) at (-2.5,3.2) {Dimensão\\Escola};
+\node[nome] (SE) at (0.6,3.2) {Dimensão\\Série};
+\node[nome] (ET) at (4.3,3.2) {Dimensão\\Etapa};
+\node[nome] (TE) at (8.25,3.2) {Dimensão\\Tempo};
+% dimensões de baixo
+\node[nome] (ID) at (-7.5,-3.4) {Dimensão\\Idade};
+\node[nome] (TU) at (-2.6,-3.4) {Dimensão\\Turno};
+\node[nome] (TR) at (2.0,-3.4) {Dimensão\\Território};
+\node[nome] (SC) at (6.3,-3.4) {Dimensão Setor\\Censitário};
+\node[nome] (FE) at (10.5,-3.4) {Dimensão\\Faixa Etária};
+% bugigangas do fato de matrícula
+\node[nome] (PA) at (-11.2,1.4) {Dimensão\\Perfil Aluno};
+\node[nome] (DE) at (-11.2,0) {Dimensão\\Deficiência};
+\node[nome] (SM) at (-11.2,-1.4) {Dimensão\\Situação};
+
+% fato -> dimensão
+\draw[liga] ([xshift=-5pt]FM.north) -- ([xshift=8pt]DA.south);
+\draw[liga] ([xshift=1pt]FM.north) -- ([xshift=16pt]DA.south);
+\foreach \d in {AL,ES,SE,TU,TR,ID,PA,DE,SM} \draw[liga] (FM) -- (\d);
+\foreach \d in {AL,ES,SE,TR} \draw[liga] (FD) -- (\d);
+\foreach \d in {AL,ES,SE,TU,TR} \draw[liga] (FT) -- (\d);
+\foreach \d in {ET,TE,TR} \draw[liga] (FF) -- (\d);
+\foreach \d in {TE,SC,FE,TR} \draw[liga] (FP) -- (\d);
+
+% rollups encolhidos conformados (tracejado)
+\draw[rollup] (DA) -- node[papel, above=1pt]{rollup} (AL);
+\draw[rollup] (DA.north) |- node[papel, pos=0.75]{rollup: dia $\leq$ mês} (8.25,4.55) -- (TE.north);
+\draw[rollup] (SE) -- node[papel, above=1pt]{rollup} (ET);
+\draw[rollup] (SC) -- node[papel, above=1pt]{rollup} (TR);
+\draw[rollup] (ID.south) |- node[papel, pos=0.75]{rollup: idade $\leq$ faixa IBGE} (10.5,-5.0) -- (FE.south);
+\end{tikzpicture}

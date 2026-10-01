@@ -1,0 +1,24 @@
+\begin{tikzpicture}[node distance=0.32cm]
+\node[fato] (F) at (0,0) {\textbf{Tabela de Fatos Matrícula}
+\nodepart{two}(FK) chave ano letivo\\(FK) chave data início\\(FK) chave data fim\\(FK) chave escola\\(FK) chave território\\(FK) chave série\\(FK) chave turno\\(FK) chave idade\\(FK) chave perfil aluno\\(FK) chave deficiência\\(FK) chave situação\\id turma \hfill\textit{(degenerada)}\\código matrícula \hfill\textit{(degenerada)}\\quantidade matrículas \hfill\textit{(artificial)}\\dias de matrícula};
+
+\node[dim, anchor=north east] (A) at (-3.35,6.15) {\textbf{Dimensão Ano Letivo}\nodepart{two}(PK) chave ano letivo\\ano\\qualidade código escola\\observação};
+\node[dim, below=of A] (D) {\textbf{Dimensão Data}\nodepart{two}(PK) chave data\\data, dia, dia da semana\\mês, nome mês\\trimestre, semestre, ano\\fim de semana};
+\node[dim, below=of D] (E) {\textbf{Dimensão Escola}\nodepart{two}(PK) chave escola\\código escola, código sintético\\versão, ano início, ano fim\\nome escola, tipo escola, rede\\distrito, DRE, setor SME, situação};
+\node[dim, below=of E] (T) {\textbf{Dimensão Território}\nodepart{two}(PK) chave território\\distrito\\DRE, participação DRE\\município, UF};
+\node[dim, below=of T] (S) {\textbf{Dimensão Série}\nodepart{two}(PK) chave série\\modalidade, segmento, série\\ciclo, ordem, educação especial\\código etapa, etapa, nível};
+
+\node[dim, anchor=north west] (TU) at (3.35,6.15) {\textbf{Dimensão Turno}\nodepart{two}(PK) chave turno\\turno\\jornada\\origem turno};
+\node[dim, below=of TU] (I) {\textbf{Dimensão Idade}\nodepart{two}(PK) chave idade\\idade\\faixa escolar, grupo etário\\faixa IBGE};
+\node[dim, below=of I] (P) {\textbf{Dimensão Perfil Aluno}\nodepart{two}(PK) chave perfil aluno\\código combinação\\sexo, raça e cor\\altas habilidades, idade estimada};
+\node[dim, below=of P] (DF) {\textbf{Dimensão Deficiência}\nodepart{two}(PK) chave deficiência\\código combinação\\possui deficiência, quantidade\\17 indicadores (autismo, ...)};
+\node[dim, below=of DF] (SI) {\textbf{Dimensão Situação Matrícula}\nodepart{two}(PK) chave situação\\código combinação\\situação matrícula, desfecho\\12 indicadores (aprovado, ...)};
+
+\draw[liga] (A.east) -- \ladoesq{F}{1}{7};
+\draw[liga] ([yshift=4pt]D.east) -- node[papel, pos=0.35]{início} \ladoesq{F}{2}{7};
+\draw[liga] ([yshift=-4pt]D.east) -- node[papel, pos=0.35]{fim} \ladoesq{F}{3}{7};
+\draw[liga] (E.east) -- \ladoesq{F}{4}{7};
+\draw[liga] (T.east) -- \ladoesq{F}{5}{7};
+\draw[liga] (S.east) -- \ladoesq{F}{6}{7};
+\foreach \n/\k in {TU/1,I/2,P/3,DF/4,SI/5} \draw[liga] (\n.west) -- \ladodir{F}{\k}{5};
+\end{tikzpicture}

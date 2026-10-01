@@ -1,0 +1,10 @@
+\begin{tikzpicture}[node distance=0.45cm]
+\node[fato] (F) at (0,0) {\textbf{Tabela de Fatos Fila}
+\nodepart{two}(FK) chave tempo\\(FK) chave território\\(FK) chave etapa\\formato planilha \hfill\textit{(degenerada)}\\matrículas\\matrículas em processo\\demanda total\\demanda sem opção\\demanda sem opção até 30 dias\\demanda sem opção mais de 30 dias\\demanda com opção por unidade};
+\node[dim, anchor=north east] (TE) at (-3.35,2.55) {\textbf{Dimensão Tempo}\nodepart{two}(PK) chave tempo\\data referência, ano mês\\mês, nome mês\\bimestre, trimestre, semestre\\ano\\fila publicada, observação};
+\node[dim, below=of TE] (TR) {\textbf{Dimensão Território}\nodepart{two}(PK) chave território\\distrito\\DRE, participação DRE\\município, UF};
+\node[dim, anchor=west] (ET) at (3.35,0) {\textbf{Dimensão Etapa}\nodepart{two}(PK) chave etapa\\código\\etapa\\nível\\ordem};
+\draw[liga] (TE.east) -- \ladoesq{F}{1}{3};
+\draw[liga] (TR.east) -- \ladoesq{F}{2}{3};
+\draw[liga] (ET.west) -- (F.east);
+\end{tikzpicture}
