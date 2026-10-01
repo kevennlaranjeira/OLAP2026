@@ -1,0 +1,12 @@
+Distrito;Matrículas;;;;;;;;Matrícula em Processo (*);;Demanda;;;;;;;;;;;;;;;
+;Creche;Pré Escola;Ens. Fund.I;Ens. Fund.II;EJA I;EJA II;Ens. Médio;Ed. Prof.;Creche;Pré Escola;Creche (espera a menos 30 dias) (1) (**);Creche (espera mais de 30 dias) (2);Creche (indicação de escola específica) (3);Pré Escola (espera a menos 30 dias) (1) (**);Pré Escola (espera mais de 30 dias) (2);Pré Escola (indicação de escola específica) (3);Ens. Fund.I;Ens. Fund.II;EJA I;EJA II;;;mat;mat pr;;
+AGUA RASA;1.142;889;949;933;20;103;0;0;35;1;18;6;8;0;0;0;0;0;0;0;;1.177;1.142;35;1.177;0
+ALTO DE PINHEIROS;405;0;0;0;0;0;0;0;26;0;3;1;1;0;0;0;0;0;0;0;;431;405;26;431;0
+ANHANGUERA;2.918;1.815;2.929;2.585;142;505;0;0;160;4;33;1;6;0;0;0;0;0;0;0;;3.078;2.918;160;3.078;0
+TOTAL;4.465;2.704;3.878;3.518;162;608;0;0;221;5;54;8;15;0;0;0;0;0;0;0;;4.686;4.465;221;4.686;0
+(1) - Cadastros aguardando vaga a menos de 30 dias.;;;;;;;;;;;;;;;;;;;;;;;;;;
+(2) - Cadastros aguardando vaga a mais de 30 dias;;;;;;;;;;;;;;;;;;;;;;;;;;
+(3) - Cadastros com opção por unidade específica;;;;;;;;;;;;;;;;;;;;;;;;;0;
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+(*) - vagas disponibilizadas aguardando documentação da família para efetivação.;;;;;;;;;;;;;;;;;;;;;;;;;;
+(**) - período de 30 dias para análise da possibilidade de atendimento com transporte escolar.;;;;;;;;;;;;;;;;;;;;;;;;;;
