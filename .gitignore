@@ -34,3 +34,6 @@ desktop.ini
 
 # Caderno de trabalho da sessão (o conteúdo útil é consolidado em docs/)
 /_planejamento/
+
+# compilação do relatório
+docs/relatorio/compilacao.log

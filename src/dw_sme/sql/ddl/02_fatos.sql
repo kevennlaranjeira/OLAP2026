@@ -75,11 +75,19 @@ CREATE TABLE dw.fato_desfecho (
 -- qualquer nível de agregação; média de taxas daria resultado errado.
 -- Denominador: matrículas que chegaram a um desfecho de rendimento
 -- (aprovado + reprovado + abandono), como no indicador de rendimento do INEP.
+-- Na educação infantil não há aprovação nem reprovação: a saída antes do fim do
+-- ano é desistência e fica em qtd_abandonos, mas a taxa de rendimento é nula.
 CREATE VIEW dw.vw_desfecho_taxas AS
 SELECT
     f.*,
+    s.nivel,
+    s.nivel <> 'EDUCACAO INFANTIL' AS aplica_rendimento,
     f.qtd_aprovados + f.qtd_reprovados + f.qtd_abandonos AS base_rendimento,
-    f.qtd_aprovados  / NULLIF(f.qtd_aprovados + f.qtd_reprovados + f.qtd_abandonos, 0) AS taxa_aprovacao,
-    f.qtd_reprovados / NULLIF(f.qtd_aprovados + f.qtd_reprovados + f.qtd_abandonos, 0) AS taxa_reprovacao,
-    f.qtd_abandonos  / NULLIF(f.qtd_aprovados + f.qtd_reprovados + f.qtd_abandonos, 0) AS taxa_abandono
-FROM dw.fato_desfecho f;
+    CASE WHEN s.nivel <> 'EDUCACAO INFANTIL'
+         THEN f.qtd_aprovados / NULLIF(f.qtd_aprovados + f.qtd_reprovados + f.qtd_abandonos, 0) END AS taxa_aprovacao,
+    CASE WHEN s.nivel <> 'EDUCACAO INFANTIL'
+         THEN f.qtd_reprovados / NULLIF(f.qtd_aprovados + f.qtd_reprovados + f.qtd_abandonos, 0) END AS taxa_reprovacao,
+    CASE WHEN s.nivel <> 'EDUCACAO INFANTIL'
+         THEN f.qtd_abandonos / NULLIF(f.qtd_aprovados + f.qtd_reprovados + f.qtd_abandonos, 0) END AS taxa_abandono
+FROM dw.fato_desfecho f
+JOIN dw.dim_serie s USING (chave_serie);

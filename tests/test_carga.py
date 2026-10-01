@@ -104,9 +104,10 @@ def test_fato_desfecho_soma_igual_ao_fato_matricula(dw):
     soma_partes = um(con, """select sum(qtd_aprovados + qtd_reprovados + qtd_abandonos + qtd_transferidos + qtd_concluintes
                              + qtd_falecidos + qtd_outras_saidas + qtd_em_curso + qtd_sem_desfecho) from dw.fato_desfecho""")
     assert soma_partes == 7
-    taxa = um(con, """select sum(qtd_abandonos) / sum(qtd_aprovados + qtd_reprovados + qtd_abandonos)
-                      from dw.vw_desfecho_taxas v join dw.dim_ano_letivo a using (chave_ano_letivo) where a.ano = 2019""")
-    assert taxa == pytest.approx(0.5)
+    # na educação infantil não há aprovação: a taxa de rendimento é nula, as contagens ficam
+    linhas = con.execute("""select nivel, aplica_rendimento, qtd_abandonos, taxa_abandono from dw.vw_desfecho_taxas v
+                            join dw.dim_ano_letivo a using (chave_ano_letivo) where a.ano = 2019 and qtd_abandonos > 0""").fetchall()
+    assert linhas == [("EDUCACAO INFANTIL", False, 1, None)]
 
 
 def test_fato_fila_preserva_nulo_e_formato(dw):
