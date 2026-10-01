@@ -64,6 +64,22 @@ A etapa `verificar` termina com código de saída 1 se alguma verificação de q
 .venv/Scripts/python -m pytest --cov=dw_sme --cov-report=term-missing
 ```
 
+Lint e checagem de tipos:
+
+```bash
+.venv/Scripts/python -m ruff check src tests
+```
+
+```bash
+.venv/Scripts/python -m pip install pyright
+```
+
+```bash
+.venv/Scripts/pyright
+```
+
+O ruff passa limpo e roda no CI. O pyright aponta avisos que vêm dos stubs do pandas e do DuckDB (atributos de `itertuples`, retorno opcional de `fetchone`), não de erro de tipo no código; por isso fica fora do CI.
+
 Os testes não precisam de internet nem dos dados reais. Eles usam:
 
 - trechos reais das planilhas de fila em `tests/fixtures/fila/`, um por formato, com cabeçalho e rodapé originais;
