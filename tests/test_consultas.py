@@ -81,7 +81,11 @@ def test_c4_jornada_vira_coluna(con):
 
 def test_c5_une_fila_e_matricula_pelas_dimensoes_conformadas(con):
     r = ex.executar(con, consulta("C5"))
-    assert {"fila", "matriculas_ativas_em_junho", "matriculas_no_ano", "fracao_fora"} <= set(r.columns)
+    assert {"fila", "matriculas_planilha", "matriculas_ativas_em_junho", "matriculas_no_ano",
+            "fracao_fora", "divergencia_entre_bases"} <= set(r.columns)
+    com_fila = r[r.fila.notna() & r.matriculas_planilha.notna()]
+    esperado = com_fila.fila / (com_fila.fila + com_fila.matriculas_planilha)
+    assert (com_fila.fracao_fora - esperado.round(4)).abs().max() < 1e-9
     so_fila = r[r.matriculas_no_ano.isna()]
     so_matricula = r[r.fila.isna()]
     assert len(so_fila) > 0 and len(so_matricula) > 0       # outer join preserva os dois lados

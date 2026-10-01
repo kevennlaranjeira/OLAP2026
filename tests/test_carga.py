@@ -130,9 +130,10 @@ def test_observacoes_do_ano_letivo_vem_do_dado(dw):
     assert obs[2019] is None
 
 
-def test_staging_e_removido_por_padrao(dw):
+def test_staging_fica_fora_do_banco_final(dw, dados_sinteticos):
     con, _ = dw
     assert um(con, "select count(*) from information_schema.schemata where schema_name = 'stg'") == 0
+    assert not (dados_sinteticos / "interim" / "staging.duckdb").exists()
 
 
 def test_nome_de_banco_que_colide_com_o_esquema_e_recusado(tmp_path):

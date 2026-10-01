@@ -3,13 +3,13 @@
 Fluxo (todo dentro de um único arquivo .duckdb):
 
 1. esquema dw recriado a partir de sql/ddl/*.sql;
-2. stg.matricula: os Parquet brutos do recorte, harmonizados (microdados.py);
-3. tabelas de correspondência stg.map_*: as regras de normalização aplicadas
+2. stgdb.stg.matricula: os Parquet brutos do recorte, harmonizados (microdados.py);
+3. tabelas de correspondência stgdb.stg.map_*: as regras de normalização aplicadas
    aos valores distintos de cada coluna, em Python, e juntadas em SQL;
-4. stg.matricula_preparada: cada matrícula com as chaves naturais de todas as
+4. stgdb.stg.matricula_preparada: cada matrícula com as chaves naturais de todas as
    dimensões já resolvidas;
 5. dimensões, fatos e observações de qualidade por ano;
-6. o esquema stg é apagado (a menos que manter_staging seja pedido).
+6. o arquivo de staging é apagado (a menos que manter_staging seja pedido).
 
 O texto bruto nunca é alterado no staging. As junções com as tabelas de
 correspondência usam o valor bruto, com nulo trocado por um marcador.
@@ -32,6 +32,10 @@ from ..transformacao import normalizacao as n
 from ..transformacao import situacao
 
 NULO = "<nulo>"
+# O staging vive num arquivo DuckDB separado, anexado durante a carga. Assim o banco
+# final só recebe dimensões e fatos e não guarda os blocos livres de 13 milhões de
+# linhas apagadas (o DuckDB não devolve ao disco o espaço de tabela apagada).
+STG = "stgdb.stg"
 _MESES = ("JANEIRO", "FEVEREIRO", "MARCO", "ABRIL", "MAIO", "JUNHO", "JULHO",
           "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO")
 
@@ -85,7 +89,7 @@ def criar_esquema(con) -> None:
 # ----------------------------------------------------------------------------- staging
 
 def _staging_matricula(con, cfg: Configuracao) -> int:
-    con.execute("CREATE SCHEMA IF NOT EXISTS stg")
+    con.execute(f"CREATE SCHEMA IF NOT EXISTS {STG}")
     partes = []
     for parquet in sorted(cfg.dir_bruto.glob("ano=*/*.parquet")):
         ano = int(parquet.parent.name.split("=")[1])
@@ -96,17 +100,17 @@ def _staging_matricula(con, cfg: Configuracao) -> int:
         partes.append(microdados.sql_staging(fonte, ano, parquet.stem, colunas))
     if not partes:
         raise FileNotFoundError(f"nenhum Parquet bruto do recorte em {cfg.dir_bruto}; rode a etapa preparar")
-    con.execute("CREATE OR REPLACE TABLE stg.matricula AS " + "\nUNION ALL BY NAME\n".join(partes))
-    return con.execute("SELECT count(*) FROM stg.matricula").fetchone()[0]
+    con.execute("CREATE OR REPLACE TABLE stgdb.stg.matricula AS " + "\nUNION ALL BY NAME\n".join(partes))
+    return con.execute("SELECT count(*) FROM stgdb.stg.matricula").fetchone()[0]
 
 
 def _mapas(con) -> dict:
     """Tabelas de correspondência construídas sobre os valores distintos."""
     def simples(coluna: str, funcao, nome: str, saida: str):
-        v = _df(con, f"SELECT DISTINCT {coluna} AS bruto FROM stg.matricula")
+        v = _df(con, f"SELECT DISTINCT {coluna} AS bruto FROM stgdb.stg.matricula")
         v[saida] = v["bruto"].map(funcao)
         v["bruto"] = v["bruto"].map(lambda x: NULO if x is None else x)
-        _registrar(con, f"stg.map_{nome}", v)
+        _registrar(con, f"stgdb.stg.map_{nome}", v)
 
     simples("distrito", n.distrito, "distrito", "distrito")
     simples("dre", n.dre, "dre", "dre")
@@ -115,7 +119,7 @@ def _mapas(con) -> dict:
     simples("situacao_matricula", n.texto, "situacao", "situacao")
 
     # série -> etapa
-    s = _df(con, "SELECT DISTINCT modalidade, segmento, serie FROM stg.matricula")
+    s = _df(con, "SELECT DISTINCT modalidade, segmento, serie FROM stgdb.stg.matricula")
     linhas = []
     for r in s.itertuples(index=False):
         c = etapas.classificar(r.modalidade, r.segmento, r.serie)
@@ -128,29 +132,29 @@ def _mapas(con) -> dict:
             "educacao_especial": c.educacao_especial if c else None,
             "codigo_etapa": c.etapa if c else None,
         })
-    _registrar(con, "stg.map_serie", pd.DataFrame(linhas))
+    _registrar(con, "stgdb.stg.map_serie", pd.DataFrame(linhas))
 
     # turno: descrição, código de 2021 ou horário
-    t = _df(con, "SELECT DISTINCT ano_letivo, desc_turno, cd_turno, hora_inicio, hora_fim FROM stg.matricula")
+    t = _df(con, "SELECT DISTINCT ano_letivo, desc_turno, cd_turno, hora_inicio, hora_fim FROM stgdb.stg.matricula")
     res = [n.resolver_turno(int(r.ano_letivo), r.desc_turno, r.cd_turno, r.hora_inicio, r.hora_fim)
            for r in t.itertuples(index=False)]
     t["turno"] = [x[0] for x in res]
     t["origem_turno"] = [x[1] for x in res]
     for c in ("desc_turno", "cd_turno", "hora_inicio", "hora_fim"):
         t[c] = t[c].map(lambda x: NULO if x is None else x)
-    _registrar(con, "stg.map_turno", t)
+    _registrar(con, "stgdb.stg.map_turno", t)
 
     # escolas: identificação entre anos e versões (SCD tipo 2)
     brutas = _df(con, """
         SELECT ano_letivo AS ano, cd_escola_origem AS cd_origem, nome_escola AS nome, tipo_escola AS tipo,
                distrito, dre, setor_sme AS setor, situacao_escola AS situacao, count(*) AS matriculas
-        FROM stg.matricula GROUP BY ALL""")
+        FROM stgdb.stg.matricula GROUP BY ALL""")
     identificadas = esc.identificar(esc.normalizar(brutas))
     versoes = esc.versionar(identificadas)
     mapa = esc.mapa_carga(identificadas, versoes)
     for c in ("cd_bruto", "nome_bruto", "tipo_bruto", "distrito_bruto"):
         mapa[c] = mapa[c].map(lambda x: NULO if x is None or (isinstance(x, float) and pd.isna(x)) else x)
-    _registrar(con, "stg.map_escola", mapa[["ano", "cd_bruto", "nome_bruto", "tipo_bruto", "distrito_bruto",
+    _registrar(con, "stgdb.stg.map_escola", mapa[["ano", "cd_bruto", "nome_bruto", "tipo_bruto", "distrito_bruto",
                                             "chave_escola", "vinculo"]])
     return {"identificadas": identificadas, "versoes": versoes,
             "qualidade": esc.avaliar_codigos(identificadas)}
@@ -163,7 +167,7 @@ def _preparar_matricula(con) -> tuple[int, int]:
     estimada_sql = idade.sql_idade_estimada_inteiros("c.ano_letivo", "c._pub", "c._an", "c._mes")
     ah = _flag("s.nee_altas_habilidades")
     con.execute(f"""
-        CREATE OR REPLACE TABLE stg.matricula_preparada AS
+        CREATE OR REPLACE TABLE stgdb.stg.matricula_preparada AS
         WITH convertida AS (
             -- cada conversão cara é feita uma única vez por linha
             SELECT m.*,
@@ -172,7 +176,7 @@ def _preparar_matricula(con) -> tuple[int, int]:
                    {idade.sql_inteiro_br('m.mes_nascimento')} AS _mes,
                    {datas.sql_data_bruta('m.dt_inicio')} AS _dti,
                    {datas.sql_data_bruta('m.dt_fim')} AS _dtf
-            FROM stg.matricula m
+            FROM stgdb.stg.matricula m
         ), com_idade AS (
             SELECT c.*, {idade_sql} AS _idade, coalesce({estimada_sql}, false) AS _estimada
             FROM convertida c
@@ -197,21 +201,21 @@ def _preparar_matricula(con) -> tuple[int, int]:
             {datas.sql_na_janela('s._dti', 's.ano_letivo')} AS data_inicio,
             {datas.sql_na_janela('s._dtf', 's.ano_letivo')} AS data_fim
         FROM com_idade s
-        JOIN stg.map_serie ms
+        JOIN stgdb.stg.map_serie ms
           ON ms.modalidade_b = {_b('s.modalidade')} AND ms.segmento_b = {_b('s.segmento')} AND ms.serie_b = {_b('s.serie')}
-        JOIN stg.map_escola me
+        JOIN stgdb.stg.map_escola me
           ON me.ano = s.ano_letivo AND me.cd_bruto = {_b('s.cd_escola_origem')} AND me.nome_bruto = {_b('s.nome_escola')}
          AND me.tipo_bruto = {_b('s.tipo_escola')} AND me.distrito_bruto = {_b('s.distrito')}
-        JOIN stg.map_turno mt
+        JOIN stgdb.stg.map_turno mt
           ON mt.ano_letivo = s.ano_letivo AND mt.desc_turno = {_b('s.desc_turno')} AND mt.cd_turno = {_b('s.cd_turno')}
          AND mt.hora_inicio = {_b('s.hora_inicio')} AND mt.hora_fim = {_b('s.hora_fim')}
-        LEFT JOIN stg.map_raca mr ON mr.bruto = {_b('s.raca_cor')}
-        LEFT JOIN stg.map_sexo mx ON mx.bruto = {_b('s.sexo')}
-        LEFT JOIN stg.map_situacao msit ON msit.bruto = {_b('s.situacao_matricula')}
+        LEFT JOIN stgdb.stg.map_raca mr ON mr.bruto = {_b('s.raca_cor')}
+        LEFT JOIN stgdb.stg.map_sexo mx ON mx.bruto = {_b('s.sexo')}
+        LEFT JOIN stgdb.stg.map_situacao msit ON msit.bruto = {_b('s.situacao_matricula')}
         WHERE ms.valido
     """)
-    preparadas = con.execute("SELECT count(*) FROM stg.matricula_preparada").fetchone()[0]
-    total = con.execute("SELECT count(*) FROM stg.matricula").fetchone()[0]
+    preparadas = con.execute("SELECT count(*) FROM stgdb.stg.matricula_preparada").fetchone()[0]
+    total = con.execute("SELECT count(*) FROM stgdb.stg.matricula").fetchone()[0]
     return preparadas, total - preparadas
 
 
@@ -247,7 +251,7 @@ def _dim_data(con, cfg: Configuracao) -> None:
 
 
 def _dim_ano_letivo(con, qualidade: dict[int, str]) -> None:
-    anos = [r[0] for r in con.execute("SELECT DISTINCT ano_letivo FROM stg.matricula_preparada ORDER BY 1").fetchall()]
+    anos = [r[0] for r in con.execute("SELECT DISTINCT ano_letivo FROM stgdb.stg.matricula_preparada ORDER BY 1").fetchall()]
     for i, ano in enumerate(anos, 1):
         con.execute("INSERT INTO dw.dim_ano_letivo VALUES (?, ?, ?, NULL)", [i, ano, qualidade[ano]])
 
@@ -256,9 +260,9 @@ def _dim_territorio(con, fila_df: pd.DataFrame) -> None:
     con.execute("""
         CREATE OR REPLACE TEMP TABLE _dre AS
         SELECT md.distrito, mr.dre, count(*) AS n
-        FROM stg.matricula s
-        JOIN stg.map_distrito md ON md.bruto = coalesce(s.distrito, '<nulo>')
-        JOIN stg.map_dre mr ON mr.bruto = coalesce(s.dre, '<nulo>')
+        FROM stgdb.stg.matricula s
+        JOIN stgdb.stg.map_distrito md ON md.bruto = coalesce(s.distrito, '<nulo>')
+        JOIN stgdb.stg.map_dre mr ON mr.bruto = coalesce(s.dre, '<nulo>')
         WHERE md.distrito IS NOT NULL AND mr.dre IS NOT NULL
         GROUP BY ALL""")
     con.register("_fila_d", pd.DataFrame({"distrito": sorted(set(fila_df["distrito"]))}))
@@ -266,7 +270,7 @@ def _dim_territorio(con, fila_df: pd.DataFrame) -> None:
         INSERT INTO dw.dim_territorio
         WITH distritos AS (
             SELECT distrito FROM _fila_d
-            UNION SELECT distrito FROM stg.map_distrito WHERE distrito IS NOT NULL
+            UNION SELECT distrito FROM stgdb.stg.map_distrito WHERE distrito IS NOT NULL
         ), pred AS (
             SELECT distrito, arg_max(dre, n) AS dre, max(n) / sum(n) AS participacao FROM _dre GROUP BY 1
         )
@@ -292,12 +296,12 @@ def _dim_etapa_e_serie(con) -> None:
                ms.modalidade, ms.segmento, ms.serie, ms.ciclo, ms.ordem_serie, ms.educacao_especial,
                ms.codigo_etapa, e.etapa, e.nivel
         FROM (SELECT DISTINCT modalidade, segmento, serie, ciclo, ordem_serie, educacao_especial, codigo_etapa
-              FROM stg.map_serie WHERE valido) ms
+              FROM stgdb.stg.map_serie WHERE valido) ms
         JOIN dw.dim_etapa e ON e.codigo = ms.codigo_etapa""")
 
 
 def _dim_turno(con) -> None:
-    pares = con.execute("SELECT DISTINCT turno, origem_turno FROM stg.matricula_preparada ORDER BY 1, 2").fetchall()
+    pares = con.execute("SELECT DISTINCT turno, origem_turno FROM stgdb.stg.matricula_preparada ORDER BY 1, 2").fetchall()
     for i, (t, origem) in enumerate(pares, 1):
         con.execute("INSERT INTO dw.dim_turno VALUES (?, ?, ?, ?)", [i, t, n.jornada(t if t in n.TURNOS else None), origem])
 
@@ -316,20 +320,20 @@ def _dims_bugiganga(con) -> None:
                split_part(cod_perfil, '|', 1), split_part(cod_perfil, '|', 2),
                CASE split_part(cod_perfil, '|', 3) WHEN 'true' THEN true WHEN 'false' THEN false END,
                split_part(cod_perfil, '|', 4) = 'true'
-        FROM (SELECT DISTINCT cod_perfil FROM stg.matricula_preparada)""")
+        FROM (SELECT DISTINCT cod_perfil FROM stgdb.stg.matricula_preparada)""")
     flags = ", ".join(_bool_da_posicao("cod", i + 1) for i in range(len(microdados.DEFICIENCIAS)))
     con.execute(f"""
         INSERT INTO dw.dim_deficiencia
         SELECT row_number() OVER (ORDER BY cod), cod, position('1' IN cod) > 0,
                length(cod) - length(replace(cod, '1', '')), {flags}
-        FROM (SELECT DISTINCT cod_deficiencia AS cod FROM stg.matricula_preparada)""")
+        FROM (SELECT DISTINCT cod_deficiencia AS cod FROM stgdb.stg.matricula_preparada)""")
     posicao = {k: i + 1 for i, k in enumerate(situacao.INDICADORES)}
     desfecho = situacao.sql_desfecho(lambda k: _bool_da_posicao("cod", posicao[k]))
     flags_sit = ", ".join(_bool_da_posicao("cod", i) for i in posicao.values())
     con.execute(f"""
         INSERT INTO dw.dim_situacao_matricula
         SELECT row_number() OVER (ORDER BY cod), cod, NULLIF(split_part(cod, '|', 2), ''), {desfecho}, {flags_sit}
-        FROM (SELECT DISTINCT cod_situacao AS cod FROM stg.matricula_preparada)""")
+        FROM (SELECT DISTINCT cod_situacao AS cod FROM stgdb.stg.matricula_preparada)""")
 
 
 # ----------------------------------------------------------------------------- fatos
@@ -353,7 +357,7 @@ def _fato_matricula(con) -> int:
             CASE WHEN al.qualidade_codigo_escola = 'CORROMPIDO' THEN NULL ELSE p.cd_matricula END,
             1,
             p.qtd_dias
-        FROM stg.matricula_preparada p
+        FROM stgdb.stg.matricula_preparada p
         JOIN dw.dim_ano_letivo al ON al.ano = p.ano_letivo
         JOIN dw.dim_escola e ON e.chave_escola = p.chave_escola
         LEFT JOIN dw.dim_territorio t ON t.distrito = e.distrito
@@ -414,7 +418,7 @@ def _observacoes_ano(con, identificadas: pd.DataFrame) -> None:
                max(CASE WHEN p.tem_datas THEN 1 ELSE 0 END) AS tem_datas,
                avg(CASE WHEN p.idade_estimada THEN 1.0 ELSE 0 END) AS idade_estimada,
                avg(CASE WHEN s.desfecho = 'EM CURSO' THEN 1.0 ELSE 0 END) AS em_curso
-        FROM stg.matricula_preparada p
+        FROM stgdb.stg.matricula_preparada p
         JOIN dw.dim_situacao_matricula s ON s.codigo_combinacao = p.cod_situacao
         GROUP BY 1""")
     qualidade = dict(con.execute("SELECT ano, qualidade_codigo_escola FROM dw.dim_ano_letivo").fetchall())
@@ -444,9 +448,13 @@ def _observacoes_ano(con, identificadas: pd.DataFrame) -> None:
 def carregar_tudo(cfg: Configuracao) -> dict:
     inicio = time.time()
     cfg.banco.parent.mkdir(parents=True, exist_ok=True)
+    staging = cfg.dir_dados / "interim" / "staging.duckdb"
+    staging.parent.mkdir(parents=True, exist_ok=True)
+    staging.unlink(missing_ok=True)
     con = duckdb.connect(str(cfg.banco))
     try:
         criar_esquema(con)
+        con.execute(f"ATTACH '{staging.as_posix()}' AS stgdb")
         cfg.log("  staging do microdado")
         linhas_staging = _staging_matricula(con, cfg)
         cfg.log("  tabelas de correspondência e identificação das escolas")
@@ -480,8 +488,9 @@ def carregar_tudo(cfg: Configuracao) -> dict:
             resumo[tabela] = con.execute(f"SELECT count(*) FROM dw.{tabela}").fetchone()[0]
         resumo["vinculo_escola"] = esc.resumo_vinculo(aux["identificadas"]).astype(int).to_dict(orient="index")
         resumo["fila_metadados"] = fila_meta
+        con.execute("DETACH stgdb")
         if not cfg.manter_staging:
-            con.execute("DROP SCHEMA stg CASCADE")
+            staging.unlink(missing_ok=True)
         con.execute("CHECKPOINT")
         resumo["segundos"] = round(time.time() - inicio, 1)
         return resumo
