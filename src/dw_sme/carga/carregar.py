@@ -19,17 +19,15 @@ from __future__ import annotations
 import time
 from datetime import date
 from importlib import resources
-from pathlib import Path
 
 import duckdb
 import pandas as pd
 
 from ..config import Configuracao
 from ..preparacao import preparar_fila
+from ..transformacao import datas, etapas, idade, microdados, situacao
 from ..transformacao import escolas as esc
-from ..transformacao import datas, etapas, idade, microdados
 from ..transformacao import normalizacao as n
-from ..transformacao import situacao
 
 NULO = "<nulo>"
 # O staging vive num arquivo DuckDB separado, anexado durante a carga. Assim o banco
@@ -202,9 +200,11 @@ def _preparar_matricula(con) -> tuple[int, int]:
             {datas.sql_na_janela('s._dtf', 's.ano_letivo')} AS data_fim
         FROM com_idade s
         JOIN stgdb.stg.map_serie ms
-          ON ms.modalidade_b = {_b('s.modalidade')} AND ms.segmento_b = {_b('s.segmento')} AND ms.serie_b = {_b('s.serie')}
+          ON ms.modalidade_b = {_b('s.modalidade')} AND ms.segmento_b = {_b('s.segmento')}
+         AND ms.serie_b = {_b('s.serie')}
         JOIN stgdb.stg.map_escola me
-          ON me.ano = s.ano_letivo AND me.cd_bruto = {_b('s.cd_escola_origem')} AND me.nome_bruto = {_b('s.nome_escola')}
+          ON me.ano = s.ano_letivo AND me.cd_bruto = {_b('s.cd_escola_origem')}
+         AND me.nome_bruto = {_b('s.nome_escola')}
          AND me.tipo_bruto = {_b('s.tipo_escola')} AND me.distrito_bruto = {_b('s.distrito')}
         JOIN stgdb.stg.map_turno mt
           ON mt.ano_letivo = s.ano_letivo AND mt.desc_turno = {_b('s.desc_turno')} AND mt.cd_turno = {_b('s.cd_turno')}
@@ -251,7 +251,8 @@ def _dim_data(con, cfg: Configuracao) -> None:
 
 
 def _dim_ano_letivo(con, qualidade: dict[int, str]) -> None:
-    anos = [r[0] for r in con.execute("SELECT DISTINCT ano_letivo FROM stgdb.stg.matricula_preparada ORDER BY 1").fetchall()]
+    sql = "SELECT DISTINCT ano_letivo FROM stgdb.stg.matricula_preparada ORDER BY 1"
+    anos = [r[0] for r in con.execute(sql).fetchall()]
     for i, ano in enumerate(anos, 1):
         con.execute("INSERT INTO dw.dim_ano_letivo VALUES (?, ?, ?, NULL)", [i, ano, qualidade[ano]])
 
@@ -278,7 +279,8 @@ def _dim_territorio(con, fila_df: pd.DataFrame) -> None:
         FROM distritos d LEFT JOIN pred p USING (distrito)""")
     con.unregister("_fila_d")
     con.execute("""INSERT INTO dw.dim_territorio
-                   SELECT max(chave_territorio) + 1, 'NAO INFORMADO', NULL, NULL, 'SAO PAULO', 'SP' FROM dw.dim_territorio""")
+                   SELECT max(chave_territorio) + 1, 'NAO INFORMADO', NULL, NULL, 'SAO PAULO', 'SP'
+                   FROM dw.dim_territorio""")
 
 
 def _dim_escola(con, versoes: pd.DataFrame) -> None:
@@ -301,9 +303,10 @@ def _dim_etapa_e_serie(con) -> None:
 
 
 def _dim_turno(con) -> None:
-    pares = con.execute("SELECT DISTINCT turno, origem_turno FROM stgdb.stg.matricula_preparada ORDER BY 1, 2").fetchall()
-    for i, (t, origem) in enumerate(pares, 1):
-        con.execute("INSERT INTO dw.dim_turno VALUES (?, ?, ?, ?)", [i, t, n.jornada(t if t in n.TURNOS else None), origem])
+    sql = "SELECT DISTINCT turno, origem_turno FROM stgdb.stg.matricula_preparada ORDER BY 1, 2"
+    for i, (t, origem) in enumerate(con.execute(sql).fetchall(), 1):
+        jornada = n.jornada(t if t in n.TURNOS else None)
+        con.execute("INSERT INTO dw.dim_turno VALUES (?, ?, ?, ?)", [i, t, jornada, origem])
 
 
 def _dim_idade(con) -> None:
@@ -429,7 +432,8 @@ def _observacoes_ano(con, identificadas: pd.DataFrame) -> None:
             ligadas = (linha[esc.PUBLICADO] + linha[esc.RECUPERADO]) / linha.sum()
             situacao_codigo = "corrompido" if qualidade[r.ano] == esc.CORROMPIDO else "fora do padrão"
             notas.append(f"Código da escola {situacao_codigo} no arquivo publicado: {100 * ligadas:.1f}% das "
-                         f"matrículas ligadas ao código real pelo nome, tipo e distrito; o restante com chave sintética.")
+                         "matrículas ligadas ao código real pelo nome, tipo e distrito; "
+                         "o restante com chave sintética.")
         if r.turno_nao_publicado > 0.5:
             notas.append("Turno não publicado; derivado do código da turma ou do horário.")
         if not r.tem_datas:
@@ -475,7 +479,7 @@ def carregar_tudo(cfg: Configuracao) -> dict:
         _dims_bugiganga(con)
 
         cfg.log("  fatos")
-        resumo = {
+        resumo: dict[str, object] = {
             "linhas_staging": linhas_staging,
             "excluidas_sem_etapa": excluidas,
             "fato_matricula": _fato_matricula(con),
@@ -483,8 +487,9 @@ def carregar_tudo(cfg: Configuracao) -> dict:
             "fato_desfecho": _fato_desfecho(con),
         }
         _observacoes_ano(con, aux["identificadas"])
-        for tabela in ("dim_tempo", "dim_data", "dim_ano_letivo", "dim_territorio", "dim_escola", "dim_etapa", "dim_serie",
-                       "dim_turno", "dim_idade", "dim_perfil_aluno", "dim_deficiencia", "dim_situacao_matricula"):
+        for tabela in ("dim_tempo", "dim_data", "dim_ano_letivo", "dim_territorio", "dim_escola", "dim_etapa",
+                       "dim_serie", "dim_turno", "dim_idade", "dim_perfil_aluno", "dim_deficiencia",
+                       "dim_situacao_matricula"):
             resumo[tabela] = con.execute(f"SELECT count(*) FROM dw.{tabela}").fetchone()[0]
         resumo["vinculo_escola"] = esc.resumo_vinculo(aux["identificadas"]).astype(int).to_dict(orient="index")
         resumo["fila_metadados"] = fila_meta

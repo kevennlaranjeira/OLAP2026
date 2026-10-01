@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-cov>=5"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6"]
 
 [project.scripts]
 dw-sme = "dw_sme.cli:main"
@@ -33,6 +33,24 @@ markers = [
     "dados_reais: depende dos arquivos baixados em data/ (pulado quando ausentes)",
 ]
 
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "DTZ"]
+# if/else de duas linhas lê melhor que um ternário longo
+ignore = ["SIM108"]
+
+[tool.ruff.lint.per-file-ignores]
+# linhas de dados sintéticos nas fixtures ficam inteiras, uma por registro
+"tests/*" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["dw_sme"]
+known-local-folder = ["conftest", "test_extracao"]
+
 [tool.coverage.run]
 source = ["dw_sme"]
 branch = true
@@ -40,3 +58,10 @@ branch = true
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
+
+[tool.pyright]
+include = ["src"]
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.11"
+typeCheckingMode = "basic"

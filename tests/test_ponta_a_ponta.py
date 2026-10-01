@@ -8,14 +8,14 @@ das planilhas de fila de exemplo. Nada depende de internet.
 import io
 import json
 import zipfile
-from pathlib import Path
 
 import pytest
 
-from conftest import FIXTURES, microdado_2019
 from dw_sme import pipeline
 from dw_sme.config import Configuracao
 from dw_sme.qualidade.verificacoes import FALHA
+
+from conftest import FIXTURES, microdado_2019
 from test_extracao import ServidorFalso, pacote
 
 BASE = "https://portal.exemplo/api/3/action"

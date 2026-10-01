@@ -9,7 +9,7 @@ documentada em docs/04-integracao-e-qualidade.md.
 """
 from __future__ import annotations
 
-from typing import Callable, Mapping
+from collections.abc import Callable, Mapping
 
 INDICADORES = (
     "aprovado", "reprovado", "abandono", "concluido", "transferido", "falecido",

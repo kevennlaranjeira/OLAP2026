@@ -16,10 +16,10 @@ import hashlib
 import json
 import time
 import urllib.request
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
 
 _BLOCO = 1 << 20
 
@@ -33,7 +33,7 @@ class Recurso:
     tamanho: int | None
 
     @classmethod
-    def de_ckan(cls, r: dict) -> "Recurso":
+    def de_ckan(cls, r: dict) -> Recurso:
         return cls(id=r["id"], nome=(r.get("name") or "").strip(),
                    formato=(r.get("format") or "").strip().upper().lstrip("."),
                    url=r["url"], tamanho=r.get("size"))
@@ -63,7 +63,7 @@ class ClienteCKAN:
                 ultimo_erro = erro
                 if tentativa + 1 < self.tentativas:
                     time.sleep(self.pausa * (tentativa + 1))
-        raise ultimo_erro
+        raise ultimo_erro or OSError(f"nenhuma tentativa de leitura de {url}")
 
     def pacote(self, identificador: str) -> dict:
         corpo = self._ler(f"{self.base_url}/package_show?id={identificador}")
@@ -100,7 +100,7 @@ class Manifesto:
     def registrar(self, arquivo: str, recurso: Recurso, sha256: str, tamanho: int) -> None:
         self.entradas[arquivo] = {
             "url": recurso.url, "recurso_id": recurso.id, "nome": recurso.nome,
-            "sha256": sha256, "bytes": tamanho, "baixado_em": datetime.now().isoformat(timespec="seconds"),
+            "sha256": sha256, "bytes": tamanho, "baixado_em": datetime.now().astimezone().isoformat(timespec="seconds"),
         }
         self.caminho.parent.mkdir(parents=True, exist_ok=True)
         self.caminho.write_text(json.dumps(self.entradas, ensure_ascii=False, indent=1, sort_keys=True),
@@ -146,4 +146,4 @@ def baixar(recurso: Recurso, destino_dir: str | Path, manifesto: Manifesto, user
             ultimo_erro = erro
             if tentativa + 1 < tentativas:
                 time.sleep(pausa * (tentativa + 1))
-    raise ultimo_erro
+    raise ultimo_erro or OSError(f"nenhuma tentativa de download de {recurso.url}")

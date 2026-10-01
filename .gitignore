@@ -37,3 +37,7 @@ desktop.ini
 
 # compilação do relatório
 docs/relatorio/compilacao.log
+
+# Build do pacote
+build/
+dist/

@@ -120,7 +120,7 @@ def identificar(df: pd.DataFrame) -> pd.DataFrame:
     homonimos_no_ano = df.groupby(["ano", "tripla"])["cd_origem"].transform("nunique") > 1
 
     cods, vinculos = [], []
-    for row, homonimo in zip(df.itertuples(index=False), homonimos_no_ano):
+    for row, homonimo in zip(df.itertuples(index=False), homonimos_no_ano, strict=True):
         if row.qualidade_codigo == CONFIAVEL:
             cods.append(codigo_normalizado(row.cd_origem))
             vinculos.append(PUBLICADO)

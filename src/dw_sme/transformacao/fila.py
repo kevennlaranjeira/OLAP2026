@@ -223,7 +223,7 @@ def _combinar(valores: dict[tuple[str, str | None], int | None],
               semanticas: dict[str, str], etapa: str, inconsistencias: list[str],
               contexto: str) -> dict:
     """Junta as colunas de uma etapa em um registro canônico."""
-    r = {m: None for m in MEDIDAS}
+    r: dict[str, int | None] = dict.fromkeys(MEDIDAS)
     r["matriculas"] = valores.get(("matriculas", None))
     r["matriculas_em_processo"] = valores.get(("matriculas_em_processo", None))
 
@@ -285,8 +285,8 @@ def ler_planilha(caminho: str | Path, periodo: date | None = None) -> PlanilhaFi
         raise ValueError(f"{caminho.name}: nenhuma coluna reconhecida no cabeçalho")
 
     corpo, i_total = linhas[2:], None
-    for i, l in enumerate(corpo):
-        if l and texto(l[0]) == "TOTAL":
+    for i, linha in enumerate(corpo):
+        if linha and texto(linha[0]) == "TOTAL":
             i_total = i
             break
     if i_total is None:
@@ -302,12 +302,12 @@ def ler_planilha(caminho: str | Path, periodo: date | None = None) -> PlanilhaFi
         observacoes=observacoes,
         colunas_ignoradas=ignoradas,
     )
-    for l in corpo[:i_total]:
-        d = normalizar_distrito(l[0]) if l else None
+    for linha in corpo[:i_total]:
+        d = normalizar_distrito(linha[0]) if linha else None
         if not d:
             continue
         contexto = f"{caminho.name} | {d}"
-        for etapa, r in _registro(l, colunas, semanticas, p.inconsistencias, contexto).items():
+        for etapa, r in _registro(linha, colunas, semanticas, p.inconsistencias, contexto).items():
             p.linhas.append({"distrito": d, "etapa": etapa, **r})
     p.totais = _registro(corpo[i_total], colunas, semanticas, p.inconsistencias, f"{caminho.name} | TOTAL")
     return p
@@ -332,15 +332,15 @@ def ler_serie_historica(caminho: str | Path) -> list[PlanilhaFila]:
     caminho = Path(caminho)
     leitor = csv.DictReader(io.StringIO(_ler_texto(caminho)), delimiter=";")
     por_periodo: dict[date, PlanilhaFila] = {}
-    for l in leitor:
-        periodo = periodo_do_nome(l["MES_ANO_REF"])
+    for linha in leitor:
+        periodo = periodo_do_nome(linha["MES_ANO_REF"])
         p = por_periodo.setdefault(periodo, PlanilhaFila(periodo=periodo, layout="H", arquivo=caminho.name))
-        d = normalizar_distrito(l["DISTRITO"])
+        d = normalizar_distrito(linha["DISTRITO"])
         for etapa in _COLUNAS_HISTORICO["matriculas"]:
-            r = {m: None for m in MEDIDAS}
+            r: dict[str, int | None] = dict.fromkeys(MEDIDAS)
             for medida, cols in _COLUNAS_HISTORICO.items():
                 if etapa in cols:
-                    r[medida] = inteiro_br(l.get(cols[etapa]))
+                    r[medida] = inteiro_br(linha.get(cols[etapa]))
             p.linhas.append({"distrito": d, "etapa": etapa, **r})
     return [por_periodo[k] for k in sorted(por_periodo)]
 

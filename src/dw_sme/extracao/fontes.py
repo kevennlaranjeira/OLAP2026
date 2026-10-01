@@ -7,8 +7,8 @@ Matrículas - 2015-2018", "Microdados de Matrícula - 2025",
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from pathlib import PurePosixPath
-from typing import Iterable
 
 from ..transformacao.microdados import arquivo_eh_escolarizacao
 from ..transformacao.normalizacao import texto

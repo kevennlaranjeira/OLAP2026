@@ -79,10 +79,12 @@ def versoes_escola(con) -> Verificacao:
         SELECT count(*) FROM dw.dim_escola a JOIN dw.dim_escola b
           ON a.cod_escola = b.cod_escola AND a.versao < b.versao AND a.ano_fim >= b.ano_inicio""").fetchone()[0]
     sem_atual = con.execute("""
-        SELECT count(*) FROM (SELECT cod_escola FROM dw.dim_escola GROUP BY 1 HAVING sum(versao_atual::INT) <> 1)""").fetchone()[0]
+        SELECT count(*) FROM (
+            SELECT cod_escola FROM dw.dim_escola GROUP BY 1 HAVING sum(versao_atual::INT) <> 1)""").fetchone()[0]
     fora = con.execute("""
         SELECT count(*) FROM dw.fato_matricula f JOIN dw.dim_escola e USING (chave_escola)
-        JOIN dw.dim_ano_letivo a USING (chave_ano_letivo) WHERE a.ano NOT BETWEEN e.ano_inicio AND e.ano_fim""").fetchone()[0]
+        JOIN dw.dim_ano_letivo a USING (chave_ano_letivo)
+        WHERE a.ano NOT BETWEEN e.ano_inicio AND e.ano_fim""").fetchone()[0]
     det = _df(con, """SELECT count(DISTINCT cod_escola) AS escolas, count(*) AS versoes,
                              count(*) FILTER (WHERE versao > 1) AS versoes_adicionais,
                              count(DISTINCT cod_escola) FILTER (WHERE codigo_sintetico) AS escolas_sinteticas
@@ -160,7 +162,8 @@ def reconciliacao(con) -> Verificacao:
             GROUP BY ALL),
         fl AS (
             SELECT t.ano, e.codigo AS etapa, f.chave_territorio, f.qtd_matriculas AS n
-            FROM dw.fato_fila f JOIN dw.dim_tempo t USING (chave_tempo) JOIN ref r ON r.data_referencia = t.data_referencia
+            FROM dw.fato_fila f JOIN dw.dim_tempo t USING (chave_tempo)
+            JOIN ref r ON r.data_referencia = t.data_referencia
             JOIN dw.dim_etapa e USING (chave_etapa))
         SELECT fl.ano, fl.etapa,
                sum(coalesce(md.n, 0)) AS microdado_ativas_30_06, sum(fl.n) AS planilha_fila,
@@ -215,7 +218,8 @@ def observacoes_ano(con) -> Verificacao:
     det = _df(con, "SELECT ano, qualidade_codigo_escola, observacao FROM dw.dim_ano_letivo ORDER BY ano")
     com_ressalva = det["observacao"].notna().sum()
     return Verificacao("Q10", "Limitações do microdado por ano letivo", ALERTA if com_ressalva else OK,
-                       f"{com_ressalva} de {len(det)} anos com alguma limitação registrada na dimensão Ano Letivo.", det)
+                       f"{com_ressalva} de {len(det)} anos com alguma limitação registrada na dimensão Ano Letivo.",
+                       det)
 
 
 def verificar(con: duckdb.DuckDBPyConnection, fila_meta: list[dict]) -> list[Verificacao]:
@@ -251,7 +255,7 @@ def tabela_markdown(df: pd.DataFrame, limite: int = 60) -> str:
 
 def relatorio_markdown(verificacoes: list[Verificacao], resumo_carga: dict | None = None) -> str:
     partes = ["# Relatório de qualidade do data warehouse", "",
-              f"Gerado em {datetime.now():%d/%m/%Y %H:%M} pelo comando `dw-sme verificar`.", ""]
+              f"Gerado em {datetime.now().astimezone():%d/%m/%Y %H:%M} pelo comando `dw-sme verificar`.", ""]
     if resumo_carga:
         partes += ["## Volumes carregados", "",
                    tabela_markdown(pd.DataFrame(

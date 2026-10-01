@@ -186,7 +186,7 @@ def test_extrai_zip_com_7zip(tmp_path):
 
 
 @pytest.mark.parametrize("conteudo, esperado", [
-    ("ÁGUA;1\n".encode("utf-8"), "utf-8"),
+    ("ÁGUA;1\n".encode(), "utf-8"),
     ("ÁGUA;1\n".encode("latin-1"), "latin-1"),
     (b"\xef\xbb\xbfAN_LETIVO;X\n", "utf-8"),
 ])
