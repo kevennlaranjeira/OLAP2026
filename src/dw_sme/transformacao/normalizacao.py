@@ -19,9 +19,14 @@ _ESPACOS = re.compile(r"\s+")
 _SUBSTITUICAO = "\ufffd"
 
 
+def _nulo(valor) -> bool:
+    # NaN (float) é como o pandas representa nulo em colunas de texto
+    return valor is None or (isinstance(valor, float) and valor != valor)
+
+
 def texto(valor: str | None) -> str | None:
-    """Maiúsculas, sem acento, espaços colapsados. Vazio vira None."""
-    if valor is None:
+    """Maiúsculas, sem acento, espaços colapsados. Vazio e NaN viram None."""
+    if _nulo(valor):
         return None
     s = str(valor).replace(_SUBSTITUICAO, "A")
     s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
@@ -35,7 +40,7 @@ def inteiro_br(valor: str | None) -> int | None:
     '1.188' -> 1188 (ponto de milhar), '5,00' -> 5 (vírgula decimal).
     Notação científica ('1,32551E+13') é recusada: indica código corrompido.
     """
-    if valor is None:
+    if _nulo(valor):
         return None
     s = str(valor).strip()
     if not s or "E" in s.upper():
