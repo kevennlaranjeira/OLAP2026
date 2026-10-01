@@ -1,0 +1,12 @@
+\begin{tikzpicture}[node distance=0.45cm]
+\node[fato] (F) at (0,0) {\textbf{Tabela de Fatos Desfecho}
+\nodepart{two}(FK) chave ano letivo\\(FK) chave escola\\(FK) chave território\\(FK) chave série\\matrículas\\aprovados, reprovados, abandonos\\transferidos, concluintes, falecidos\\outras saídas, em curso, sem desfecho\\\textit{taxa aprovação (derivada)}\\\textit{taxa reprovação (derivada)}\\\textit{taxa abandono (derivada)}};
+\node[dim, anchor=north east] (A) at (-3.35,2.35) {\textbf{Dimensão Ano Letivo}\nodepart{two}(PK) chave ano letivo\\ano\\qualidade código escola\\observação};
+\node[dim, below=of A] (E) {\textbf{Dimensão Escola}\nodepart{two}(PK) chave escola\\código escola, versão\\nome escola, tipo escola, rede\\distrito, DRE, situação\\...};
+\node[dim, anchor=north west] (T) at (3.35,2.35) {\textbf{Dimensão Território}\nodepart{two}(PK) chave território\\distrito\\DRE, participação DRE\\município, UF};
+\node[dim, below=of T] (S) {\textbf{Dimensão Série}\nodepart{two}(PK) chave série\\modalidade, segmento, série\\ciclo, educação especial\\código etapa, etapa, nível};
+\draw[liga] (A.east) -- \ladoesq{F}{1}{2};
+\draw[liga] (E.east) -- \ladoesq{F}{2}{2};
+\draw[liga] (T.west) -- \ladodir{F}{1}{2};
+\draw[liga] (S.west) -- \ladodir{F}{2}{2};
+\end{tikzpicture}

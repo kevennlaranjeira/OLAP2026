@@ -1,0 +1,12 @@
+\begin{tikzpicture}[node distance=0.45cm]
+\node[fato] (F) at (0,0) {\textbf{Tabela de Fatos População}
+\nodepart{two}(FK) chave tempo\\(FK) chave setor censitário\\(FK) chave território\\(FK) chave faixa etária\\quantidade de pessoas};
+\node[dim, anchor=north east] (TE) at (-3.35,2.75) {\textbf{Dimensão Tempo}\nodepart{two}(PK) chave tempo\\data referência, ano mês\\mês, nome mês\\bimestre, trimestre, semestre\\ano\\fila publicada, observação};
+\node[dim, below=of TE] (SC) {\textbf{Dimensão Setor Censitário}\nodepart{two}(PK) chave setor censitário\\código setor\\código distrito IBGE\\nome distrito IBGE\\distrito\\município, UF};
+\node[dim, anchor=north west] (TR) at (3.35,2.75) {\textbf{Dimensão Território}\nodepart{two}(PK) chave território\\distrito\\DRE, participação DRE\\município, UF};
+\node[dim, below=of TR] (FE) {\textbf{Dimensão Faixa Etária}\nodepart{two}(PK) chave faixa etária\\faixa IBGE\\idade inicial, idade final\\variável IBGE\\ordem};
+\draw[liga] (TE.east) -- \ladoesq{F}{1}{2};
+\draw[liga] (SC.east) -- \ladoesq{F}{2}{2};
+\draw[liga] (TR.west) -- \ladodir{F}{1}{2};
+\draw[liga] (FE.west) -- \ladodir{F}{2}{2};
+\end{tikzpicture}

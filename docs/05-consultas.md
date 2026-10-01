@@ -1,6 +1,6 @@
 # Consultas
 
-Seis consultas cobrem as operações exigidas pelo enunciado. Cada uma está num arquivo em [`src/dw_sme/sql/consultas/`](../src/dw_sme/sql/consultas/), com um cabeçalho que traz código, tipo, pergunta, justificativa e fatos usados. `dw-sme consultar` roda todas e grava um CSV por consulta em `data/relatorios/consultas/`.
+Oito consultas cobrem as operações exigidas pelo enunciado: três de roll-up ou drill-down (o mínimo é duas), uma de slice and dice, uma de pivot e três de drill-across. Cada uma está num arquivo em [`src/dw_sme/sql/consultas/`](../src/dw_sme/sql/consultas/), com um cabeçalho que traz código, tipo, pergunta, justificativa e fatos usados. `dw-sme consultar` roda todas e grava um CSV por consulta em `data/relatorios/consultas/`.
 
 | Consulta | Operação | Fatos | Linhas no resultado real |
 |---|---|---|---|
@@ -10,8 +10,10 @@ Seis consultas cobrem as operações exigidas pelo enunciado. Cada uma está num
 | C4 | pivot | matrícula | 13 |
 | C5 | drill-across | fila, matrícula | 1.920 |
 | C6 | drill-across | fila, matrícula, desfecho | 131 |
+| C7 | drill-across | população, matrícula, fila | a medir na próxima carga |
+| C8 | drill-down | turma | a medir na próxima carga |
 
-Os números abaixo vêm da carga com os dados reais de 2015 a 2024.
+Os números de C1 a C6 vêm da carga com os dados reais de 2015 a 2024. C7 e C8 foram acrescentadas depois dessa carga, junto com os fatos de população e de turma; estão testadas com dados sintéticos, e os resultados reais saem do próximo `dw-sme tudo`. Nenhum número delas é apresentado aqui antes disso.
 
 ## C1 · Drill-down: fila de creche da DRE ao distrito
 
@@ -96,3 +98,27 @@ A fila de creche caiu 97% em dez anos e a pré-escola zerou a fila em 2018. No n
 **Como.** Três fatos agregados até DRE e ano: fila de creche em junho (`fato_fila`, subindo de distrito para DRE pela hierarquia integrada), matrículas de creche (`fato_matricula`, para pôr a fila em escala) e desfecho do fundamental (`fato_desfecho`). A taxa de abandono é recalculada pelas contagens e restrita ao fundamental, porque na educação infantil não há aprovação.
 
 **Resultado.** Em 2019, Santo Amaro tinha a maior fila relativa (173 crianças por mil matrículas de creche) e taxa de abandono no fundamental de 1,3%; Freguesia/Brasilândia e Ipiranga tinham as maiores taxas de abandono (2,0%) com filas relativas menores (87 e 67 por mil). A correlação entre as duas medidas nas 13 DREs muda de sinal de um ano para outro (de −0,27 a 0,56). O cruzamento não sustenta a hipótese de que as duas vulnerabilidades andam juntas no nível de DRE.
+
+## C7 · Drill-across: crianças de 0 a 4 anos residentes, matriculadas e na fila, por distrito
+
+**Pergunta.** Em cada distrito, quantas crianças de 0 a 4 anos o Censo 2022 contou, quantas crianças dessa idade estavam matriculadas em escolas municipais do distrito na data de referência do Censo, e quantas esperavam vaga em creche ou pré-escola no último mês publicado antes dela?
+
+**Como.** Três fatos agregados até distrito. `fato_populacao` na faixa 0 a 4 anos (sobe de setor censitário para distrito); `fato_matricula` com idade na faixa IBGE 0 a 4, contando as ativas em 31/07/2022 pelos dois papéis da dimensão Data; `fato_fila` de creche e pré-escola no último mês publicado até julho de 2022. União pelas dimensões conformadas Território, Tempo e Idade (`dim_faixa_etaria` como rollup encolhido de `dim_idade`). Saem duas razões: matrículas por 100 crianças residentes e fila por mil crianças residentes.
+
+**Por quê.** A fila mede quem pediu vaga; a população mede quantas crianças existem. Um distrito com fila baixa e poucas matrículas por criança residente pode ter demanda que não chega a virar pedido de vaga, ou pode estar sendo atendido por escolas de distritos vizinhos. É a pergunta que liga a política de expansão de vagas ao tamanho da população.
+
+**Cuidados de leitura.** A matrícula é contada pelo distrito da escola e a população pelo distrito de residência, porque o microdado não traz endereço do aluno; a razão é oferta municipal por criança residente, não taxa de atendimento dos moradores. A rede particular não conveniada não está no microdado. Em 2022 o microdado superestima as matrículas ativas de creche (+8,6% em junho, ver Q07), e isso vale também para 31/07.
+
+**Resultado.** A medir na próxima carga com os arquivos do IBGE.
+
+## C8 · Drill-down: ocupação das turmas do município ao distrito
+
+**Pergunta.** Em 2019 e no ano mais recente, quantos alunos em média havia por turma em funcionamento em 30 de junho, em cada etapa da educação infantil e do ensino fundamental, no município, em cada DRE e em cada distrito?
+
+**Como.** `GROUP BY ano, etapa, ROLLUP (dre, distrito)` sobre `fato_turma`, com slice em creche, pré-escola e fundamental (anos iniciais e finais) e dice em dois anos. A média é recalculada em cada nível como soma de alunos ativos dividida pela soma de turmas ativas, nunca como média de médias.
+
+**Por quê.** A fila diz onde falta vaga; a ocupação diz se a vaga que existe está cheia. Onde as turmas já estão acima da média da etapa, abrir vaga exige turma nova. As fontes não publicam a capacidade de cada turma, então a consulta mede a ocupação efetiva.
+
+**Cuidados de leitura.** Em 2022-2024 os vínculos encerrados publicados sem data de fim inflam os ativos (ver Q07), por isso 2019 é o ano de comparação mais confiável. Turma é identificada por ano, escola, nome da turma, série e turno; a verificação Q11 mede quantas matrículas caem em turma sem nome publicado.
+
+**Resultado.** A medir na próxima carga.

@@ -6,17 +6,21 @@ flowchart LR
         P1["Microdados de Matrículas<br/>5 pacotes .zip/.rar"]
         P2["Demanda Registrada e Matrículas<br/>44 planilhas CSV"]
     end
+    subgraph IBGE["Servidor de arquivos do IBGE"]
+        P3["Censo 2022, Agregados por Setores<br/>temas Básico e Demografia"]
+    end
     subgraph Raw["data/raw"]
         R1["pacotes + manifesto SHA-256"]
         R2["planilhas + manifesto SHA-256"]
+        R3["ibge + manifesto SHA-256"]
     end
     subgraph Interim["data/interim"]
         B["bruto/ano=AAAA/*.parquet<br/>tudo texto, nomes originais"]
         S["staging.duckdb (temporário)<br/>stg.matricula harmonizada<br/>stg.map_* correspondências<br/>stg.matricula_preparada"]
     end
     subgraph DW["data/dw/dw_sme.duckdb"]
-        D["12 dimensões"]
-        F["fato_matricula<br/>fato_fila<br/>fato_desfecho"]
+        D["14 dimensões"]
+        F["fato_matricula<br/>fato_fila<br/>fato_desfecho<br/>fato_turma<br/>fato_populacao"]
     end
     subgraph Rel["data/relatorios"]
         Q["qualidade.md"]
@@ -24,6 +28,8 @@ flowchart LR
     end
     P1 -- baixar --> R1
     P2 -- baixar --> R2
+    P3 -- baixar --> R3
+    R3 -- carregar --> F
     R1 -- preparar --> B
     B -- carregar --> S
     R2 -- carregar --> S
@@ -41,6 +47,8 @@ Cada seta é uma etapa do comando `dw-sme` (ver [Como executar](07-como-executar
 Módulos: `extracao/ckan.py`, `extracao/fontes.py`.
 
 O cliente consulta a API `package_show` do portal para as duas bases e escolhe os recursos pelo nome, que carrega o período ("Microdados de Matrículas - 2015-2018", "Demanda e Matrículas - Jun/2024", "Demanda por Vagas - 2006 a 2017"). Só entra o que intercepta o recorte pedido.
+
+O IBGE não usa CKAN: os Agregados por Setores ficam num diretório navegável. O módulo `extracao/ibge.py` lê a listagem do diretório e das subpastas, escolhe os arquivos dos temas Básico e Demografia pelo nome (CSV antes de XLSX; entre versões, a de nome maior) e baixa os dois com o mesmo manifesto. A população é complementar: se o diretório não responder, a etapa avisa e o pipeline segue; os dois arquivos podem ser colocados à mão em `data/raw/ibge/`. `--sem-ibge` desliga o download.
 
 Por que assim:
 
@@ -69,8 +77,9 @@ Módulos: `carga/carregar.py`, `transformacao/*`.
 3. **Tabelas de correspondência.** As regras de normalização (`normalizacao.py`, `etapas.py`, `escolas.py`) rodam em Python sobre os valores **distintos** de cada coluna (96 distritos, 148 combinações de série, ~39 mil escolas-ano), não sobre os 13 milhões de linhas. O resultado vira uma tabela `stg.map_*` que o DuckDB junta com o staging.
 4. **Matrícula preparada.** Uma única passada resolve, para cada linha, a chave natural de todas as dimensões: escola (pelo mapa de identificação), série, turno, idade, datas e os códigos de combinação das bugigangas.
 5. **Planilhas de fila** lidas pelo parser de `fila.py` e filtradas pelo recorte.
-6. **Dimensões e fatos** inseridos com chave artificial.
-7. **Observações por ano** escritas na dimensão Ano Letivo a partir de métricas do próprio dado.
+6. **Dimensões e fatos** inseridos com chave artificial. O fato de turma é agregado do fato de matrícula, agrupando pelo `id_turma`.
+7. **População do Censo 2022**, lida por `transformacao/populacao.py` quando os dois temas estão em `data/raw/ibge/`: só os setores do município, ligados ao distrito pelo nome normalizado e gravados no mês de referência do Censo (julho de 2022).
+8. **Observações por ano** escritas na dimensão Ano Letivo a partir de métricas do próprio dado.
 
 Por que assim:
 
@@ -80,8 +89,8 @@ Por que assim:
 
 ## Etapa 4: verificar
 
-Módulo: `qualidade/verificacoes.py`. Dez verificações sobre o banco pronto, com relatório em `data/relatorios/qualidade.md`. O último relatório gerado com os dados reais está em [relatorios/qualidade.md](relatorios/qualidade.md).
+Módulo: `qualidade/verificacoes.py`. Doze verificações sobre o banco pronto, com relatório em `data/relatorios/qualidade.md`. O último relatório gerado com os dados reais está em [relatorios/qualidade.md](relatorios/qualidade.md).
 
 ## Etapa 5: consultar
 
-Módulo: `consultas/executar.py`. Roda as seis consultas de `sql/consultas/` e grava um CSV por consulta. Ver [Consultas](05-consultas.md).
+Módulo: `consultas/executar.py`. Roda as oito consultas de `sql/consultas/` e grava um CSV por consulta. Ver [Consultas](05-consultas.md).
