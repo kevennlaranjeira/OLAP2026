@@ -180,3 +180,16 @@ class TestSituacaoEscola:
     ])
     def test_situacao(self, bruto, esperado):
         assert n.situacao_escola(bruto) == esperado
+
+
+class TestResolverTurno:
+    @pytest.mark.parametrize("ano, desc, codigo, inicio, fim, esperado", [
+        (2019, "TARDE", "03", "1300", "1900", ("TARDE", "PUBLICADO")),
+        (2021, None, "6", "1330", "1830", ("TARDE", "CODIGO_2021")),
+        (2021, None, "9", "700", "1700", ("INTEGRAL", "CODIGO_2021")),
+        (2022, None, "6361983544", "700", "1700", ("INTEGRAL", "HORARIO")),   # 2022: 19.954 linhas sem turno
+        (2019, None, "06", "x", "y", ("NAO INFORMADO", "NAO_INFORMADO")),
+        (2021, None, "1", "1900", "2300", ("NOITE", "HORARIO")),             # código fora da tabela de 2021
+    ])
+    def test_ordem_de_precedencia(self, ano, desc, codigo, inicio, fim, esperado):
+        assert n.resolver_turno(ano, desc, codigo, inicio, fim) == esperado

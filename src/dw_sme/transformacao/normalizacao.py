@@ -197,3 +197,23 @@ def situacao_escola(valor: str | None) -> str:
         if alvo in s:
             return alvo
     return "NAO INFORMADA"
+
+
+def resolver_turno(ano: int, descricao: str | None, codigo: str | None,
+                   inicio: str | None, fim: str | None) -> tuple[str, str]:
+    """Turno da turma e de onde ele veio, em ordem de confiabilidade.
+
+    1. descrição publicada; 2. código de 2021 (único ano sem descrição);
+    3. horário de início e fim; 4. não informado.
+    """
+    t = turno(descricao)
+    if t:
+        return t, "PUBLICADO"
+    if ano == 2021:
+        t = turno_codigo_2021(codigo)
+        if t:
+            return t, "CODIGO_2021"
+    t = turno_por_horario(inicio, fim)
+    if t:
+        return t, "HORARIO"
+    return "NAO INFORMADO", "NAO_INFORMADO"
