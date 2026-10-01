@@ -12,6 +12,11 @@ class TestTexto:
         assert n.texto(None) is None
         assert n.texto("   ") is None
 
+    def test_nan_do_pandas_vira_none_e_nao_o_texto_nan(self):
+        # Caso real: escola em branco em 2020 virava uma escola chamada "NAN"
+        assert n.texto(float("nan")) is None
+        assert n.inteiro_br(float("nan")) is None
+
     def test_caractere_de_substituicao_de_latin1_mal_lido(self):
         # 'NÃO DECLARADA' lido com encoding errado chega como 'N\ufffdO DECLARADA'
         assert n.texto("N\ufffdO DECLARADA") == "NAO DECLARADA"
