@@ -149,3 +149,16 @@ def test_resumo_de_vinculo(identificadas):
     assert r.loc[2023, "RECUPERADO_POR_NOME"] == 290
     assert r.loc[2023, "SINTETICO"] == 150
     assert r.loc[2021, "PUBLICADO"] == 310 + 82 + 40 + 45
+
+
+def test_homonimo_em_ano_de_codigo_longo_mas_consistente_recebe_chave_sintetica():
+    df = pd.DataFrame([
+        (2022, "9209611322271641", "BEIJA FLOR", "CR.P.CONV", "LAJEADO", "GUAIANASES", None, "Ativa", 40),
+        (2022, "9209611322271642", "BEIJA FLOR", "CR.P.CONV", "LAJEADO", "GUAIANASES", None, "Ativa", 45),
+        (2022, "9209611322271640", "UNIAO DE VILA NOVA I", "EMEI", "VILA JACUI", "SAO MIGUEL", None, "Ativa", 300),
+    ], columns=COLUNAS)
+    ident = e.identificar(e.normalizar(df))
+    assert e.avaliar_codigos(e.normalizar(df)) == {2022: e.CONSISTENTE_NO_ANO}
+    beija = ident[ident["nome"] == "BEIJA FLOR"]
+    assert set(beija["vinculo"]) == {e.SINTETICO}
+    assert beija["cod_escola"].nunique() == 2 and beija["cod_escola"].str.startswith("SINT-").all()

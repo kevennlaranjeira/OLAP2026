@@ -56,3 +56,19 @@ def test_baixar_usa_o_portal_e_o_recorte(tmp_path):
     assert resumo == {"microdados": 2, "demanda": 2, "dicionarios": 1, "ibge": 0}   # IBGE fora do ar: segue sem
     assert (cfg.dir_raw_microdados / "m1518.zip").read_bytes() == b"conteudo de m1"
     assert (cfg.dir_raw_fila / "manifesto.json").exists()
+
+
+def test_sem_ibge_a_etapa_baixar_nem_procura_o_censo():
+    cfg = Configuracao(ibge_base=None, log=lambda *_: None)
+    assert pipeline._baixar_ibge(cfg, abrir=None) == 0
+
+
+# o runpy avisa porque os outros testes já importaram dw_sme.cli; o módulo roda do mesmo jeito
+@pytest.mark.filterwarnings("ignore:'dw_sme.cli' found in sys.modules:RuntimeWarning")
+def test_python_m_dw_sme_cli(monkeypatch, capsys):
+    import runpy
+    import sys
+    monkeypatch.setattr(sys, "argv", ["dw-sme", "--version"])
+    with pytest.raises(SystemExit) as saida:
+        runpy.run_module("dw_sme.cli", run_name="__main__")
+    assert saida.value.code == 0 and "dw-sme" in capsys.readouterr().out

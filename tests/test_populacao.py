@@ -160,3 +160,49 @@ def test_falha_de_rede_e_repetida(monkeypatch):
     srv = ServidorFalso({BASE: b""}, falhas=2)
     assert ibge.localizar(BASE, "teste", abrir=srv) == {}
     assert len(srv.pedidos) == 3
+
+
+class ServidorInstavel:
+    """Responde 503 nas primeiras chamadas e depois serve as rotas."""
+
+    def __init__(self, rotas, erros_5xx):
+        self.rotas, self.erros, self.pedidos = rotas, erros_5xx, []
+
+    def __call__(self, req, timeout=None):
+        import urllib.error
+
+        from test_extracao import RespostaFalsa
+        self.pedidos.append(req.full_url)
+        if self.erros:
+            self.erros -= 1
+            raise urllib.error.HTTPError(req.full_url, 503, "Service Unavailable", hdrs=None, fp=None)
+        return RespostaFalsa(self.rotas[req.full_url])
+
+
+def test_erro_5xx_do_servidor_e_repetido(monkeypatch):
+    monkeypatch.setattr(ibge.time, "sleep", lambda _s: None)
+    srv = ServidorInstavel({BASE: b'<a href="Agregados_por_setores_basico_BR.zip">b</a>'}, erros_5xx=2)
+    assert set(ibge.localizar(BASE, "teste", abrir=srv)) == {"basico"}
+    assert len(srv.pedidos) == 3
+
+
+def test_erro_5xx_persistente_desiste(monkeypatch):
+    monkeypatch.setattr(ibge.time, "sleep", lambda _s: None)
+    srv = ServidorInstavel({}, erros_5xx=9)
+    with pytest.raises(OSError):
+        ibge.localizar(BASE, "teste", abrir=srv)
+    assert len(srv.pedidos) == 3
+
+
+def test_subpasta_vista_duas_vezes_e_lida_uma_vez_e_profundidade_limitada():
+    rotas = {BASE: b'<a href="x/">x</a><a href="x/y/">y</a><a href="a/">a</a>',
+             BASE + "x/": b'<a href="y/">y</a>',                        # x/y/ aparece de novo, no nível 2
+             BASE + "x/y/": b'<a href="Agregados_por_setores_basico_BR.zip">b</a>',
+             BASE + "a/": b'<a href="b/">b</a>',
+             BASE + "a/b/": b'<a href="c/">c</a>',
+             BASE + "a/b/c/": b'<a href="Agregados_por_setores_demografia_BR.zip">d</a>'}   # nível 3
+    srv = ServidorFalso(rotas)
+    achados = ibge.localizar(BASE, "teste", abrir=srv, profundidade=2)
+    assert set(achados) == {"basico"}
+    lidas = [p.full_url for p in srv.pedidos]
+    assert lidas.count(BASE + "x/y/") == 1 and BASE + "a/b/c/" not in lidas

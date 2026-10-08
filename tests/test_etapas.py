@@ -77,3 +77,14 @@ def test_catalogo_de_etapas_e_coerente():
     assert len({x.ordem for x in e.ETAPAS}) == len(e.ETAPAS)
     # nível e nome preenchidos
     assert all(x.nome and x.nivel for x in e.ETAPAS)
+
+
+@pytest.mark.parametrize("serie, etapa", [("BERCARIO II", "CRECHE"), ("MINI GRUPO I", "CRECHE"), ("EJA MII", "EJA_I")])
+def test_educacao_especial_usa_o_texto_da_serie(serie, etapa):
+    c = e.classificar("ESPEC", "ESPECIAL", serie)
+    assert c.etapa == etapa and c.educacao_especial
+
+
+def test_sem_modalidade_segmento_ou_serie_reconhecidos_nao_classifica():
+    assert e.classificar("ESPEC", "ESPECIAL", None) is None
+    assert e.classificar("ESPEC", None, "OFICINA DE ARTES") is None
