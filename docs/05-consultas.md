@@ -10,10 +10,10 @@ Oito consultas cobrem as operações exigidas pelo enunciado: três de roll-up o
 | C4 | pivot | matrícula | 13 |
 | C5 | drill-across | fila, matrícula | 1.920 |
 | C6 | drill-across | fila, matrícula, desfecho | 131 |
-| C7 | drill-across | população, matrícula, fila | a medir na próxima carga |
-| C8 | drill-down | turma | a medir na próxima carga |
+| C7 | drill-across | população, matrícula, fila | 96 |
+| C8 | drill-down | turma | 836 |
 
-Os números de C1 a C6 vêm da carga com os dados reais de 2015 a 2024. C7 e C8 foram acrescentadas depois dessa carga, junto com os fatos de população e de turma; estão testadas com dados sintéticos, e os resultados reais saem do próximo `dw-sme tudo`. Nenhum número delas é apresentado aqui antes disso.
+Os números vêm da carga com os dados reais de 2015 a 2024 e com o Censo 2022 do IBGE. A ordenação de cada consulta termina numa chave única, de modo que duas execuções devolvem as mesmas linhas na mesma ordem; um teste confere isso carregando o mesmo dado em outra ordem física.
 
 ## C1 · Drill-down: fila de creche da DRE ao distrito
 
@@ -109,7 +109,7 @@ A fila de creche caiu 97% em dez anos e a pré-escola zerou a fila em 2018. No n
 
 **Cuidados de leitura.** A matrícula é contada pelo distrito da escola e a população pelo distrito de residência, porque o microdado não traz endereço do aluno; a razão é oferta municipal por criança residente, não taxa de atendimento dos moradores. A rede particular não conveniada não está no microdado. Em 2022 o microdado superestima as matrículas ativas de creche (+8,6% em junho, ver Q07), e isso vale também para 31/07.
 
-**Resultado.** A medir na próxima carga com os arquivos do IBGE.
+**Resultado (31/07/2022).** O Censo contou 598.406 crianças de 0 a 4 anos no município. Na mesma data havia 514.131 matrículas ativas dessa idade na rede municipal, 85,9 por 100 crianças residentes, e a fila de creche e pré-escola de junho tinha 4.761 crianças, 8,0 por mil. Os distritos ficam muito longe dessa média. Em 25 deles a rede municipal tem menos de 50 matrículas por 100 crianças residentes, entre eles Jardim Paulista (4,7), Itaim Bibi (13,1), Moema (18,4) e Pinheiros (19,8). Em outros 25 passa de 100, como Lajeado (169,7) e Cidade Tiradentes (157,3): a matrícula conta onde a escola fica, e as escolas desses distritos recebem crianças de fora. A fila relativa é maior na Sé (73,2 por mil), no Brás (40,6) e no Socorro (32,8). O distrito com mais crianças de 0 a 4 anos é o Grajaú (24.398), com 82,7 matrículas por 100.
 
 ## C8 · Drill-down: ocupação das turmas do município ao distrito
 
@@ -121,4 +121,13 @@ A fila de creche caiu 97% em dez anos e a pré-escola zerou a fila em 2018. No n
 
 **Cuidados de leitura.** Em 2022-2024 os vínculos encerrados publicados sem data de fim inflam os ativos (ver Q07), por isso 2019 é o ano de comparação mais confiável. Turma é identificada por ano, escola, nome da turma, série e turno; a verificação Q11 mede quantas matrículas caem em turma sem nome publicado.
 
-**Resultado.** A medir na próxima carga.
+**Resultado.** Alunos por turma em funcionamento em 30 de junho, no município:
+
+| Etapa | 2019 | 2024 |
+|---|---|---|
+| Creche | 11,5 | 11,0 |
+| Pré-escola | 30,7 | 26,9 |
+| Fundamental, anos iniciais | 28,7 | 30,6 |
+| Fundamental, anos finais | 29,4 | 31,6 |
+
+A creche tem perto de 11 crianças por turma em todas as DREs (em 2019, de 10,8 em Guaianases a 11,9 em Campo Limpo). Nos anos finais do fundamental, em 2019, a média ia de 27,9 na Capela do Socorro a 31,4 em Itaquera. Entre 2019 e 2024 a média da pré-escola caiu e a do fundamental subiu; como 2024 tem ativos inflados pelos vínculos sem data de fim, a comparação entre DREs no mesmo ano é mais segura que a comparação entre anos.

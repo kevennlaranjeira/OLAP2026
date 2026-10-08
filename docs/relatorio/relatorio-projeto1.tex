@@ -110,18 +110,18 @@ O grupo registrou cinco assuntos de interesse. Cada um é sustentado por um proc
 
 \begin{table}[H]
 \centering\small
-\begin{tabularx}{\linewidth}{>{\raggedright}p{4.0cm}X}
+\begin{tabularx}{\linewidth}{>{\raggedright}p{2.9cm}>{\raggedright}X>{\raggedright\arraybackslash}X}
 \toprule
-\textbf{Assunto de interesse} & \textbf{Onde está no modelo} \\
+\textbf{Assunto de interesse} & \textbf{Por que importa} & \textbf{Onde está no modelo} \\
 \midrule
-Matrículas & processo Matrícula (tabela de fatos Matrícula) \\
-Fila (demanda registrada) & processo Fila por vaga (tabela de fatos Fila) \\
-Capacidade e ocupação das turmas & processo Ocupação de turma (tabela de fatos Ocupação de Turma); a capacidade de cada turma não é publicada por nenhuma fonte e não é estimada, mas a fila traz as matrículas em processo, que são vagas oferecidas aguardando documentação \\
-População em idade escolar & processo População residente (tabela de fatos População) \\
-Oferta escolar por setor & rede da escola (setor público direto ou conveniado) na dimensão Escola; território na dimensão Território (distrito, DRE) e na dimensão Setor Censitário; consultas 3, 4, 7 e 8 \\
+Matrículas & mostra a oferta efetivamente usada, com o perfil de cada aluno & processo Matrícula (tabela de fatos Matrícula) \\
+Fila (demanda registrada) & mede quem pediu vaga e não foi atendido; é o número que a prefeitura publica para dar transparência à falta de vaga & processo Fila por vaga (tabela de fatos Fila) \\
+Capacidade e ocupação das turmas & diz se a oferta que existe está cheia, isto é, se abrir vaga exige turma nova & processo Ocupação de turma (tabela de fatos Ocupação de Turma); a capacidade de cada turma não é publicada por nenhuma fonte e não é estimada, mas a fila traz as matrículas em processo, que são vagas oferecidas aguardando documentação \\
+População em idade escolar & mede a demanda potencial, que existe mesmo quando ninguém pediu vaga & processo População residente (tabela de fatos População) \\
+Oferta escolar por setor & mostra onde e por qual rede (direta ou conveniada) a vaga é oferecida, base para priorizar regiões & rede da escola na dimensão Escola; território nas dimensões Território (distrito, DRE) e Setor Censitário; consultas 3, 4, 7 e 8 \\
 \bottomrule
 \end{tabularx}
-\caption{Assuntos de interesse registrados pelo grupo.}
+\caption{Assuntos de interesse registrados pelo grupo e a motivação de cada um.}
 \label{tab:assuntos}
 \end{table}
 
@@ -656,20 +656,23 @@ O enunciado recomenda fortemente o uso de dados reais e volumosos. Para confirma
 \begin{tabular}{lr}
 \toprule\textbf{Tabela} & \textbf{Linhas}\\\midrule
 Fato Matrícula & 13.412.178 \\
-Fato Fila & 33.792 \\
+Fato Ocupação de Turma & 551.264 \\
+Fato População & 295.779 \\
 Fato Desfecho & 159.369 \\
+Fato Fila & 33.792 \\
+Dimensão Setor Censitário & 26.889 \\
 Dimensão Escola (versões) & 9.927 \\
 Dimensão Data & 4.384 \\
 Dimensão Série & 122 \\
 Dimensão Território & 97 \\
 \bottomrule\end{tabular}
-\caption{Volumes da última carga com os dados reais.}
+\caption{Volumes da carga com os dados reais (SME de 2015 a 2024 e Censo 2022).}
 \end{table}
 
-Os fatos Ocupação de Turma e População foram acrescentados ao modelo depois dessa carga. O código que os povoa está implementado e testado com dados sintéticos no layout das fontes; seus volumes e resultados reais serão medidos na próxima carga, e nenhum número deles é apresentado antes disso.
+A carga completa leva cerca de 3,5 minutos e gera um banco de 600 MB. As catorze verificações de qualidade rodam depois dela; nenhuma dá FALHA. As hierarquias declaradas valem como dependência funcional nos dados reais, e as dimensões conformadas se correspondem. Os 26.889 setores censitários com população ficam todos ligados a um dos 96 distritos da SME. O IBGE suprime 6.543 valores em setores pequenos, que ficam nulos; por isso a soma das faixas etárias (11.434.513 pessoas) fica 0,15\% abaixo do total de moradores que o próprio IBGE publica para o município no mesmo arquivo (11.451.999).
 
 \paragraph{Reconciliação entre as fontes da SME.} A planilha de fila publica também a matrícula por distrito e etapa. Contando no microdado as matrículas ativas no fim de junho pelo distrito da escola, as duas fontes concordam com diferença abaixo de 1\% em todos os anos de 2015 a 2020 (na creche: +0,03\% em 2015, +0,17\% em 2019, $-$0,89\% em 2020). Isso confirma a integração e mostra que a planilha conta a matrícula pelo distrito da escola. De 2022 em diante a concordância cai (+8,6\% na creche em 2022), porque o arquivo publicado passou a trazer vínculos encerrados sem data de fim; contando alunos distintos, a diferença de 2022 cai para $-$2,5\%. Por isso a fração de demanda fora da rede da Consulta 5 usa a matrícula da própria planilha, e a do microdado é apresentada ao lado como comparação.
 
-\paragraph{Resultado preliminar.} A fila de creche em junho caiu de 124.741 crianças em 2015 para 3.633 em 2024; a fração da demanda fora da rede passou de 34\% para 1\%. No mesmo período, as matrículas de creche passaram de 320 mil para 474 mil, e 85\% delas estão na rede conveniada, quase todas em jornada integral.
+\paragraph{Resultado preliminar.} A fila de creche em junho caiu de 124.741 crianças em 2015 para 3.633 em 2024; a fração da demanda fora da rede passou de 34\% para 1\%. No mesmo período, as matrículas de creche passaram de 320 mil para 474 mil, e 85\% delas estão na rede conveniada, quase todas em jornada integral. Na data do Censo 2022, a rede municipal tinha 514.131 matrículas ativas de crianças de 0 a 4 anos para 598.406 crianças dessa idade residentes no município, 85,9 por 100; por distrito, a razão vai de menos de 50 (25 distritos) a mais de 100 (outros 25), porque a matrícula conta onde a escola fica e a população onde a criança mora (Consulta 7). A creche funciona com cerca de 11 crianças por turma em todas as DREs, e o ensino fundamental com 28 a 32 alunos por turma (Consulta 8).
 
 \end{document}
