@@ -109,14 +109,33 @@ def test_cinco_fatos_quatorze_dimensoes_vinte_e_sete_chaves_em_todo_lugar():
     assert "27 chaves estrangeiras" in ler(DOCS / "04-integracao-e-qualidade.md")
 
 
-def test_dezessete_slides_em_quatro_blocos():
+def notas_dos_slides() -> list[str]:
+    with zipfile.ZipFile(SLIDES) as z:
+        nomes = [n for n in z.namelist() if re.fullmatch(r"ppt/notesSlides/notesSlide\d+\.xml", n)]
+        return [z.read(n).decode("utf-8") for n in sorted(nomes, key=lambda n: int(re.findall(r"\d+", n)[0]))]
+
+
+def test_vinte_e_um_slides_em_quatro_blocos():
     with zipfile.ZipFile(SLIDES) as z:
         slides = [n for n in z.namelist() if re.fullmatch(r"ppt/slides/slide\d+\.xml", n)]
-        notas = " ".join(z.read(n).decode("utf-8") for n in z.namelist() if n.startswith("ppt/notesSlides/"))
-    assert len(slides) == 17
-    assert "17 slides" in ler(DOCS / "08-pendencias-da-entrega.md")
+    assert len(slides) == 21
+    assert "21 slides" in ler(DOCS / "08-pendencias-da-entrega.md")
+    notas = " ".join(notas_dos_slides())
     for bloco in range(1, 5):
         assert f"(bloco {bloco} de 4)" in notas
+
+
+def test_todos_apresentam_com_o_mesmo_tempo():
+    """Enunciado: todos os integrantes apresentam e o tempo de cada um deve ser homogêneo."""
+    tempos = {}
+    for nota in notas_dos_slides():
+        achado = re.search(r"Apresenta: ([^(]+) \(bloco (\d) de 4\)\. Tempo previsto: ([\d,]+) min", nota)
+        assert achado, "slide sem apresentador ou sem tempo previsto nas notas"
+        nome, bloco, minutos = achado.group(1).strip(), int(achado.group(2)), float(achado.group(3).replace(",", "."))
+        assert nome == INTEGRANTES[bloco - 1][0]
+        tempos[bloco] = tempos.get(bloco, 0) + minutos
+    assert sorted(tempos) == [1, 2, 3, 4]
+    assert len(set(tempos.values())) == 1, f"tempos diferentes por integrante: {tempos}"
 
 
 # ----------------------------------------------------------------------------- links e pendências
