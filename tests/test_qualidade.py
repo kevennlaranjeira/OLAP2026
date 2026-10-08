@@ -119,3 +119,10 @@ def test_relatorio_markdown(dw):
 ])
 def test_formatacao_das_celulas(valor, esperado):
     assert q._formatar(valor) == esperado
+
+
+def test_ano_sem_ponto_de_milhar():
+    assert q._formatar(2019, "ano") == "2019" and q._formatar(2019.0, "ano") == "2019"
+    import pandas as pd
+    texto = q.tabela_markdown(pd.DataFrame({"ano": [2019], "matriculas": [1234]}))
+    assert "| 2019 | 1.234 |" in texto

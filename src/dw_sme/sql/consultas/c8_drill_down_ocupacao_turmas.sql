@@ -16,7 +16,7 @@ SELECT
         WHEN GROUPING(d.distrito) = 1 THEN 'DRE'
         ELSE 'DISTRITO'
     END                                                                            AS nivel,
-    coalesce(d.dre, '(SEM DRE)')                                                   AS dre,
+    CASE WHEN GROUPING(d.dre) = 1 THEN '(TODAS)' ELSE coalesce(d.dre, '(SEM DRE)') END AS dre,
     d.distrito,
     sum(t.qtd_turmas_ativas_junho)                                                 AS turmas_ativas_junho,
     sum(t.qtd_matriculas_ativas_junho)                                             AS alunos_ativos_junho,

@@ -455,8 +455,16 @@ def _fato_turma(con) -> int:
 
 
 def _populacao(con, cfg: Configuracao) -> dict:
-    """Setores e fato de população do Censo 2022. Sem os arquivos, ou fora do recorte, não carrega nada."""
-    pop = populacao.ler(cfg.dir_raw_ibge)
+    """Setores e fato de população do Censo 2022. Sem os arquivos, ou fora do recorte, não carrega nada.
+
+    A população é complementar: um arquivo do IBGE fora do layout documentado é recusado (nenhum número
+    com sentido errado entra no banco), mas não impede a carga dos fatos da SME. O motivo fica no resumo.
+    """
+    try:
+        pop = populacao.ler(cfg.dir_raw_ibge)
+    except ValueError as erro:
+        cfg.log(f"  população do Censo 2022 não carregada: {erro}")
+        return {"carregada": False, "motivo": str(erro)}
     if pop is None:
         cfg.log(f"  população do Censo 2022 não carregada: arquivos ausentes em {cfg.dir_raw_ibge}")
         return {"carregada": False, "motivo": "arquivos ausentes"}

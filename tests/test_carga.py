@@ -213,6 +213,15 @@ def test_populacao_do_censo(dw):
                       left join dw.dim_faixa_etaria f using (faixa_ibge) where f.chave_faixa_etaria is null""") == 0
 
 
+def test_arquivo_do_ibge_fora_do_layout_nao_impede_a_carga_da_sme(dados_sinteticos, tmp_path):
+    (dados_sinteticos / "raw" / "ibge" / "Agregados_por_setores_demografia_BR.csv").write_text(
+        "CD_SETOR;OUTRA\n355030801000001;1\n", encoding="utf-8")
+    cfg = Configuracao(dir_dados=dados_sinteticos, banco=tmp_path / "layout.duckdb", log=lambda *_: None)
+    resumo = carregar.carregar_tudo(cfg)
+    assert resumo["populacao"]["carregada"] is False and "colunas esperadas ausentes" in resumo["populacao"]["motivo"]
+    assert resumo["fato_populacao"] == 0 and resumo["fato_matricula"] == 7
+
+
 def test_populacao_fora_do_recorte_nao_carrega(dados_sinteticos, tmp_path):
     cfg = Configuracao(dir_dados=dados_sinteticos, anos=range(2019, 2022), banco=tmp_path / "recorte.duckdb",
                        log=lambda *_: None)

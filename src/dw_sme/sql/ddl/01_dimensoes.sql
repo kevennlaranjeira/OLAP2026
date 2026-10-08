@@ -6,7 +6,8 @@
 
 CREATE SCHEMA IF NOT EXISTS dw;
 
--- Tempo, grão de mês. Usada pelo fato de fila, que é publicado por mês de referência.
+-- Tempo, grão de mês. Usada pelo fato de fila, que é publicado por mês de referência, e pelo fato de
+-- população, no mês de referência do Censo 2022.
 -- Hierarquias: mês ≤ trimestre ≤ semestre ≤ ano  e  mês ≤ bimestre ≤ ano
 CREATE TABLE dw.dim_tempo (
     chave_tempo              INTEGER PRIMARY KEY,
@@ -41,7 +42,7 @@ CREATE TABLE dw.dim_data (
 );
 
 -- Ano letivo, grão de ano. Rollup encolhido de dim_tempo, conformado pelo atributo `ano`.
--- Usada pelos fatos de matrícula e de desfecho, publicados por ano letivo.
+-- Usada pelos fatos de matrícula, de desfecho e de ocupação de turma, publicados por ano letivo.
 CREATE TABLE dw.dim_ano_letivo (
     chave_ano_letivo         INTEGER PRIMARY KEY,
     ano                      SMALLINT NOT NULL UNIQUE,

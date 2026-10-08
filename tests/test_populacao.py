@@ -77,6 +77,14 @@ def test_layout_com_valores_nao_numericos_interrompe_a_leitura(pasta):
         pop.ler(pasta)
 
 
+def test_setor_repetido_interrompe_a_leitura(pasta):
+    arquivo = pasta / "Agregados_por_setores_demografia_BR.csv"
+    linhas = arquivo.read_text(encoding="utf-8").splitlines()
+    arquivo.write_text("\n".join([*linhas, linhas[1]]) + "\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="setor censitário repetido"):
+        pop.ler(pasta)
+
+
 def test_zip_sem_csv_e_recusado(pasta):
     (pasta / "Agregados_por_setores_basico_BR.zip").write_bytes(zip_em_memoria({"leia-me.txt": b"x"}))
     with pytest.raises(ValueError, match="nenhum CSV"):
@@ -124,6 +132,14 @@ def test_baixa_os_dois_temas_com_manifesto(tmp_path):
     pedidos = len(srv.pedidos)
     ibge.baixar(tmp_path, "teste", abrir=srv, base=BASE)          # segunda vez: só a listagem
     assert len(srv.pedidos) - pedidos == 2
+
+
+def test_subpasta_inacessivel_nao_interrompe_a_busca():
+    rotas = {BASE: b'<a href="quebrada/">q</a><a href="csv/">c</a>',
+             BASE + "csv/": b'<a href="Agregados_por_setores_basico_BR.zip">b</a>'
+                            b'<a href="Agregados_por_setores_demografia_BR.zip">d</a>'}
+    achados = ibge.localizar(BASE, "teste", abrir=ServidorFalso(rotas))
+    assert set(achados) == {"basico", "demografia"}
 
 
 def test_listagem_sem_os_temas_e_erro(tmp_path):
