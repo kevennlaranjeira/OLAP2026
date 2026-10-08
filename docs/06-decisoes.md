@@ -126,4 +126,4 @@ Cada decisão traz o contexto, a alternativa descartada e o argumento. D19 a D23
 
 ## D23. Censo 2022 como fonte complementar e opcional
 
-**Argumento.** O IBGE publica num servidor de arquivos, sem API, e a estrutura do diretório pode mudar. Se o download falhar, o pipeline segue sem a população, avisa onde colocar os arquivos e a verificação Q12 fica em ALERTA. Os fatos da SME não dependem do IBGE. A leitura procura as colunas pelo nome e para com erro se o layout não for o documentado, para que uma mudança no arquivo não vire número com sentido errado.
+**Argumento.** O IBGE publica num servidor de arquivos, sem API, e a estrutura do diretório pode mudar. Se o download falhar, o pipeline segue sem a população, avisa onde colocar os arquivos e a verificação Q12 fica em ALERTA. Os fatos da SME não dependem do IBGE. A leitura procura as colunas pelo nome e recusa o arquivo se o layout não for o documentado, para que uma mudança no arquivo não vire número com sentido errado; a recusa vale só para a população, e o motivo fica no resumo da carga.

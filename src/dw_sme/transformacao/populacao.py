@@ -134,8 +134,12 @@ def ler(diretorio: str | Path, municipio: str = MUNICIPIO_SAO_PAULO) -> Populaca
     variaveis = {v for v, *_ in VARIAVEIS_FAIXA}
     demografia = ler_csv(arquivos["demografia"], {"CD_SETOR"} | variaveis)
     demografia["cd_setor"] = demografia["CD_SETOR"].map(codigo_setor)
-    sem_codigo = int(demografia["cd_setor"].isna().sum())
+    sem_codigo = int(demografia["cd_setor"].isna().to_numpy().sum())
     demografia = demografia[demografia["cd_setor"].fillna("").str.startswith(municipio)]
+    repetidos = sorted(demografia.loc[demografia["cd_setor"].duplicated(), "cd_setor"].unique())
+    if repetidos:
+        raise ValueError(f"{arquivos['demografia'].name}: setor censitário repetido {repetidos[:5]}; "
+                         "cada setor deve aparecer uma vez no tema Demografia")
 
     # nome do distrito: o do próprio setor; se faltar, o mais comum entre os setores do mesmo distrito IBGE.
     # Calculado em listas Python: no pandas 3 a coluna de texto troca None por NaN, que é verdadeiro.
@@ -155,12 +159,13 @@ def ler(diretorio: str | Path, municipio: str = MUNICIPIO_SAO_PAULO) -> Populaca
 
     longo = demografia.melt(id_vars="cd_setor", value_vars=sorted(variaveis), var_name="variavel", value_name="bruto")
     rotulo = {v: r for v, r, *_ in VARIAVEIS_FAIXA}
+    contagens = [contagem(v) for v in longo["bruto"]]
     pessoas = pd.DataFrame({
         "cd_setor": longo["cd_setor"],
-        "faixa_ibge": longo["variavel"].map(rotulo),
-        "qtd_pessoas": longo["bruto"].map(contagem).astype("Int64"),
+        "faixa_ibge": [rotulo[v] for v in longo["variavel"]],
+        "qtd_pessoas": pd.array(contagens, dtype="Int64"),
     })
-    nao_numericos = int(pessoas["qtd_pessoas"].isna().sum())
+    nao_numericos = contagens.count(None)
     if len(pessoas) and nao_numericos / len(pessoas) > FRACAO_MAXIMA_NAO_NUMERICA:
         raise ValueError(f"{arquivos['demografia'].name}: {nao_numericos} de {len(pessoas)} valores não numéricos; "
                          "o layout não é o documentado")
@@ -168,10 +173,10 @@ def ler(diretorio: str | Path, municipio: str = MUNICIPIO_SAO_PAULO) -> Populaca
         "arquivos": {t: p.name for t, p in arquivos.items()},
         "municipio": municipio,
         "setores": len(setores),
-        "distritos_ibge": int(setores["cd_distrito_ibge"].nunique()),
+        "distritos_ibge": len(set(distritos_ibge)),
         "setores_sem_nome_de_distrito": sum(n is None for n in nomes),
         "linhas_sem_codigo_de_setor": sem_codigo,
         "valores_nao_numericos": nao_numericos,
-        "pessoas": int(pessoas["qtd_pessoas"].sum()),
+        "pessoas": sum(v for v in contagens if v is not None),
     }
     return Populacao(setores=setores, pessoas=pessoas, meta=meta)

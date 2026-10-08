@@ -86,6 +86,7 @@ def test_c1_municipio_igual_a_soma_dos_distritos(con):
     municipio = r[r.nivel == "MUNICIPIO"]["criancas_na_fila"].iloc[0]
     assert municipio == r[r.nivel == "DISTRITO"]["criancas_na_fila"].sum() == 55   # abr/2024: 27 + 4 + 24
     assert set(r[r.nivel == "DRE"]["dre"]) == {"PENHA", "PIRITUBA/JARAGUA", "BUTANTA"}
+    assert r[r.nivel == "MUNICIPIO"]["dre"].tolist() == ["(TODAS)"]   # total, não falta de DRE
     assert set(r["mes_referencia"]) == {"2024-04"}
 
 
@@ -158,6 +159,7 @@ def test_c8_media_por_turma_recalculada_em_cada_nivel(con):
     assert set(r["ano"]) == {2019, 2023}
     pre_2019 = r[(r.ano == 2019) & (r.etapa == "PRE-ESCOLA")]
     municipio = pre_2019[pre_2019.nivel == "MUNICIPIO"].iloc[0]
+    assert municipio["dre"] == "(TODAS)"
     assert municipio["turmas_ativas_junho"] == 1 and municipio["alunos_ativos_junho"] == 1
     assert municipio["alunos_por_turma"] == pytest.approx(1.0)
     for ano, etapa in r[["ano", "etapa"]].drop_duplicates().itertuples(index=False):
@@ -171,6 +173,8 @@ def test_executar_todas_grava_csv(con, tmp_path):
     resultados = ex.executar_todas(banco, tmp_path / "saida")
     assert set(resultados) == {c.codigo for c in ex.listar()}
     assert len(list((tmp_path / "saida").glob("*.csv"))) == len(resultados)
+    c1 = (tmp_path / "saida" / "c1_drill_down_fila_territorio.csv").read_text(encoding="utf-8")
+    assert ",55\n" in c1 and ".0\n" not in c1          # contagem sai como inteiro no CSV
 
 
 def test_cabecalho_incompleto_e_recusado():

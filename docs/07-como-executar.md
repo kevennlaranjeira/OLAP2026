@@ -94,6 +94,11 @@ Os testes não precisam de internet nem dos dados reais. Eles usam:
 - Censo 2022 sintético no layout dos Agregados por Setores (um tema em ZIP latin-1, outro em CSV UTF-8);
 - um servidor falso em memória no lugar do portal da prefeitura e do diretório do IBGE.
 
+Dois arquivos de teste conferem o trabalho como um todo, e não só o código:
+
+- `tests/test_modelo.py`: os esquemas desenhados batem com o banco (atributos, chaves, ligações), as hierarquias são as mesmas no relatório, no DDL e na documentação e valem nos dados (ver [09 Verificação da modelagem](09-verificacao-da-modelagem.md));
+- `tests/test_coerencia.py`: contagens, consultas, integrantes e hierarquias citadas são as mesmas no README, em docs/, no relatório e nos slides; os links internos funcionam; os slides usam as imagens atuais de `docs/modelagem/` (ver [10 Auditoria do trabalho](10-auditoria-do-trabalho.md)).
+
 ## Consultando o banco
 
 O banco é um arquivo DuckDB comum. Qualquer cliente DuckDB abre, inclusive a própria biblioteca Python:
@@ -113,4 +118,4 @@ As consultas do trabalho estão em `src/dw_sme/sql/consultas/`, uma por arquivo,
 | `o arquivo do banco não pode se chamar 'dw.duckdb'` | o DuckDB usa o nome do arquivo como catálogo, que colidiria com o esquema `dw` | use outro nome em `--banco` |
 | erro de memória na carga | menos de 8 GB livres | rode com um recorte menor, por exemplo `--anos 2019-2024` |
 | `aviso: Censo 2022 não baixado` | diretório do IBGE fora do ar ou com outra estrutura | baixe os temas Básico e Demografia à mão para `data/raw/ibge/` |
-| `colunas esperadas ausentes` ao carregar a população | o arquivo do IBGE não tem `CD_SETOR`, `NM_DIST` ou `V01031` a `V01041` | confira se o arquivo é do tema certo (Básico ou Demografia) e do Censo 2022 |
+| `população do Censo 2022 não carregada: ... colunas esperadas ausentes` | o arquivo do IBGE não tem `CD_SETOR`, `NM_DIST` ou `V01031` a `V01041`; os fatos da SME carregam normalmente e Q12 fica em ALERTA | confira se o arquivo é do tema certo (Básico ou Demografia) e do Censo 2022 e carregue de novo |

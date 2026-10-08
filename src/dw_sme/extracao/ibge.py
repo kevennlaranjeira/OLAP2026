@@ -88,7 +88,12 @@ def localizar(base: str, user_agent: str, abrir: Callable, profundidade: int = 2
         if url in vistos:
             continue
         vistos.add(url)
-        html = _ler(url, user_agent, abrir).decode("utf-8", "replace")
+        try:
+            html = _ler(url, user_agent, abrir).decode("utf-8", "replace")
+        except OSError:
+            if nivel == 0:
+                raise          # sem a listagem principal não há o que procurar
+            continue           # subpasta inacessível: segue com as outras
         for link in links(html, url):
             if link.endswith("/"):
                 if nivel + 1 <= profundidade:

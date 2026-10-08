@@ -1,0 +1,207 @@
+"""Coerência entre código, documentação, relatório, apresentação e figuras.
+
+O trabalho existe em várias formas (código, README, docs/, relatório LaTeX, slides, imagens). Estes
+testes falham quando uma delas muda e as outras ficam para trás: contagens, consultas, integrantes,
+links, textos pendentes, hierarquias citadas e imagens embutidas nos slides.
+"""
+from __future__ import annotations
+
+import hashlib
+import re
+import zipfile
+from pathlib import Path
+
+import duckdb
+import pytest
+
+from dw_sme.consultas import executar as ex
+from dw_sme.qualidade import verificacoes as q
+
+RAIZ = Path(__file__).resolve().parents[1]
+DOCS = RAIZ / "docs"
+README = RAIZ / "README.md"
+RELATORIO = DOCS / "relatorio" / "relatorio-projeto1.tex"
+GERADOR = DOCS / "apresentacao" / "gerar.js"
+SLIDES = DOCS / "apresentacao" / "apresentacao-projeto1.pptx"
+MODELAGEM = DOCS / "modelagem"
+
+INTEGRANTES = [
+    ("Kevenn Laranjeira de Oliveira", "18046529"),
+    ("Thiago Rodrigues Gouveia da Silva", "18066911"),
+    ("Daniel Afonso Borges dos Santos", "12608581"),
+    ("Luís Antônio Arruda Soares", "12559486"),
+]
+
+
+def ler(caminho: Path) -> str:
+    return caminho.read_text(encoding="utf-8")
+
+
+def markdowns() -> list[Path]:
+    return [README, *sorted(DOCS.glob("*.md"))]
+
+
+# ----------------------------------------------------------------------------- integrantes
+
+@pytest.mark.parametrize("arquivo", [README, RELATORIO, GERADOR], ids=lambda p: p.name)
+def test_integrantes_e_numeros_usp_iguais_em_todo_lugar(arquivo):
+    texto = ler(arquivo)
+    for nome, nusp in INTEGRANTES:
+        assert nome in texto, f"{arquivo.name} sem {nome}"
+        assert nusp in texto, f"{arquivo.name} sem o Nº USP {nusp}"
+
+
+# ----------------------------------------------------------------------------- consultas
+
+def consultas_sql() -> dict[str, str]:
+    return {c.codigo: c.tipo for c in ex.listar()}
+
+
+def test_oito_consultas_cobrindo_o_enunciado():
+    tipos = consultas_sql()
+    assert list(tipos) == [f"C{i}" for i in range(1, 9)]
+    assert set(tipos.values()) == ex.TIPOS_EXIGIDOS
+
+
+def test_consultas_iguais_na_documentacao_no_relatorio_e_nos_slides():
+    esperado = consultas_sql()
+    doc = dict(re.findall(r"^\| (C\d) \| ([a-z\- ]+?) \|", ler(DOCS / "05-consultas.md"), re.MULTILINE))
+    relatorio = {f"C{n}": t for n, t in re.findall(r"\\subsection\{Consulta (\d): ([a-z\- ]+)\}", ler(RELATORIO))}
+    slides = dict(re.findall(r'\["(C\d)", "([a-z\- ]+)"', ler(GERADOR)))
+    assert doc == esperado
+    assert relatorio == esperado
+    assert slides == esperado
+
+
+# ----------------------------------------------------------------------------- contagens
+
+def test_quatorze_verificacoes_documentadas():
+    con = duckdb.connect()
+    codigos = [f"Q{i:02d}" for i in range(1, 15)]
+    assert re.findall(r"^\| (Q\d\d) \|", ler(DOCS / "04-integracao-e-qualidade.md"), re.MULTILINE) == codigos
+    assert "def hierarquias" in ler(RAIZ / "src" / "dw_sme" / "qualidade" / "verificacoes.py")
+    con.close()
+    for arquivo, trecho in [(README, "catorze verificações"), (DOCS / "02-fluxo-de-dados.md", "Catorze verificações"),
+                            (GERADOR, "14 verificações")]:
+        assert trecho in ler(arquivo), f"{arquivo.name} não fala em {trecho}"
+
+
+def test_verificar_devolve_as_quatorze_na_ordem(tmp_path):
+    import inspect
+    fonte = inspect.getsource(q.verificar)
+    corpo = fonte.split("return", 1)[1]
+    chamadas = re.findall(r"(\w+)\((?:con|fila_meta)\)", corpo)
+    assert len(chamadas) == 14 and len(set(chamadas)) == 14
+
+
+def test_decisoes_numeradas_em_sequencia():
+    numeros = [int(n) for n in re.findall(r"^## D(\d\d)\.", ler(DOCS / "06-decisoes.md"), re.MULTILINE)]
+    assert numeros == list(range(1, len(numeros) + 1))
+    assert f"{len(numeros)} decisões de projeto" in ler(README)
+
+
+def test_cinco_fatos_quatorze_dimensoes_vinte_e_sete_chaves_em_todo_lugar():
+    assert len(q.CHAVES_ESTRANGEIRAS) == 5
+    assert sum(len(v) for v in q.CHAVES_ESTRANGEIRAS.values()) == 27
+    assert "constelação com 5 tabelas de fatos e 14 dimensões" in ler(README)
+    assert "todas as 14 dimensões" in ler(DOCS / "03-modelo-dimensional.md")
+    assert "todas as 14 dimensões" in ler(RELATORIO)
+    assert "27 chaves estrangeiras" in ler(DOCS / "04-integracao-e-qualidade.md")
+
+
+def test_dezessete_slides_em_quatro_blocos():
+    with zipfile.ZipFile(SLIDES) as z:
+        slides = [n for n in z.namelist() if re.fullmatch(r"ppt/slides/slide\d+\.xml", n)]
+        notas = " ".join(z.read(n).decode("utf-8") for n in z.namelist() if n.startswith("ppt/notesSlides/"))
+    assert len(slides) == 17
+    assert "17 slides" in ler(DOCS / "08-pendencias-da-entrega.md")
+    for bloco in range(1, 5):
+        assert f"(bloco {bloco} de 4)" in notas
+
+
+# ----------------------------------------------------------------------------- links e pendências
+
+@pytest.mark.parametrize("arquivo", markdowns(), ids=lambda p: p.name)
+def test_links_internos_apontam_para_arquivos_que_existem(arquivo):
+    for alvo in re.findall(r"\]\(([^)]+)\)", ler(arquivo)):
+        if alvo.startswith(("http://", "https://", "#", "mailto:")):
+            continue
+        caminho = (arquivo.parent / alvo.split("#")[0]).resolve()
+        assert caminho.exists(), f"{arquivo.name}: link quebrado para {alvo}"
+
+
+# TODO e FIXME só em maiúsculas: "todo" é palavra comum em português
+PENDENTES = re.compile(r"\[NOME COMPLETO\]|\[Nº USP\]|\bTODO\b|\bFIXME\b|\bXXX\b|(?i:lorem ipsum)")
+
+
+@pytest.mark.parametrize("arquivo", [*markdowns(), RELATORIO, GERADOR, MODELAGEM / "modelagem.tex"],
+                         ids=lambda p: p.name)
+def test_nenhum_texto_pendente_esquecido(arquivo):
+    assert not PENDENTES.findall(ler(arquivo))
+
+
+def test_so_curso_e_data_ficam_para_o_grupo_preencher():
+    texto = ler(RELATORIO)
+    marcadores = set(re.findall(r"\[[A-ZÇÃÕÉÍ ]{6,}\]", texto))
+    assert marcadores == {"[NOME DO CURSO]", "[DATA DE ENTREGA]"}
+    assert texto.count("[NOME DO CURSO]") == 1 and texto.count("[DATA DE ENTREGA]") == 1   # só nas macros
+
+
+# ----------------------------------------------------------------------------- figuras
+
+def hash_arquivo(dados: bytes) -> str:
+    return hashlib.sha256(dados).hexdigest()
+
+
+def test_slides_usam_as_imagens_atuais_da_modelagem():
+    atuais = {hash_arquivo(p.read_bytes()) for p in MODELAGEM.glob("*.png")}
+    with zipfile.ZipFile(SLIDES) as z:
+        embutidas = {hash_arquivo(z.read(n)) for n in z.namelist() if n.startswith("ppt/media/") and n.endswith(".png")}
+    assert embutidas and embutidas == atuais
+
+
+def test_uma_imagem_por_esquema_do_relatorio():
+    fontes = {p.stem for p in (DOCS / "relatorio" / "esquemas").glob("*.tex")} - {"estilo"}
+    assert {p.stem for p in MODELAGEM.glob("*.png")} == fontes
+    for fonte in fontes:
+        assert f"esquemas/{fonte}" in ler(MODELAGEM / "figuras.tex")
+
+
+# ----------------------------------------------------------------------------- hierarquias citadas
+
+def cadeias(texto: str) -> list[list[str]]:
+    """Cada 'a ≤ b ≤ c' do texto como lista de palavras (aceita ≤ e \\leq)."""
+    texto = texto.replace("$\\leq$", "≤").replace("\\leq", "≤").replace(" e ", "; ")
+    saida = []
+    for trecho in re.findall(r"[\wçãõéíóúâêô ]+(?:\s*≤\s*[\wçãõéíóúâêôIBGEDRUF ]+)+", texto):
+        partes = [p.strip() for p in trecho.split("≤")]
+        partes[0] = partes[0].split(";")[-1].split(":")[-1].strip()
+        saida.append([re.sub(r"^(e|com|Hierarquias|Hierarquia)\s+", "", p).strip() for p in partes])
+    return saida
+
+
+def pares_permitidos() -> set[tuple[str, str]]:
+    """Pares (filho, pai) das hierarquias escritas no relatório, comparando sem caixa."""
+    import test_modelo
+    texto = ler(RELATORIO)
+    secao = texto[texto.index(r"\section{Esquemas}"):texto.index(r"\section{Consultas}")]
+    pares = set()
+    for h in test_modelo.argumentos(secao, "\\hier"):
+        cadeia = [p.lower() for p in test_modelo._cadeia(h)]
+        pares |= set(zip(cadeia, cadeia[1:], strict=False))
+    return pares
+
+
+@pytest.mark.parametrize("arquivo", [GERADOR, MODELAGEM / "modelagem.tex"], ids=lambda p: p.name)
+def test_hierarquias_citadas_sao_as_declaradas(arquivo):
+    permitidos = pares_permitidos()
+    citadas = [c for c in cadeias(ler(arquivo)) if len(c) > 1]
+    assert citadas
+    niveis = {n for par in permitidos for n in par}
+    for cadeia in citadas:
+        # numa frase, o primeiro nível vem depois de texto livre: fica o maior final que é um nível
+        palavras = cadeia[0].lower().split()
+        cadeia[0] = next((" ".join(palavras[i:]) for i in range(len(palavras)) if " ".join(palavras[i:]) in niveis),
+                         cadeia[0])
+        for filho, pai in zip(cadeia, cadeia[1:], strict=False):
+            assert (filho.lower(), pai.lower()) in permitidos, f"{arquivo.name}: '{filho} ≤ {pai}' não é declarada"

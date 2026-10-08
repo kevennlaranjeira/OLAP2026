@@ -272,8 +272,9 @@ def ocupacao_turmas(con) -> Verificacao:
                  | (det["turmas_distintas"] != det["linhas_fato_turma"])]
     sem_nome = det["matriculas_sem_nome_de_turma"].sum() / det["matriculas"].sum()
     status = FALHA if len(quebra) else (ALERTA if sem_nome > 0.01 else OK)
+    turmas = int(det["linhas_fato_turma"].to_numpy().sum())
     return Verificacao("Q11", "Ocupação das turmas", status,
-                       f"{int(det['linhas_fato_turma'].sum()):,} turmas; {len(quebra)} anos em que o fato de turma "
+                       f"{turmas:,} turmas; {len(quebra)} anos em que o fato de turma "
                        f"não conserva as matrículas ou as turmas do fato de matrícula; {sem_nome:.2%} das "
                        f"matrículas em turma sem nome publicado.".replace(",", "."), det)
 
@@ -323,7 +324,7 @@ def hierarquias(con, declaradas=HIERARQUIAS) -> Verificacao:
                 linhas.append({"dimensao": dimensao, "nivel": "+".join(filho), "agregado_em": "+".join(pai),
                                "violacoes": violacoes_hierarquia(con, dimensao, filho, pai)})
     det = pd.DataFrame(linhas)
-    total = int(det["violacoes"].sum())
+    total = sum(linha["violacoes"] for linha in linhas)
     return Verificacao("Q13", "Hierarquias das dimensões (dependência funcional)", FALHA if total else OK,
                        f"{len(det)} relações A ≤ B conferidas; {total} membros pertencem a mais de um pai.", det)
 
@@ -377,9 +378,11 @@ def verificar(con: duckdb.DuckDBPyConnection, fila_meta: list[dict]) -> list[Ver
 
 # ----------------------------------------------------------------------------- relatório
 
-def _formatar(v) -> str:
+def _formatar(v, coluna: str = "") -> str:
     if v is None or (isinstance(v, float) and pd.isna(v)):
         return ""
+    if coluna == "ano" and isinstance(v, int | float) and not isinstance(v, bool):
+        return str(int(v))          # ano não leva ponto de milhar
     if isinstance(v, float):
         return f"{v:.4f}".rstrip("0").rstrip(".") if abs(v) < 1 else f"{v:,.0f}".replace(",", ".")
     if isinstance(v, int) and not isinstance(v, bool):
@@ -394,7 +397,8 @@ def tabela_markdown(df: pd.DataFrame, limite: int = 60) -> str:
     linhas = ["| " + " | ".join(str(c) for c in corpo.columns) + " |",
               "|" + "|".join("---" for _ in corpo.columns) + "|"]
     for r in corpo.itertuples(index=False):
-        linhas.append("| " + " | ".join(_formatar(v.item() if hasattr(v, "item") else v) for v in r) + " |")
+        linhas.append("| " + " | ".join(_formatar(v.item() if hasattr(v, "item") else v, str(c))
+                                        for c, v in zip(corpo.columns, r, strict=True)) + " |")
     if len(df) > limite:
         linhas.append(f"\n_… mais {len(df) - limite} linhas_")
     return "\n".join(linhas) + "\n"

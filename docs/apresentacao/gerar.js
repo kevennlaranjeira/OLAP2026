@@ -260,7 +260,7 @@ function figura(s, arquivo, x, y, w, hMax = 99) {
 
 // ------------------------------------------------------------------ 7. integração
 {
-  const s = novoSlide("Integração: mesmo dado, representações diferentes", 2,
+  const s = novoSlide("Integração: o mesmo dado em formas diferentes", 2,
     "Exemplos de integração exigidos no enunciado. Distrito: maiúsculas sem acento na SME, com acento no IBGE; a regra de " +
     "normalização é a mesma. Idade: simples no microdado, grupos de cinco anos no IBGE; a dimensão Idade carrega a faixa do IBGE. " +
     "CD_SETOR é um homônimo: na SME é setor administrativo de 4 dígitos, no IBGE setor censitário de 15. " +
@@ -370,7 +370,7 @@ function figura(s, arquivo, x, y, w, hMax = 99) {
   const s = novoSlide("Estrelas Ocupação de Turma e População", 3,
     "Os dois assuntos que completam a planilha do grupo. Ocupação de turma: agregado do fato de matrícula pelo id da turma; " +
     "a capacidade não é publicada, então medimos alunos ativos em 30 de junho. População: Censo 2022 no grão de setor censitário, " +
-    "com setor ≤ distrito ≤ DRE ≤ município ≤ UF. As duas estrelas estão implementadas e testadas; os números reais saem na próxima carga.");
+    "com setor censitário ≤ distrito ≤ DRE ≤ município ≤ UF. As duas estrelas estão implementadas e testadas; os números reais saem na próxima carga.");
   figura(s, "estrela-turma.png", 0.5, 1.3, 7.0, 3.05);
   figura(s, "estrela-populacao.png", 0.5, 4.5, 7.0, 2.5);
   s.addText(itens([

@@ -18,7 +18,7 @@ Tema da disciplina: política pública municipal. O data warehouse serve para o 
 | Volume | 13,4 milhões de matrículas, 44 meses de fila × 96 distritos × 8 etapas |
 | Modelo | constelação com 5 tabelas de fatos e 14 dimensões |
 | Banco | DuckDB, um arquivo de ~290 MB na última carga medida (antes dos fatos de turma e população), carregado em ~3 minutos |
-| Testes | 395 testes unitários e de integração (22 deles conferem a modelagem), cobertura de 95%, sem depender de internet nem dos dados reais |
+| Testes | 440 testes unitários e de integração (22 conferem a modelagem e 40 a coerência entre código, documentos, slides e imagens), cobertura de 95%, sem depender de internet nem dos dados reais |
 | Consultas | dois drill-down, um roll-up, slice and dice, pivot e três drill-across |
 
 ## O que os dados mostram
@@ -72,6 +72,7 @@ O GitHub Actions roda as duas a cada push, em Python 3.11 e 3.13, e falha se a c
 | [Apresentação (PPTX)](docs/apresentacao/apresentacao-projeto1.pptx) | slides da apresentação, com a divisão de tempo entre os integrantes |
 | [Pendências da entrega](docs/08-pendencias-da-entrega.md) | o que só o grupo pode fazer antes de entregar |
 | [09 Verificação da modelagem](docs/09-verificacao-da-modelagem.md) | como a modelagem foi conferida, o que foi corrigido e os pontos de atenção |
+| [10 Auditoria do trabalho](docs/10-auditoria-do-trabalho.md) | revisão de ponta a ponta: código, processo, documentos, slides e imagens |
 | [Esquemas da modelagem (PDF e PNG)](docs/modelagem/) | constelação, cinco estrelas e matriz de barramento |
 
 ## Estrutura
