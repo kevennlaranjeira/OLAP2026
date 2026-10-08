@@ -271,7 +271,7 @@ origem turno & publicado, código de 2021, horário ou não informado & descriti
 \end{atributos}
 
 \subsubsection{Dimensão Idade}
-Representa a idade do aluno em 31 de março do ano letivo. Tem duas hierarquias paralelas: idade, faixa escolar e grupo etário; e idade e faixa do IBGE, que conforma esta dimensão com a dimensão Faixa Etária.
+Representa a idade do aluno em 31 de março do ano letivo. Tem três hierarquias paralelas, todas partindo da idade: faixa escolar, grupo etário e faixa do IBGE. A faixa escolar não está contida no grupo etário (a faixa de 11 a 14 anos reúne criança e adolescente, e a de 30 ou mais reúne adulto e idoso), por isso as duas não formam uma hierarquia única. A faixa do IBGE conforma esta dimensão com a dimensão Faixa Etária.
 
 \begin{atributos}
 chave idade & chave artificial & chave & gerada na carga \\
@@ -333,7 +333,7 @@ desfecho & resumo exclusivo da situação final & descritivo & derivado com prio
 \toprule\textbf{Fato} & \textbf{Aditividade} & \textbf{Significado, derivação e povoamento}\\\midrule\endhead
 \bottomrule\endlastfoot
 \multicolumn{3}{l}{\textit{Tabela de fatos Matrícula}}\\
-quantidade de matrículas & aditivo & campo artificial sempre igual a 1, como a contagem de utilização do esquema de ocupação do artigo da disciplina; a tabela é praticamente sem fato \\
+quantidade de matrículas & aditivo & campo artificial sempre igual a 1, como a contagem de utilização do esquema de ocupação do artigo da disciplina: o fato principal é a ocorrência do vínculo, técnica de tabela de fatos sem fato; a tabela não é estritamente sem fato porque tem uma medida, dias de matrícula \\
 dias de matrícula & aditivo & duração do vínculo; Microdados: \cod{QTD_DIAS_MAT} ou \cod{QTD_DIAS_MATR}; nulo em 2021, que não publicou datas \\
 id turma, código matrícula & dimensões degeneradas & id turma construído com ano, escola, \cod{NOME_TURMA}, série e turno, porque \cod{CD_TURMA} está corrompido de 2022 em diante; código matrícula de \cod{CD_MAT}, nulo nos anos de código corrompido \\
 \midrule
@@ -351,6 +351,7 @@ quantidade de turmas & aditivo & campo artificial igual a 1 \\
 matrículas no ano & aditivo & vínculos da turma no ano, agregados do fato Matrícula; a soma é igual à do fato Matrícula \\
 matrículas ativas em junho, turmas ativas em junho & aditivo & alunos com início até 30/06 e fim depois dessa data ou não informado; turma ativa é a que tinha ao menos um aluno ativo; nulas nos anos sem datas publicadas (2021), nunca zero \\
 alunos por turma & não aditivo, derivado & soma das matrículas ativas dividida pela soma das turmas ativas, recalculada em cada nível de agregação \\
+id turma & dimensão degenerada & o mesmo do fato Matrícula (ano, escola, nome da turma, série e turno); uma turma multisseriada aparece como uma turma por série \\
 \midrule
 \multicolumn{3}{l}{\textit{Tabela de fatos População}}\\
 quantidade de pessoas & semiaditivo & estoque na data do Censo: soma entre setores, distritos e faixas, não entre Censos; IBGE, tema Demografia, \cod{V01031} a \cod{V01041}; valor não numérico na origem fica nulo (não publicado), nunca zero \\
@@ -448,7 +449,7 @@ A notação segue a do artigo da disciplina: cada dimensão é uma caixa com o n
 \item Escola: \hier{\text{escola} \leq \text{tipo de unidade} \leq \text{rede}}
 \item Série: \hier{\text{série} \leq \text{etapa} \leq \text{nível}} e, em paralelo, \hier{\text{série} \leq \text{ciclo}}
 \item Turno: \hier{\text{turno} \leq \text{jornada}}
-\item Idade: \hier{\text{idade} \leq \text{faixa escolar} \leq \text{grupo etário}} e, em paralelo, \hier{\text{idade} \leq \text{faixa IBGE}}
+\item Idade: \hier{\text{idade} \leq \text{faixa escolar}}, \hier{\text{idade} \leq \text{grupo etário}} e \hier{\text{idade} \leq \text{faixa IBGE}}, três hierarquias paralelas
 \item Ano Letivo, Perfil do Aluno, Deficiência e Situação: sem hierarquia; atributos descritivos.
 \end{itemize}
 
@@ -555,7 +556,7 @@ Perfil do Aluno, Deficiência, Situação & $\times$ & & & & \\
 \item As consultas de drill-across agregam cada fato até o grão comum e unem os resultados pelos atributos das dimensões conformadas.
 \end{enumerate}
 
-\paragraph{Outros aspectos de modelagem.} Chave artificial em todas as 14 dimensões; três tabelas bugiganga (Perfil do Aluno, Deficiência e Situação da Matrícula); dimensões degeneradas (id da turma e código da matrícula no fato Matrícula, id da turma no fato Ocupação de Turma, formato da planilha no fato Fila); tabela de fatos sem fato (Matrícula, com campo artificial); fatos agregados (Desfecho e Ocupação de Turma); dimensão com visão para dois papéis (Data); dimensão de mudança lenta tipo 2 (Escola); fatos semiaditivos (Fila e População) e não aditivos derivados (taxas e alunos por turma); membro ``não informado'' em Território, Data, Idade e Turno.
+\paragraph{Outros aspectos de modelagem.} Chave artificial em todas as 14 dimensões; três tabelas bugiganga (Perfil do Aluno, Deficiência e Situação da Matrícula); dimensões degeneradas (id da turma e código da matrícula no fato Matrícula, id da turma no fato Ocupação de Turma, formato da planilha no fato Fila); campo artificial de contagem, técnica de tabela de fatos sem fato (Matrícula, que mesmo assim tem uma medida, dias de matrícula); fatos agregados (Desfecho e Ocupação de Turma); dimensão com visão para dois papéis (Data); dimensão de mudança lenta tipo 2 (Escola); fatos semiaditivos (Fila e População) e não aditivos derivados (taxas e alunos por turma); membro ``não informado'' em Território, Data, Idade e Turno.
 
 \begin{landscape}
 \begin{figure}[H]

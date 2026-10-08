@@ -118,7 +118,8 @@ CREATE TABLE dw.dim_turno (
 );
 
 -- Idade em 31 de março do ano letivo.
--- Hierarquias paralelas: idade ≤ faixa escolar ≤ grupo etário  e  idade ≤ faixa IBGE
+-- Hierarquias paralelas: idade ≤ faixa escolar  e  idade ≤ grupo etário  e  idade ≤ faixa IBGE
+-- (faixa escolar não cabe em grupo etário: 11 a 14 tem criança e adolescente; 30 ou mais, adulto e idoso)
 CREATE TABLE dw.dim_idade (
     chave_idade              INTEGER PRIMARY KEY,
     idade                    SMALLINT UNIQUE,            -- nulo = não informada

@@ -94,7 +94,9 @@ Hierarquias: `mês ≤ trimestre ≤ semestre ≤ ano` e `mês ≤ bimestre ≤ 
 | `dia`, `mes`, `nome_mes`, `trimestre`, `semestre`, `ano` | componentes do calendário |
 | `dia_semana`, `nome_dia_semana`, `fim_de_semana` | dia da semana |
 
-O fato de matrícula aponta para esta dimensão duas vezes: data de início e data de fim da matrícula. É a mesma construção da Dimensão Data com visão para dois papéis do artigo da disciplina (data de internação e data de alta). As duas datas juntas permitem contar as matrículas ativas num dia, que é a medida comparável com a fila. Hierarquia: `dia ≤ mês ≤ trimestre ≤ semestre ≤ ano`.
+O fato de matrícula aponta para esta dimensão duas vezes: data de início e data de fim da matrícula. É a mesma construção da Dimensão Data com visão para dois papéis do artigo da disciplina (data de internação e data de alta). As duas datas juntas permitem contar as matrículas ativas num dia, que é a medida comparável com a fila.
+
+Hierarquia: `dia ≤ mês ≤ trimestre ≤ semestre ≤ ano`.
 
 ### dim_ano_letivo (grão: ano)
 
@@ -147,6 +149,8 @@ Hierarquia: `escola ≤ tipo de unidade ≤ rede`. O tipo 2 existe porque 402 es
 | `educacao_especial` | turma de educação especial |
 | `codigo_etapa`, `etapa`, `nivel` | etapa conformada com `dim_etapa` |
 
+Hierarquia de `dim_etapa`: `etapa ≤ nível`.
+
 Hierarquias de `dim_serie`: `série ≤ etapa ≤ nível` e `série ≤ ciclo`. As duas são paralelas porque o ciclo interdisciplinar cobre o 4º, 5º e 6º anos, e por isso atravessa a fronteira entre anos iniciais (FUND_I) e anos finais (FUND_II).
 
 ### dim_turno
@@ -169,7 +173,7 @@ Hierarquia: `turno ≤ jornada`. A origem fica na dimensão porque o turno de 20
 | `faixa_ibge` | mesmo corte quinquenal dos Agregados por Setores do Censo 2022 |
 | `grupo_etario` | criança, adolescente, adulto, idoso |
 
-Hierarquias paralelas: `idade ≤ faixa escolar ≤ grupo etário` e `idade ≤ faixa IBGE`. A faixa IBGE conforma a dimensão Idade com a dimensão Faixa Etária, usada pela população residente.
+Hierarquias paralelas: `idade ≤ faixa escolar`, `idade ≤ grupo etário` e `idade ≤ faixa IBGE`. São três, e não uma cadeia única da idade até o grupo etário passando pela faixa escolar, porque a faixa escolar não cabe num único grupo etário: 11 a 14 anos reúne criança (11) e adolescente (12 a 14), e 30 ou mais reúne adulto e idoso. A faixa IBGE conforma a dimensão Idade com a dimensão Faixa Etária, usada pela população residente.
 
 ### dim_faixa_etaria (grão: faixa quinquenal do IBGE)
 
@@ -220,7 +224,7 @@ O valor `-` (não coletado) importa: quatro indicadores de deficiência só pass
 | `qtd_matricula` | campo artificial = 1 | aditivo | SOMA |
 | `qtd_dias_matricula` | medida | aditivo | SOMA (média por divisão) |
 
-É uma tabela de fatos sem fato: cada linha registra a existência do vínculo, e `qtd_matricula` é o campo artificial que permite somar e agrupar, como no esquema de Ocupação de Instalações do artigo da disciplina. `id_turma` é construído (ano, escola, turma, série e turno) porque o código de turma publicado está corrompido de 2022 em diante; `cd_matricula_origem` fica nulo nos anos em que o código foi destruído.
+O fato principal é a ocorrência do vínculo, e `qtd_matricula` é o campo artificial que permite somar e agrupar, como no esquema de Ocupação de Instalações do artigo da disciplina. `id_turma` é construído (ano, escola, turma, série e turno) porque o código de turma publicado está corrompido de 2022 em diante; `cd_matricula_origem` fica nulo nos anos em que o código foi destruído.
 
 ### fato_fila
 
@@ -277,7 +281,7 @@ Estoque na data de referência do Censo, como a fila. Valor não numérico na or
 | Chave artificial | todas as 14 dimensões |
 | Tabela bugiganga | `dim_perfil_aluno`, `dim_deficiencia`, `dim_situacao_matricula` |
 | Dimensão degenerada | `id_turma` e `cd_matricula_origem` em `fato_matricula`; `id_turma` em `fato_turma`; `formato_planilha` em `fato_fila` |
-| Tabela de fatos sem fato | `fato_matricula` (`qtd_matricula` = 1) |
+| Campo artificial de contagem, técnica de tabela de fatos sem fato | `fato_matricula` (`qtd_matricula` = 1); não é estritamente sem fato porque tem `qtd_dias_matricula` |
 | Visão para dois papéis | `dim_data` como início e fim da matrícula |
 | Mudança lenta tipo 2 | `dim_escola` |
 | Rollup encolhido conformado | `dim_ano_letivo` de `dim_tempo`/`dim_data`; `dim_etapa` de `dim_serie`; `dim_faixa_etaria` de `dim_idade`; `dim_territorio` de `dim_setor_censitario` |

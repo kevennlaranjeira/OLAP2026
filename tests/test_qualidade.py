@@ -19,13 +19,15 @@ def dw(dados_sinteticos, tmp_path):
 def test_nenhuma_falha_no_dw_sintetico(dw):
     con, resumo = dw
     resultado = q.verificar(con, resumo["fila_metadados"])
-    assert [v.codigo for v in resultado] == [f"Q{i:02d}" for i in range(1, 13)]
+    assert [v.codigo for v in resultado] == [f"Q{i:02d}" for i in range(1, 15)]
     assert all(v.status in (q.OK, q.ALERTA) for v in resultado)
     por_codigo = {v.codigo: v for v in resultado}
     assert por_codigo["Q01"].status == q.OK
     assert por_codigo["Q02"].status == q.OK
     assert por_codigo["Q03"].status == q.OK
     assert por_codigo["Q11"].status == q.OK
+    assert por_codigo["Q13"].status == q.OK        # hierarquias valem como dependência funcional
+    assert por_codigo["Q14"].status == q.ALERTA    # só o 'Distrito Sintético' do Censo de teste
     assert "27 chaves estrangeiras" in por_codigo["Q01"].resumo
 
 

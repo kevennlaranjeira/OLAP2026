@@ -1,13 +1,14 @@
 // Gera docs/apresentacao/apresentacao-projeto1.pptx.
 // Requer Node e pptxgenjs:  npm install pptxgenjs  e depois  node docs/apresentacao/gerar.js
-// As figuras dos esquemas vêm de docs/apresentacao/figuras/ (ver esquemas.tex na mesma pasta).
+// As figuras dos esquemas vêm de docs/modelagem/ (geradas por figuras.tex na mesma pasta).
 // Todos os números dos slides vêm da carga com os dados reais documentada em docs/05-consultas.md.
 "use strict";
+const fs = require("fs");
 const path = require("path");
 const pptxgen = require(process.env.PPTXGENJS || "pptxgenjs");
 
 const AQUI = __dirname;
-const FIG = (nome) => path.join(AQUI, "figuras", nome);
+const FIG = (nome) => path.join(AQUI, "..", "modelagem", nome);
 
 const ESCURO = "183D3D";
 const TINTA = "E7F0ED";
@@ -96,8 +97,17 @@ function fonte(s, texto) {
   });
 }
 
-function figura(s, arquivo, x, y, w, proporcao) {
-  s.addImage({ path: FIG(arquivo), x, y, w, h: w / proporcao });
+// largura / altura lidas do cabeçalho do PNG, para a figura nunca sair distorcida
+function proporcao(arquivo) {
+  const cab = fs.readFileSync(FIG(arquivo)).subarray(16, 24);
+  return cab.readUInt32BE(0) / cab.readUInt32BE(4);
+}
+
+// cabe a figura na caixa (x, y, w, hMax) sem distorcer
+function figura(s, arquivo, x, y, w, hMax = 99) {
+  const p = proporcao(arquivo);
+  const largura = Math.min(w, hMax * p);
+  s.addImage({ path: FIG(arquivo), x, y, w: largura, h: largura / p });
 }
 
 // ------------------------------------------------------------------ 1. capa
@@ -283,7 +293,7 @@ function figura(s, arquivo, x, y, w, proporcao) {
   const s = novoSlide("Problemas reais nos dados e como foram tratados", 2,
     "Cada problema foi medido nos dados reais e tratado por uma regra testada. O mais grave: de 2022 a 2024 o código da escola " +
     "chega corrompido; recuperamos o código real pelo nome, tipo e distrito para 94,8% a 98,6% das matrículas. " +
-    "Princípio: medida não publicada fica nula, nunca zero. O pipeline roda doze verificações automáticas depois de cada carga.");
+    "Princípio: medida não publicada fica nula, nunca zero. O pipeline roda catorze verificações automáticas depois de cada carga.");
   const probs = [
     ["Código da escola corrompido (2022-2024)", "recuperado pelo nome, tipo e distrito em 94,8% a 98,6% das matrículas"],
     ["Sete formatos da planilha de fila", "colunas lidas do cabeçalho; significado de (1), (2), (3) lido do rodapé"],
@@ -326,12 +336,12 @@ function figura(s, arquivo, x, y, w, proporcao) {
 {
   const s = novoSlide("Esquema estrela Matrícula", 3,
     "Fato no centro, dez dimensões. Dimensão Data com dois papéis, início e fim da matrícula, como a data de internação e de alta " +
-    "do artigo da disciplina: as duas datas permitem contar matrículas ativas em um dia. Tabela de fatos sem fato com campo artificial. " +
+    "do artigo da disciplina: as duas datas permitem contar matrículas ativas em um dia. O fato principal é a ocorrência do vínculo, contada por um campo artificial igual a 1, técnica de tabela de fatos sem fato; a única medida é dias de matrícula. " +
     "Três bugigangas. Duas degeneradas. Escola é mudança lenta tipo 2.");
-  figura(s, "estrela-matricula.png", 0.5, 1.3, 8.15, 1529 / 1063);
+  figura(s, "estrela-matricula.png", 0.5, 1.3, 8.15, 5.6);
   s.addText(itens([
     "Data com dois papéis: início e fim da matrícula.",
-    "Tabela de fatos sem fato: quantidade = 1.",
+    "Ocorrência contada por campo artificial (= 1), como em fatos sem fato.",
     "Bugigangas: Perfil, Deficiência, Situação.",
     "Degeneradas: id turma, código da matrícula.",
     "Escola: mudança lenta tipo 2.",
@@ -345,8 +355,8 @@ function figura(s, arquivo, x, y, w, proporcao) {
     "Fila: medidas nulas onde a prefeitura não publicou a quebra; formato da planilha como dimensão degenerada. " +
     "Tempo tem duas hierarquias porque a fila foi trimestral até 2022 e bimestral depois. " +
     "Desfecho: fato agregado; as taxas são recalculadas pelas contagens em qualquer nível, nunca como média de taxas.");
-  figura(s, "estrela-fila.png", 0.5, 1.3, 8.0, 1529 / 501);
-  figura(s, "estrela-desfecho.png", 0.5, 4.15, 8.0, 1529 / 482);
+  figura(s, "estrela-fila.png", 0.5, 1.3, 8.0, 2.75);
+  figura(s, "estrela-desfecho.png", 0.5, 4.2, 8.0, 2.7);
   s.addText(itens([
     "Fila: estoque; SOMA no território e na etapa, um único mês no tempo.",
     "Tempo: mês ≤ trimestre ≤ semestre ≤ ano e mês ≤ bimestre ≤ ano.",
@@ -361,8 +371,8 @@ function figura(s, arquivo, x, y, w, proporcao) {
     "Os dois assuntos que completam a planilha do grupo. Ocupação de turma: agregado do fato de matrícula pelo id da turma; " +
     "a capacidade não é publicada, então medimos alunos ativos em 30 de junho. População: Censo 2022 no grão de setor censitário, " +
     "com setor ≤ distrito ≤ DRE ≤ município ≤ UF. As duas estrelas estão implementadas e testadas; os números reais saem na próxima carga.");
-  figura(s, "estrela-turma.png", 0.5, 1.3, 7.0, 1529 / 649);
-  figura(s, "estrela-populacao.png", 0.5, 4.45, 7.0, 1529 / 536);
+  figura(s, "estrela-turma.png", 0.5, 1.3, 7.0, 3.05);
+  figura(s, "estrela-populacao.png", 0.5, 4.5, 7.0, 2.5);
   s.addText(itens([
     "Ocupação: alunos ativos em 30/06 por turma ativa; média recalculada pelas somas.",
     "Capacidade não publicada por nenhuma fonte: não é estimada.",
@@ -378,7 +388,7 @@ function figura(s, arquivo, x, y, w, proporcao) {
     "Cinco fatos, catorze dimensões. Território é compartilhado pelos cinco. Onde os grãos diferem, cada fato manteve o seu e " +
     "as dimensões de grão mais alto são rollups encolhidos conformados (tracejado): Tempo e Ano Letivo de Data, Etapa de Série, " +
     "Faixa Etária de Idade, Território de Setor Censitário. O drill-across agrega cada fato até o grão comum e une pelos atributos conformados.");
-  figura(s, "constelacao.png", 0.55, 1.35, 12.2, 2455 / 1019);
+  figura(s, "constelacao.png", 0.55, 1.35, 12.2, 5.1);
   s.addText("Tracejado: rollup encolhido conformado. Território é compartilhado pelos cinco fatos.", {
     x: 0.6, y: 6.55, w: 12.1, h: 0.4, fontFace: CORPO, fontSize: 13, italic: true, color: SUAVE, margin: 0, isTextBox: true,
   });
@@ -472,7 +482,7 @@ function figura(s, arquivo, x, y, w, proporcao) {
     "e que o repositório tem o pipeline completo, os testes e a documentação. Abrir para perguntas.", true);
   s.addText(itens([
     "Relatório: descrição do problema, povoamento atributo por atributo, cinco estrelas, constelação e oito consultas.",
-    "Repositório: pipeline do portal ao DuckDB, 12 verificações de qualidade e testes automáticos.",
+    "Repositório: pipeline do portal ao DuckDB, 14 verificações de qualidade e testes automáticos, inclusive da modelagem.",
     "Próximo passo: rodar a carga com o Censo 2022 e medir as consultas 7 e 8 com os dados reais.",
   ], 18), { x: 0.6, y: 1.7, w: 11.8, h: 3.0, fontFace: CORPO, color: BRANCO, margin: 0, isTextBox: true, valign: "top" });
   s.addText("github.com/kevennlaranjeira/OLAP2026", { x: 0.6, y: 5.3, w: 11.8, h: 0.5, fontFace: CORPO, fontSize: 18,

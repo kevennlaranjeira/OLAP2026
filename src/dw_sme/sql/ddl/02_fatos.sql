@@ -6,7 +6,7 @@
 -- =============================================================================
 
 -- Matrícula. Grão: um vínculo aluno-turma em um ano letivo (uma linha do microdado
--- de escolarização). Tabela de fatos praticamente sem fato: qtd_matricula é um
+-- de escolarização). O fato principal é a ocorrência do vínculo: qtd_matricula é um
 -- campo artificial sempre igual a 1, que existe para somar e agrupar.
 --
 -- Sem restrição FOREIGN KEY declarada, por decisão de projeto: com 13,4 milhões de

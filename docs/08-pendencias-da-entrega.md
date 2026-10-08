@@ -17,7 +17,7 @@ O que já está pronto e o que só o grupo pode fazer antes de entregar. O enunc
 | Grão, dimensões, fatos, atributos e relações, aditividade, fatos derivados | relatório, seções 1.4 a 1.6 | pronto |
 | Povoamento de cada atributo e de cada fato, com integração | relatório, seções 1.5 a 1.7 (coluna "Povoamento" em cada dimensão) | pronto |
 | Hierarquias com o operador de ordenação parcial e função de agregação de cada fato | relatório, seção 2 | pronto |
-| Chave artificial, bugiganga, dimensão degenerada, fatos sem fato | relatório, seções 2.6 e 1.5 | pronto |
+| Chave artificial, bugiganga, dimensão degenerada, campo artificial de fatos sem fato | relatório, seções 2.6 e 1.5 | pronto |
 | Apresentação com motivação, fontes, estrelas, constelação, consultas e decisões, com tempo homogêneo | [apresentacao/apresentacao-projeto1.pptx](apresentacao/apresentacao-projeto1.pptx), 17 slides em quatro blocos | pronta; falta ensaiar |
 
 ## O que só o grupo pode fazer
@@ -31,7 +31,7 @@ O que já está pronto e o que só o grupo pode fazer antes de entregar. O enunc
 
    Troque o texto entre colchetes e compile de novo com XeLaTeX (`latexmk -xelatex relatorio-projeto1.tex` dentro de `docs/relatorio/`, ou no Overleaf enviando o `.tex` e a pasta `esquemas/` e escolhendo o compilador XeLaTeX). Se os integrantes forem de cursos diferentes, escreva os cursos separados por vírgula.
 
-2. **Conferir a notação dos esquemas com a das aulas.** Os desenhos seguem a notação do artigo da disciplina (caixa com o nome da tabela, PK e FK, fato no centro com borda grossa) e as hierarquias usam `≤`. O enunciado diz que a notação tem de ser a mesma da sala de aula. Se a das aulas for diferente, os desenhos estão em `docs/relatorio/esquemas/*.tex` e o estilo comum em `estilo.tex`.
+2. **Conferir a notação dos esquemas com a das aulas.** A verificação completa da modelagem está em [09 Verificação da modelagem](09-verificacao-da-modelagem.md). Os desenhos seguem a notação do artigo da disciplina (caixa com o nome da tabela, PK e FK, fato no centro com borda grossa) e as hierarquias usam `≤`. O enunciado diz que a notação tem de ser a mesma da sala de aula. Se a das aulas for diferente, os desenhos estão em `docs/relatorio/esquemas/*.tex` e o estilo comum em `estilo.tex`.
 
 3. **Rodar a carga com o Censo 2022 e medir as consultas 7 e 8.** O Projeto 1 pede as consultas só na forma textual, então isso não bloqueia a entrega. Mas os fatos de turma e de população foram acrescentados depois da última carga com os dados reais, e os números deles ainda não existem. Num computador com internet:
 
@@ -63,7 +63,7 @@ O enunciado do Projeto 1 diz que as correções apontadas na primeira parte deve
 
 ## Regenerar a apresentação
 
-Os slides são gerados por [apresentacao/gerar.js](apresentacao/gerar.js), com as figuras de `apresentacao/figuras/` (as mesmas do relatório, convertidas de `figuras/esquemas.tex`). Para mudar texto ou números:
+Os slides são gerados por [apresentacao/gerar.js](apresentacao/gerar.js), com as figuras de [modelagem/](modelagem/) (as mesmas do relatório, convertidas de `modelagem/figuras.tex`). Para mudar texto ou números:
 
 ```bash
 npm install pptxgenjs
