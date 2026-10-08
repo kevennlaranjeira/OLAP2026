@@ -6,7 +6,7 @@
 |---|---|---|
 | Python | 3.11 ou mais novo (testado no 3.13) | todo o pipeline |
 | 7-Zip | qualquer | abrir o pacote `.rar` de microdados de 2019 a 2021 |
-| Espaço em disco | cerca de 3 GB livres | 0,9 GB de pacotes, 0,4 GB de Parquet, 0,3 GB de banco e ~1,5 GB de staging temporário durante a carga, mais os arquivos do Censo 2022 |
+| Espaço em disco | cerca de 3,5 GB livres | 0,9 GB de pacotes, 0,4 GB de Parquet, 0,6 GB de banco, ~1,5 GB de staging temporário durante a carga e 38 MB dos arquivos do Censo 2022 |
 | Memória | 8 GB recomendados | a carga usa de 2 a 4 GB |
 
 Sem o 7-Zip o pipeline roda todos os anos exceto 2019, 2020 e 2021, e avisa com uma mensagem clara.
@@ -21,7 +21,7 @@ python -m venv .venv
 .venv/Scripts/python -m pip install -e ".[dev]"
 ```
 
-No Linux ou macOS o executável fica em `.venv/bin/python`.
+No Linux ou macOS o executável fica em `.venv/bin/python`. O `-e` (modo editável) serve para quem vai mexer no código; `pip install ".[dev]"` sem ele também funciona, porque as consultas SQL vão dentro do pacote. A instalação sem `-e` foi verificada num clone limpo, com ambiente virtual novo.
 
 ## Execução completa
 
