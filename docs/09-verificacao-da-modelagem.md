@@ -25,8 +25,8 @@ As imagens dos esquemas estão em [modelagem/](modelagem/): [modelagem.pdf](mode
 | Constelação | as ligações do desenho da constelação são as mesmas das FK do banco, e as linhas tracejadas são os 5 rollups encolhidos | OK depois das correções |
 | Matriz de barramento | a matriz do relatório e a do PDF de modelagem marcam exatamente as dimensões que cada fato usa | OK |
 | Hierarquias escritas | as hierarquias do relatório, dos comentários do DDL e de [03 Modelo dimensional](03-modelo-dimensional.md) são as mesmas | OK depois das correções |
-| Hierarquias nos dados (Q13) | cada `A ≤ B` vale como dependência funcional: todo membro de A pertence a um único membro de B (23 relações) | OK nos dados de teste |
-| Conformidade (Q14) | Etapa tem os mesmos códigos, nomes e níveis da Série; toda faixa da Idade existe na Faixa Etária e contém a idade; anos e meses de Tempo, Ano Letivo e Data se correspondem; todo distrito de escola existe em Território | OK nos dados de teste |
+| Hierarquias nos dados (Q13) | cada `A ≤ B` vale como dependência funcional: todo membro de A pertence a um único membro de B (23 relações) | OK nos dados de teste e nos dados reais (13,4 milhões de matrículas, 26.889 setores) |
+| Conformidade (Q14) | Etapa tem os mesmos códigos, nomes e níveis da Série; toda faixa da Idade existe na Faixa Etária e contém a idade; anos e meses de Tempo, Ano Letivo e Data se correspondem; todo distrito de escola existe em Território | OK nos dados de teste e nos dados reais |
 | Rollups encolhidos | cada par de dimensões conformadas compartilha o atributo de conformidade (ano; ano e mês; etapa e nível; faixa IBGE; distrito) | OK |
 
 ## Problemas encontrados e corrigidos
@@ -63,7 +63,7 @@ Depois das correções, os desenhos, o PDF de modelagem, o relatório e os slide
 - **Onde a criança mora e onde estuda.** A matrícula é contada pelo distrito da escola, e a população pelo distrito de residência. Por isso a consulta 7 fala em oferta por criança residente, não em taxa de atendimento.
 - **Datas de referência diferentes.** A idade do aluno é a de 31/03 do ano letivo; o Censo é de 31/07/2022.
 - **Turma multisseriada.** A turma é identificada por ano, escola, nome da turma, série e turno, então uma turma com várias séries aparece como uma turma por série.
-- **Dados reais dos fatos novos.** Q13 e Q14 já passam nos dados de teste. Nos dados reais, rodam na próxima carga com `dw-sme tudo`, junto com os fatos de turma e de população.
+- **Dados reais dos fatos novos.** Na carga com os dados reais, Q11 (ocupação), Q13 (hierarquias) e Q14 (conformidade) deram OK. Q12 (população) dá ALERTA porque o IBGE suprime 6.543 valores em setores pequenos, que ficam nulos; nenhum setor ficou sem distrito correspondente na SME.
 - **Notação.** Os desenhos seguem a notação do artigo da disciplina. Vale conferir com a das aulas, como pede o enunciado.
 
 ## Como repetir a verificação

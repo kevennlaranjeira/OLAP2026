@@ -97,7 +97,7 @@ Duas limitações orientam o uso:
 - **Os grupos de idade não recortam nas etapas.** A creche atende de 0 a 3 anos e a pré-escola de 4 e 5; o grupo do IBGE é 0 a 4. A faixa comparável entre as bases é, portanto, 0 a 4 anos, e a dimensão Idade carrega o mesmo corte (`faixa_ibge`) para que a matrícula possa ser agregada nele.
 - **A população é contada onde a criança mora; a matrícula, onde a escola fica.** O microdado não traz endereço do aluno. A razão entre matrícula e população por distrito é oferta por criança residente, não taxa de atendimento dos moradores.
 
-**Situação no repositório.** A leitura, a carga e as verificações estão implementadas e testadas com arquivos sintéticos no layout descrito acima. A leitura procura as colunas pelo nome e para com erro se alguma faltar, de modo que a primeira carga com os arquivos reais confirma o layout. Os números da população ainda não aparecem na documentação porque os arquivos reais não foram carregados no ambiente em que esta parte foi escrita; nada foi estimado no lugar deles.
+**Carga com os arquivos reais.** A leitura procura as colunas pelo nome e para com erro se alguma faltar. A carga com os arquivos publicados (`Agregados_por_setores_basico_BR_20260520.zip` e `Agregados_por_setores_demografia_BR.zip`) confirmou o layout: 26.889 setores do município com população por faixa etária, todos ligados a um dos 96 distritos da SME, somando 11.434.513 pessoas. O IBGE suprime 6.543 valores em setores pequenos, que ficam nulos (verificação Q12 em ALERTA). Por isso a soma das faixas fica 0,15% abaixo do total de moradores do município no próprio tema Básico (variável `v0001`, 11.451.999 pessoas em 27.301 setores, sem supressão).
 
 ## Dicionários de dados
 

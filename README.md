@@ -15,10 +15,10 @@ Tema da disciplina: política pública municipal. O data warehouse serve para o 
 | Fontes | Microdados da Rede Municipal de Educação (Matrículas) e Demanda Registrada e Matrículas, ambas da SME-SP; Censo Demográfico 2022, Agregados por Setores Censitários, do IBGE |
 | Assuntos de interesse | matrículas; fila (demanda registrada); capacidade e ocupação das turmas; população em idade escolar; oferta escolar por setor |
 | Recorte | 2015 a 2024 (configurável); população na data do Censo 2022 |
-| Volume | 13,4 milhões de matrículas, 44 meses de fila × 96 distritos × 8 etapas |
+| Volume | 13,4 milhões de matrículas, 551 mil turmas, 44 meses de fila × 96 distritos × 8 etapas, 26.889 setores censitários com 11,4 milhões de moradores |
 | Modelo | constelação com 5 tabelas de fatos e 14 dimensões |
-| Banco | DuckDB, um arquivo de ~290 MB na última carga medida (antes dos fatos de turma e população), carregado em ~3 minutos |
-| Testes | 440 testes unitários e de integração (22 conferem a modelagem e 40 a coerência entre código, documentos, slides e imagens), cobertura de 95%, sem depender de internet nem dos dados reais |
+| Banco | DuckDB, um arquivo de ~600 MB, carregado em ~3,5 minutos |
+| Testes | 482 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 41 a coerência entre código, documentos, slides e imagens, 9 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
 | Consultas | dois drill-down, um roll-up, slice and dice, pivot e três drill-across |
 
 ## O que os dados mostram
@@ -26,7 +26,8 @@ Tema da disciplina: política pública municipal. O data warehouse serve para o 
 - A fila de creche em junho caiu de **124.741 crianças em 2015 para 3.633 em 2024**. A fração da demanda que ficava fora da rede passou de 34% para 1%. A pré-escola zerou a fila em 2018.
 - No mesmo período as matrículas de creche passaram de 320 mil para 474 mil, e **85% delas estão na rede conveniada**, quase todas em jornada integral.
 - As duas bases da prefeitura concordam com diferença abaixo de 1% de 2015 a 2020, quando se contam as matrículas ativas em junho. De 2022 em diante o microdado publicado passa a ter códigos corrompidos e vínculos encerrados sem data de fim, e a concordância cai; o pipeline mede e registra isso em vez de esconder.
-- Os resultados das consultas C7 (população × matrícula × fila) e C8 (ocupação das turmas) ainda não foram medidos com os dados reais: os fatos de turma e de população entraram depois da última carga, e nenhum número deles é apresentado antes da próxima.
+- Na data do Censo 2022 moravam no município 598 mil crianças de 0 a 4 anos, e a rede municipal tinha 514 mil matrículas ativas dessa idade, **86 por 100 crianças**. A média esconde distâncias grandes: em 25 distritos são menos de 50 por 100, em outros 25 mais de 100, porque a matrícula conta onde a escola fica e a população onde a criança mora.
+- A creche funciona com perto de **11 crianças por turma** em todas as DREs; no fundamental são de 28 a 32 alunos por turma.
 
 ## Como rodar
 
