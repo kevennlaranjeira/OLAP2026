@@ -89,7 +89,7 @@ Por que assim:
 
 ## Etapa 4: verificar
 
-Módulo: `qualidade/verificacoes.py`. Doze verificações sobre o banco pronto, com relatório em `data/relatorios/qualidade.md`. O último relatório gerado com os dados reais está em [relatorios/qualidade.md](relatorios/qualidade.md).
+Módulo: `qualidade/verificacoes.py`. Catorze verificações sobre o banco pronto, com relatório em `data/relatorios/qualidade.md`. O último relatório gerado com os dados reais está em [relatorios/qualidade.md](relatorios/qualidade.md).
 
 ## Etapa 5: consultar
 

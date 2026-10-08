@@ -4,7 +4,7 @@
 \node[dim, anchor=north east] (A) at (-3.35,3.25) {\textbf{Dimensão Ano Letivo}\nodepart{two}(PK) chave ano letivo\\ano\\qualidade código escola\\observação};
 \node[dim, below=of A] (E) {\textbf{Dimensão Escola}\nodepart{two}(PK) chave escola\\código escola, versão\\nome escola, tipo escola, rede\\distrito, DRE, situação\\...};
 \node[dim, below=of E] (T) {\textbf{Dimensão Território}\nodepart{two}(PK) chave território\\distrito\\DRE, participação DRE\\município, UF};
-\node[dim, anchor=north west] (S) at (3.35,2.35) {\textbf{Dimensão Série}\nodepart{two}(PK) chave série\\modalidade, segmento, série\\ciclo, educação especial\\código etapa, etapa, nível};
+\node[dim, anchor=north west] (S) at (3.35,2.35) {\textbf{Dimensão Série}\nodepart{two}(PK) chave série\\modalidade, segmento, série\\ciclo, ordem, educação especial\\código etapa, etapa, nível};
 \node[dim, below=of S] (TU) {\textbf{Dimensão Turno}\nodepart{two}(PK) chave turno\\turno\\jornada\\origem turno};
 \draw[liga] (A.east) -- \ladoesq{F}{1}{3};
 \draw[liga] (E.east) -- \ladoesq{F}{2}{3};

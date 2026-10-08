@@ -3,8 +3,8 @@
 \nodepart{two}(FK) chave ano letivo\\(FK) chave data início\\(FK) chave data fim\\(FK) chave escola\\(FK) chave território\\(FK) chave série\\(FK) chave turno\\(FK) chave idade\\(FK) chave perfil aluno\\(FK) chave deficiência\\(FK) chave situação\\id turma \hfill\textit{(degenerada)}\\código matrícula \hfill\textit{(degenerada)}\\quantidade matrículas \hfill\textit{(artificial)}\\dias de matrícula};
 
 \node[dim, anchor=north east] (A) at (-3.35,6.15) {\textbf{Dimensão Ano Letivo}\nodepart{two}(PK) chave ano letivo\\ano\\qualidade código escola\\observação};
-\node[dim, below=of A] (D) {\textbf{Dimensão Data}\nodepart{two}(PK) chave data\\data, dia, dia da semana\\mês, nome mês\\trimestre, semestre, ano\\fim de semana};
-\node[dim, below=of D] (E) {\textbf{Dimensão Escola}\nodepart{two}(PK) chave escola\\código escola, código sintético\\versão, ano início, ano fim\\nome escola, tipo escola, rede\\distrito, DRE, setor SME, situação};
+\node[dim, below=of A] (D) {\textbf{Dimensão Data}\nodepart{two}(PK) chave data\\data, dia, dia da semana, nome do dia\\mês, nome mês\\trimestre, semestre, ano\\fim de semana};
+\node[dim, below=of D] (E) {\textbf{Dimensão Escola}\nodepart{two}(PK) chave escola\\código escola, código sintético\\versão, ano início, ano fim, versão atual\\nome escola, tipo escola, rede\\distrito, DRE, setor SME, situação};
 \node[dim, below=of E] (T) {\textbf{Dimensão Território}\nodepart{two}(PK) chave território\\distrito\\DRE, participação DRE\\município, UF};
 \node[dim, below=of T] (S) {\textbf{Dimensão Série}\nodepart{two}(PK) chave série\\modalidade, segmento, série\\ciclo, ordem, educação especial\\código etapa, etapa, nível};
 
