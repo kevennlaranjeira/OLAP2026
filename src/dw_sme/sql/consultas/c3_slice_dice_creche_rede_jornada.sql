@@ -19,4 +19,4 @@ WHERE s.codigo_etapa = 'CRECHE'                                              -- 
   AND e.rede IN ('DIRETA', 'CONVENIADA')                                     -- dice
   AND a.ano IN (2019, (SELECT max(ano) FROM dw.dim_ano_letivo))              -- dice
 GROUP BY a.ano, e.rede, t.jornada
-ORDER BY a.ano, e.rede, matriculas DESC;
+ORDER BY a.ano, e.rede, matriculas DESC, t.jornada;

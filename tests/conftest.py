@@ -136,6 +136,63 @@ def gravar_ibge(destino: Path) -> None:
     (destino / "Agregados_por_setores_demografia_BR.csv").write_bytes(("\n".join(linhas) + "\n").encode("utf-8"))
 
 
+# Volume maior: várias escolas em seis distritos de seis DREs, três etapas, desfechos variados.
+DISTRITOS_VOLUME = [("AGUA RASA", "PENHA"), ("ANHANGUERA", "PIRITUBA/JARAGUA"), ("ALTO DE PINHEIROS", "BUTANTA"),
+                    ("SAUDE", "IPIRANGA"), ("SANTO AMARO", "SANTO AMARO"), ("SAO MATEUS", "SAO MATEUS")]
+SERIE_FUND = {"MODALIDADE": "FUND", "MODALIDADE_SEGMENTO": "Fund2", "DESC_SERIE": "C.II 6.ANO F9", "CD_SERIE": "2096"}
+# etapa -> (série, turno, hora de início, hora de fim, idade em 31/03)
+ETAPAS_VOLUME = {
+    "C": (SERIE_CRECHE, ("06", "INTEGRAL"), "0700", "1700", 2),
+    "P": (SERIE_PRE, ("03", "TARDE"), "1300", "1900", 5),
+    "F": (SERIE_FUND, ("01", "MANHA"), "0700", "1200", 11),
+}
+DESFECHOS_VOLUME = ["APROV", "APROV", "APROV", "APROV", "REPROV", "ABAND", "TRANSF", "CONCL"]
+
+
+def microdado_volumoso(ano: int, escolas: int = 30, turmas_por_etapa: int = 2, alunos_por_turma: int = 25) -> pd.DataFrame:
+    """Um ano no formato de 2019, com escolas * 3 etapas * turmas_por_etapa * alunos_por_turma matrículas."""
+    linhas = []
+    for e in range(escolas):
+        distrito, dre = DISTRITOS_VOLUME[e % len(DISTRITOS_VOLUME)]
+        escola = {"CD_UNIDADE_EDUCACAO": f"{500000 + e}", "NOME_ESCOLA": f"ESCOLA SINTETICA {e:03d}",
+                  "TIPO_ESCOLA": "EMEI" if e % 2 else "CR.P.CONV", "NOME_DISTRITO": distrito,
+                  "DRE": f"DIRETORIA REGIONAL DE EDUCACAO {dre}", "CD_SETOR": f"{1000 + e}",
+                  "CD_INEP_ESCOLA": f"35{500000 + e}", "SITUACAO_ESCOLA": "ATIVA"}
+        for letra, (serie, (cd_turno, turno), inicio, fim, idade) in ETAPAS_VOLUME.items():
+            for t in range(turmas_por_etapa):
+                turma = {"CD_TURMA": f"{ano}{e:03d}{letra}{t}", "NOME_TURMA": f"{t + 1}{letra}", "CD_TURNO": cd_turno,
+                         "DESC_TURNO": turno, "HORA_IN_TURMA": inicio, "HORA_FIM_TURMA": fim, "TURMA_ESCOL": "S"}
+                for a in range(alunos_por_turma):
+                    desfecho = DESFECHOS_VOLUME[(e + t + a) % len(DESFECHOS_VOLUME)]
+                    saiu_cedo = desfecho in ("ABAND", "TRANSF")
+                    linhas.append(_linha(
+                        ano, escola, turma, serie,
+                        {"nasc": str(ano - idade - 1), "mes": str(a % 12 + 1), "mat": f"{ano}{e:03d}{letra}{t}{a:03d}",
+                         "sexo": "MF"[a % 2]},
+                        desfecho, IDADE_ALUNO_3103=str(idade), QTD_DIAS_MATR="90" if saiu_cedo else "200",
+                        DT_IN_MAT=f"{ano}-02-04 00:00:00",
+                        DT_FIM_MAT=f"{ano}-05-10 00:00:00" if saiu_cedo else f"{ano}-12-20 00:00:00"))
+    return pd.DataFrame(linhas)
+
+
+def gravar_volume(dados: Path, anos=(2019, 2020, 2022), embaralhar: int | None = None, **tamanho) -> int:
+    """Grava a árvore data/ com o microdado volumoso; `embaralhar` muda a ordem física das linhas. Devolve o total."""
+    bruto = dados / "interim" / "bruto"
+    total = 0
+    for ano in anos:
+        df = microdado_volumoso(ano, **tamanho)
+        if embaralhar is not None:
+            df = df.sample(frac=1, random_state=embaralhar).reset_index(drop=True)
+        _gravar(df, bruto / f"ano={ano}" / f"Microdados_EOL_Matriculas_Ano_{ano}.parquet")
+        total += len(df)
+    fila = dados / "raw" / "demanda"
+    fila.mkdir(parents=True, exist_ok=True)
+    for f in (FIXTURES / "fila").glob("*.csv"):
+        shutil.copy(f, fila / f.name)
+    gravar_ibge(dados / "raw" / "ibge")
+    return total
+
+
 def zip_em_memoria(arquivos: dict[str, bytes]) -> bytes:
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w") as z:
