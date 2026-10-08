@@ -180,3 +180,19 @@ def test_executar_todas_grava_csv(con, tmp_path):
 def test_cabecalho_incompleto_e_recusado():
     with pytest.raises(ValueError, match="cabeçalho"):
         ex._ler("x.sql", "-- codigo: X\n-- tipo: pivot\nSELECT 1")
+
+
+def test_cabecalho_ignora_comentario_sem_chave_e_para_no_sql():
+    texto = ("-- codigo: C9\n-- nota solta sem dois pontos\n-- tipo: pivot\n-- titulo: t\n-- pergunta: p\n"
+             "-- justificativa: j\n-- fatos: fato_fila, fato_matricula\nSELECT 1;\n-- depois do SQL: x\n")
+    c = ex._ler("c9.sql", texto)
+    assert (c.codigo, c.tipo, c.fatos) == ("C9", "pivot", ("fato_fila", "fato_matricula"))
+
+
+def test_executar_todas_sem_destino_nao_grava(con, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    banco = con.execute("SELECT path FROM duckdb_databases() WHERE NOT internal AND database_name <> 'memory'"
+                        ).fetchone()[0]
+    resultados = ex.executar_todas(banco)
+    assert set(resultados) == {f"C{i}" for i in range(1, 9)}
+    assert list(tmp_path.iterdir()) == []

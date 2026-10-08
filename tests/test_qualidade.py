@@ -126,3 +126,27 @@ def test_ano_sem_ponto_de_milhar():
     import pandas as pd
     texto = q.tabela_markdown(pd.DataFrame({"ano": [2019], "matriculas": [1234]}))
     assert "| 2019 | 1.234 |" in texto
+
+
+# ------------------------------------------------------------------ banco vazio e relatório
+
+def test_banco_sem_dados_nao_tem_o_que_reconciliar_nem_ocupar():
+    con = duckdb.connect()
+    carregar.criar_esquema(con)
+    q07, q11 = q.reconciliacao(con), q.ocupacao_turmas(con)
+    assert (q07.status, q11.status) == (q.OK, q.OK)
+    assert "nada a reconciliar" in q07.resumo and "Nenhuma matrícula" in q11.resumo
+
+
+def test_tabela_markdown_vazia_e_longa():
+    import pandas as pd
+    assert q.tabela_markdown(None) == "_sem linhas_\n"
+    assert q.tabela_markdown(pd.DataFrame()) == "_sem linhas_\n"
+    longa = q.tabela_markdown(pd.DataFrame({"ano": range(2000, 2070)}), limite=60)
+    assert longa.count("\n| ") == 60 and "mais 10 linhas" in longa
+
+
+def test_relatorio_sem_resumo_da_carga_nao_mostra_volumes():
+    v = q.Verificacao("Q01", "Integridade referencial", q.OK, "tudo certo", None)
+    texto = q.relatorio_markdown([v])
+    assert "Volumes carregados" not in texto and "Integridade referencial · OK" in texto

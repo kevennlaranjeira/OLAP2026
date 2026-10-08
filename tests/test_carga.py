@@ -228,3 +228,33 @@ def test_populacao_fora_do_recorte_nao_carrega(dados_sinteticos, tmp_path):
     resumo = carregar.carregar_tudo(cfg)
     assert resumo["populacao"]["carregada"] is False and resumo["populacao"]["motivo"] == "2022 fora do recorte"
     assert resumo["fato_populacao"] == 0
+
+
+def test_sem_parquet_bruto_pede_a_etapa_preparar(tmp_path):
+    cfg = Configuracao(dir_dados=tmp_path / "data", log=lambda *_: None)
+    with pytest.raises(FileNotFoundError, match="rode a etapa preparar"):
+        carregar.carregar_tudo(cfg)
+
+
+def test_dicionario_na_pasta_da_fila_e_ignorado(dados_sinteticos):
+    from dw_sme.preparacao import preparar_fila
+    cfg = Configuracao(dir_dados=dados_sinteticos, log=lambda *_: None)
+    antes, meta_antes = preparar_fila(cfg)
+    (cfg.dir_raw_fila / "dicionario-demanda-e-matriculas.csv").write_text("CAMPO;DESCRICAO\n", encoding="utf-8")
+    depois, meta_depois = preparar_fila(cfg)
+    assert depois.equals(antes) and meta_depois == meta_antes
+
+
+def test_ano_com_idade_so_pelo_ano_de_nascimento_ganha_observacao(dados_sinteticos):
+    import pandas as pd
+
+    from conftest import ESCOLA_A_2019, PRE_TARDE, SERIE_PRE, _gravar, _linha
+    linhas = [_linha(2020, ESCOLA_A_2019, PRE_TARDE, SERIE_PRE, {"nasc": "2015", "mes": "", "mat": f"9{i}"}, "APROV",
+                     IDADE_ALUNO_3103=None) for i in range(3)]
+    _gravar(pd.DataFrame(linhas), dados_sinteticos / "interim" / "bruto" / "ano=2020" / "Microdados_2020.parquet")
+    cfg = Configuracao(dir_dados=dados_sinteticos, log=lambda *_: None)
+    carregar.carregar_tudo(cfg)
+    con = duckdb.connect(str(cfg.banco), read_only=True)
+    obs = con.execute("SELECT observacao FROM dw.dim_ano_letivo WHERE ano = 2020").fetchone()[0]
+    con.close()
+    assert "100.0% das idades estimadas só pelo ano de nascimento" in obs
