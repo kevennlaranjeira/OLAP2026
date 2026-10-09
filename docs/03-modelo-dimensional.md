@@ -1,6 +1,6 @@
 # Modelo dimensional
 
-O data warehouse responde a uma pergunta: **onde existe fila por vaga na rede municipal de educação de São Paulo, onde existe oferta, e o que acontece com quem consegue a vaga**. Três processos de negócio sustentam essa pergunta, cada um com sua tabela de fatos. As três compartilham dimensões e formam uma constelação.
+O data warehouse responde a uma pergunta: **onde existe fila por vaga na rede municipal de educação de São Paulo, onde existe oferta, e o que acontece com quem consegue a vaga**. Cinco processos de negócio sustentam essa pergunta, cada um com sua tabela de fatos, e cobrem os assuntos de interesse registrados pelo grupo (matrículas; fila; capacidade e ocupação das turmas; população em idade escolar; oferta escolar por setor). As cinco tabelas compartilham dimensões e formam uma constelação.
 
 O DDL completo está em [`src/dw_sme/sql/ddl/`](../src/dw_sme/sql/ddl/).
 
@@ -11,8 +11,18 @@ O DDL completo está em [`src/dw_sme/sql/ddl/`](../src/dw_sme/sql/ddl/).
 | Matrícula | `fato_matricula` | um vínculo aluno-turma em um ano letivo | Microdados da Rede Municipal, Matrículas |
 | Fila por vaga | `fato_fila` | distrito × mês de referência × etapa | Demanda Registrada e Matrículas |
 | Desfecho da matrícula | `fato_desfecho` | versão de escola × ano letivo × série | agregado do fato de matrícula |
+| Ocupação de turma | `fato_turma` | uma turma em um ano letivo | agregado do fato de matrícula |
+| População residente | `fato_populacao` | setor censitário × faixa etária × data de referência do Censo | Censo Demográfico 2022 (IBGE) |
 
-O grão foi declarado antes das dimensões em cada caso. O fato de matrícula usa o grão mais fino que a fonte permite; o de fila usa o grão em que a prefeitura publica; o de desfecho é um fato agregado, porque as taxas de rendimento só fazem sentido sobre um conjunto de alunos.
+O grão foi declarado antes das dimensões em cada caso. O fato de matrícula usa o grão mais fino que a fonte permite; o de fila usa o grão em que a prefeitura publica; o de desfecho é um fato agregado, porque as taxas de rendimento só fazem sentido sobre um conjunto de alunos; o de turma também é agregado, porque a ocupação é uma propriedade da turma e não do aluno; o de população usa o grão em que o IBGE publica.
+
+| Assunto de interesse (planilha do grupo) | Onde está no modelo |
+|---|---|
+| Matrículas | `fato_matricula` |
+| Fila (demanda registrada) | `fato_fila` |
+| Capacidade e ocupação das turmas | `fato_turma` (ocupação medida; a capacidade não é publicada por nenhuma fonte, ver D19) e `qtd_matriculas_em_processo` de `fato_fila` (vaga oferecida aguardando documentação) |
+| População em idade escolar | `fato_populacao` |
+| Oferta escolar por setor | rede (setor público direto ou conveniado) em `dim_escola`; território em `dim_territorio` e `dim_setor_censitario`; consultas C3, C4, C7 e C8 |
 
 ## Constelação
 
@@ -36,15 +46,26 @@ erDiagram
     fato_desfecho }o--|| dim_escola : "escola"
     fato_desfecho }o--|| dim_territorio : "distrito"
     fato_desfecho }o--|| dim_serie : "série"
+    fato_turma }o--|| dim_ano_letivo : "ano"
+    fato_turma }o--|| dim_escola : "escola"
+    fato_turma }o--|| dim_territorio : "distrito"
+    fato_turma }o--|| dim_serie : "série"
+    fato_turma }o--|| dim_turno : "turno"
+    fato_populacao }o--|| dim_tempo : "mês do Censo"
+    fato_populacao }o--|| dim_setor_censitario : "setor"
+    fato_populacao }o--|| dim_territorio : "distrito"
+    fato_populacao }o--|| dim_faixa_etaria : "faixa"
 ```
 
-A constelação se fecha em três pontos:
+A constelação se fecha em cinco pontos:
 
-- **Território** é compartilhada diretamente pelos três fatos, no mesmo grão (distrito).
-- **Tempo** aparece em três grãos, todos conformados: `dim_data` (dia) e `dim_tempo` (mês) se ligam por ano e mês; `dim_ano_letivo` (ano) é o rollup encolhido das duas.
+- **Território** é compartilhada diretamente pelos cinco fatos, no mesmo grão (distrito).
+- **Tempo** aparece em três grãos, todos conformados: `dim_data` (dia) e `dim_tempo` (mês) se ligam por ano e mês; `dim_ano_letivo` (ano) é o rollup encolhido das duas. A população entra pelo mês do Censo em `dim_tempo`.
 - **Etapa** aparece em dois grãos: `dim_serie` (série) carrega o código da etapa, e `dim_etapa` (etapa) é o seu rollup encolhido.
+- **Idade** aparece em dois grãos: `dim_idade` (idade simples) carrega a faixa do IBGE, e `dim_faixa_etaria` (faixa) é o seu rollup encolhido.
+- **Território abaixo do distrito** existe só no IBGE: `dim_setor_censitario` (setor) carrega o distrito, e `dim_territorio` é o seu rollup encolhido.
 
-Rollup encolhido (*shrunken rollup dimension*) é a dimensão que contém um subconjunto conformado dos atributos de outra, num grão mais alto. É o que permite unir a fila, publicada por mês e etapa, com a matrícula, registrada por dia e série.
+Rollup encolhido (*shrunken rollup dimension*) é a dimensão que contém um subconjunto conformado dos atributos de outra, num grão mais alto. É o que permite unir a fila, publicada por mês e etapa, com a matrícula, registrada por dia e série, e a população, publicada por setor e faixa etária, com a matrícula, registrada por escola e idade.
 
 ## Dimensões
 
@@ -73,7 +94,9 @@ Hierarquias: `mês ≤ trimestre ≤ semestre ≤ ano` e `mês ≤ bimestre ≤ 
 | `dia`, `mes`, `nome_mes`, `trimestre`, `semestre`, `ano` | componentes do calendário |
 | `dia_semana`, `nome_dia_semana`, `fim_de_semana` | dia da semana |
 
-O fato de matrícula aponta para esta dimensão duas vezes: data de início e data de fim da matrícula. É a mesma construção da Dimensão Data com visão para dois papéis do artigo da disciplina (data de internação e data de alta). As duas datas juntas permitem contar as matrículas ativas num dia, que é a medida comparável com a fila. Hierarquia: `dia ≤ mês ≤ trimestre ≤ semestre ≤ ano`.
+O fato de matrícula aponta para esta dimensão duas vezes: data de início e data de fim da matrícula. É a mesma construção da Dimensão Data com visão para dois papéis do artigo da disciplina (data de internação e data de alta). As duas datas juntas permitem contar as matrículas ativas num dia, que é a medida comparável com a fila.
+
+Hierarquia: `dia ≤ mês ≤ trimestre ≤ semestre ≤ ano`.
 
 ### dim_ano_letivo (grão: ano)
 
@@ -126,6 +149,8 @@ Hierarquia: `escola ≤ tipo de unidade ≤ rede`. O tipo 2 existe porque 402 es
 | `educacao_especial` | turma de educação especial |
 | `codigo_etapa`, `etapa`, `nivel` | etapa conformada com `dim_etapa` |
 
+Hierarquia de `dim_etapa`: `etapa ≤ nível`.
+
 Hierarquias de `dim_serie`: `série ≤ etapa ≤ nível` e `série ≤ ciclo`. As duas são paralelas porque o ciclo interdisciplinar cobre o 4º, 5º e 6º anos, e por isso atravessa a fronteira entre anos iniciais (FUND_I) e anos finais (FUND_II).
 
 ### dim_turno
@@ -148,7 +173,32 @@ Hierarquia: `turno ≤ jornada`. A origem fica na dimensão porque o turno de 20
 | `faixa_ibge` | mesmo corte quinquenal dos Agregados por Setores do Censo 2022 |
 | `grupo_etario` | criança, adolescente, adulto, idoso |
 
-Hierarquias paralelas: `idade ≤ faixa escolar ≤ grupo etário` e `idade ≤ faixa IBGE`. A faixa IBGE deixa o modelo pronto para receber população residente sem mudar a dimensão.
+Hierarquias paralelas: `idade ≤ faixa escolar`, `idade ≤ grupo etário` e `idade ≤ faixa IBGE`. São três, e não uma cadeia única da idade até o grupo etário passando pela faixa escolar, porque a faixa escolar não cabe num único grupo etário: 11 a 14 anos reúne criança (11) e adolescente (12 a 14), e 30 ou mais reúne adulto e idoso. A faixa IBGE conforma a dimensão Idade com a dimensão Faixa Etária, usada pela população residente.
+
+### dim_faixa_etaria (grão: faixa quinquenal do IBGE)
+
+| Atributo | Descrição |
+|---|---|
+| `chave_faixa_etaria` | chave artificial |
+| `faixa_ibge` | 0 A 4 ANOS, 5 A 9 ANOS, ..., 70 ANOS OU MAIS; mesmo rótulo de `dim_idade.faixa_ibge` (conformidade) |
+| `idade_inicial`, `idade_final` | limites da faixa; `idade_final` nula na faixa aberta |
+| `variavel_ibge` | variável de origem no tema Demografia (`V01031` a `V01041`) |
+| `ordem` | ordem de exibição |
+
+É o rollup encolhido de `dim_idade`. Existe mesmo quando a população não está carregada, como catálogo, do mesmo jeito que `dim_etapa`.
+
+### dim_setor_censitario (grão: setor censitário)
+
+| Atributo | Descrição |
+|---|---|
+| `chave_setor_censitario` | chave artificial |
+| `cd_setor` | código de 15 dígitos do IBGE (chave natural) |
+| `cd_distrito_ibge` | 9 primeiros dígitos: UF, município e distrito |
+| `nome_distrito_ibge` | nome do distrito como o IBGE publica (com acento) |
+| `distrito` | nome normalizado, igual à chave natural de `dim_territorio` |
+| `municipio`, `uf` | SAO PAULO, SP |
+
+Hierarquia: `setor censitário ≤ distrito ≤ DRE ≤ município ≤ UF`. A DRE não está no IBGE: vem de `dim_territorio`, pela conformidade no distrito. O setor censitário é a unidade mais fina do modelo, mas só a população é publicada nele; a escola só tem distrito (e `setor_sme`, que é outro conceito, ver homônimos em [04](04-integracao-e-qualidade.md)).
 
 ### Dimensões bugiganga
 
@@ -174,7 +224,7 @@ O valor `-` (não coletado) importa: quatro indicadores de deficiência só pass
 | `qtd_matricula` | campo artificial = 1 | aditivo | SOMA |
 | `qtd_dias_matricula` | medida | aditivo | SOMA (média por divisão) |
 
-É uma tabela de fatos sem fato: cada linha registra a existência do vínculo, e `qtd_matricula` é o campo artificial que permite somar e agrupar, como no esquema de Ocupação de Instalações do artigo da disciplina. `id_turma` é construído (ano, escola, turma, série e turno) porque o código de turma publicado está corrompido de 2022 em diante; `cd_matricula_origem` fica nulo nos anos em que o código foi destruído.
+O fato principal é a ocorrência do vínculo, e `qtd_matricula` é o campo artificial que permite somar e agrupar, como no esquema de Ocupação de Instalações do artigo da disciplina. `id_turma` é construído (ano, escola, turma, série e turno) porque o código de turma publicado está corrompido de 2022 em diante; `cd_matricula_origem` fica nulo nos anos em que o código foi destruído.
 
 ### fato_fila
 
@@ -201,17 +251,41 @@ Todas as medidas são estoques na data de referência. Somar a fila de fevereiro
 
 As contagens por desfecho são exclusivas e somam `qtd_matriculas` (a verificação Q03 confere). As taxas são derivadas: aprovados, reprovados ou abandonos divididos pela soma dos três, como no indicador de rendimento do INEP. Média de taxas entre escolas de tamanhos diferentes dá resultado errado, por isso a visão expõe as contagens junto.
 
+### fato_turma
+
+| Coluna | Tipo | Aditividade | Agregação |
+|---|---|---|---|
+| 5 chaves de dimensão (Ano Letivo, Escola, Território, Série, Turno) | chave | | |
+| `id_turma` | dimensão degenerada (a mesma de `fato_matricula`) | | |
+| `qtd_turmas` | campo artificial = 1 | aditivo | SOMA |
+| `qtd_matriculas` | vínculos aluno-turma no ano | aditivo | SOMA |
+| `qtd_matriculas_ativas_junho` | alunos ativos em 30/06 | aditivo | SOMA |
+| `qtd_turmas_ativas_junho` | 1 se a turma tinha aluno ativo em 30/06 | aditivo | SOMA |
+| `alunos_por_turma_junho` (visão `vw_ocupacao_turma`) | derivado | não aditivo | recalcular: soma de alunos ativos ÷ soma de turmas ativas |
+
+Fato agregado a partir de `fato_matricula`, agrupando pelo `id_turma`. A soma de `qtd_matriculas` é igual à do fato de matrícula, e há uma linha por turma (verificação Q11). Ativa em 30/06 segue a regra de C5: início até a data e fim depois dela ou não informado. Em 2021, que não publicou datas, as duas medidas de junho ficam nulas, não zero. Os vínculos do ano superam os alunos de um dia porque contam também quem saiu ou entrou durante o ano; por isso a ocupação usa os ativos numa data. A capacidade (vagas por turma) não é publicada por nenhuma das fontes e não é inventada (D19).
+
+### fato_populacao
+
+| Coluna | Aditividade | Agregação |
+|---|---|---|
+| 4 chaves de dimensão (Tempo, Setor Censitário, Território, Faixa Etária) | | |
+| `qtd_pessoas` | semiaditivo | SOMA entre setores, distritos e faixas; no tempo, valor de um único Censo |
+
+Estoque na data de referência do Censo, como a fila. Valor não numérico na origem vira nulo (não publicado), nunca zero. O fato carrega `chave_territorio` além do setor, como o fato de matrícula carrega território além da escola, para que o *drill-across* com os outros fatos use a mesma chave.
+
 ## Recursos de modelagem usados
 
 | Recurso | Onde |
 |---|---|
-| Chave artificial | todas as 12 dimensões |
+| Chave artificial | todas as 14 dimensões |
 | Tabela bugiganga | `dim_perfil_aluno`, `dim_deficiencia`, `dim_situacao_matricula` |
-| Dimensão degenerada | `id_turma` e `cd_matricula_origem` em `fato_matricula`; `formato_planilha` em `fato_fila` |
-| Tabela de fatos sem fato | `fato_matricula` (`qtd_matricula` = 1) |
+| Dimensão degenerada | `id_turma` e `cd_matricula_origem` em `fato_matricula`; `id_turma` em `fato_turma`; `formato_planilha` em `fato_fila` |
+| Campo artificial de contagem, técnica de tabela de fatos sem fato | `fato_matricula` (`qtd_matricula` = 1); não é estritamente sem fato porque tem `qtd_dias_matricula` |
 | Visão para dois papéis | `dim_data` como início e fim da matrícula |
 | Mudança lenta tipo 2 | `dim_escola` |
-| Rollup encolhido conformado | `dim_ano_letivo` de `dim_tempo`/`dim_data`; `dim_etapa` de `dim_serie` |
-| Fato agregado | `fato_desfecho`, derivado de `fato_matricula` |
-| Fato derivado não aditivo | taxas em `vw_desfecho_taxas` |
+| Rollup encolhido conformado | `dim_ano_letivo` de `dim_tempo`/`dim_data`; `dim_etapa` de `dim_serie`; `dim_faixa_etaria` de `dim_idade`; `dim_territorio` de `dim_setor_censitario` |
+| Fato agregado | `fato_desfecho` e `fato_turma`, derivados de `fato_matricula` |
+| Fato derivado não aditivo | taxas em `vw_desfecho_taxas`; alunos por turma em `vw_ocupacao_turma` |
+| Fato semiaditivo | medidas de `fato_fila` e `fato_populacao` (estoques) |
 | Membro "não informado" | `dim_territorio`, `dim_data`, `dim_idade`, `dim_turno` |

@@ -26,12 +26,15 @@ def construir_parser() -> argparse.ArgumentParser:
     p.add_argument("--sete-zip", type=Path, default=None, help="caminho do 7z.exe, se não for encontrado sozinho")
     p.add_argument("--forcar", action="store_true", help="baixa e converte de novo mesmo o que já existe")
     p.add_argument("--manter-staging", action="store_true", help="não apaga o esquema stg ao fim da carga")
+    p.add_argument("--sem-ibge", action="store_true", help="não baixa a população do Censo 2022 (IBGE)")
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return p
 
 
 def configuracao(args: argparse.Namespace) -> Configuracao:
-    extras = {"sete_zip": args.sete_zip} if args.sete_zip else {}
+    extras: dict = {"sete_zip": args.sete_zip} if args.sete_zip else {}
+    if args.sem_ibge:
+        extras["ibge_base"] = None
     return Configuracao(dir_dados=args.dados, anos=args.anos, banco=args.banco, forcar=args.forcar,
                         manter_staging=args.manter_staging, **extras)
 
@@ -48,7 +51,8 @@ def main(argv: list[str] | None = None) -> int:
     elif args.etapa == "carregar":
         r = pipeline.carregar(cfg)
         cfg.log(f"fato_matricula {r['fato_matricula']:,} | fato_fila {r['fato_fila']:,} | "
-                f"fato_desfecho {r['fato_desfecho']:,} | {r['segundos']} s")
+                f"fato_desfecho {r['fato_desfecho']:,} | fato_turma {r['fato_turma']:,} | "
+                f"fato_populacao {r['fato_populacao']:,} | {r['segundos']} s")
     elif args.etapa == "verificar":
         resultado = pipeline.verificar(cfg)
         for v in resultado:

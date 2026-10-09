@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .extracao.arquivos import AUTO
 from .extracao.fontes import CKAN_BASE
+from .extracao.ibge import URL_AGREGADOS
 
 ANOS_PADRAO = range(2015, 2025)
 
@@ -18,6 +19,7 @@ class Configuracao:
     banco: Path = None  # type: ignore[assignment]  # preenchido em __post_init__
     user_agent: str = "dw-sme/0.1 (trabalho academico SCC0245 ICMC-USP; dados abertos SME-SP)"
     ckan_base: str = CKAN_BASE
+    ibge_base: str | None = URL_AGREGADOS   # None: não baixa a população do Censo 2022
     sete_zip: str | Path | None = AUTO
     manter_staging: bool = False
     forcar: bool = False
@@ -37,6 +39,10 @@ class Configuracao:
     @property
     def dir_raw_fila(self) -> Path:
         return self.dir_dados / "raw" / "demanda"
+
+    @property
+    def dir_raw_ibge(self) -> Path:
+        return self.dir_dados / "raw" / "ibge"
 
     @property
     def dir_raw_dicionarios(self) -> Path:

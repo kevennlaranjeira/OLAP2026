@@ -1,6 +1,7 @@
 """Extração: cliente CKAN, manifesto de downloads, seleção pelo recorte e pacotes."""
 import hashlib
 import json
+import urllib.error
 import zipfile
 from pathlib import Path
 
@@ -38,6 +39,8 @@ class ServidorFalso:
         if self.falhas:
             self.falhas -= 1
             raise OSError("conexão recusada")
+        if req.full_url not in self.rotas:
+            raise urllib.error.HTTPError(req.full_url, 404, "Not Found", hdrs=None, fp=None)  # type: ignore[arg-type]
         return RespostaFalsa(self.rotas[req.full_url])
 
 
@@ -215,3 +218,50 @@ def test_detectar_separador(tmp_path, cabecalho, sep):
 ])
 def test_membro_de_escolarizacao(membro, esperado):
     assert fontes.ano_do_membro_escolarizacao(membro) == esperado
+
+
+# ------------------------------------------------------------------ falhas e 7-Zip
+
+def test_resposta_que_nao_e_json_aponta_bloqueio():
+    srv = ServidorFalso({f"{BASE}/package_show?id=demanda": b"<html>acesso negado</html>"})
+    with pytest.raises(RuntimeError, match="não é JSON"):
+        ckan.ClienteCKAN(BASE, user_agent="x", abrir=srv).recursos("demanda")
+
+
+def test_download_desiste_depois_das_tentativas_sem_deixar_arquivo(tmp_path, monkeypatch):
+    monkeypatch.setattr(ckan.time, "sleep", lambda _s: None)
+    recurso = ckan.Recurso(id="r1", nome="x", formato="CSV", url="https://d/x/a.csv", tamanho=None)
+    srv = ServidorFalso({recurso.url: b"conteudo"}, falhas=5)
+    with pytest.raises(OSError, match="conexão recusada"):
+        ckan.baixar(recurso, tmp_path, ckan.Manifesto(tmp_path / "manifesto.json"), "x", abrir=srv, tentativas=2)
+    assert len(srv.pedidos) == 2
+    assert not (tmp_path / recurso.arquivo).exists()
+
+
+def test_7zip_fora_do_path_e_procurado_nos_caminhos_conhecidos(tmp_path, monkeypatch):
+    instalado = tmp_path / "7z.exe"
+    instalado.write_bytes(b"")
+    monkeypatch.setattr(arquivos.shutil, "which", lambda _nome: None)
+    monkeypatch.setattr(arquivos, "_CAMINHOS_7ZIP", [tmp_path / "nao-existe.exe", instalado])
+    assert arquivos.localizar_7zip() == instalado
+    monkeypatch.setattr(arquivos, "_CAMINHOS_7ZIP", [tmp_path / "nao-existe.exe"])
+    assert arquivos.localizar_7zip() is None
+
+
+def test_caminho_do_7zip_explicito_ou_desligado(tmp_path):
+    assert arquivos._resolver(None) is None
+    assert arquivos._resolver(str(tmp_path / "7z.exe")) == tmp_path / "7z.exe"
+
+
+def test_extrair_rar_sem_7zip_falha_com_mensagem_clara(tmp_path):
+    falso = tmp_path / "x.rar"
+    falso.write_bytes(b"Rar!")
+    with pytest.raises(RuntimeError, match="7-Zip"):
+        arquivos.extrair(falso, "membro.csv", tmp_path / "saida", sete_zip=None)
+
+
+def test_7zip_no_path_e_modo_automatico(tmp_path, monkeypatch):
+    no_path = tmp_path / "7z"
+    monkeypatch.setattr(arquivos.shutil, "which", lambda nome: str(no_path) if nome == "7z" else None)
+    assert arquivos.localizar_7zip() == no_path
+    assert arquivos._resolver(arquivos.AUTO) == no_path

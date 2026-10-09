@@ -1,0 +1,14 @@
+% Os esquemas do relatório, uma figura por página, para gerar as imagens PNG.
+% xelatex figuras.tex  &&  pdftoppm -r 300 -png figuras.pdf figura
+\documentclass[tikz,border=10pt]{standalone}
+\usepackage{fontspec}
+\usetikzlibrary{shapes.multipart,positioning,calc}
+\begin{document}
+\input{../relatorio/esquemas/estilo}
+\input{../relatorio/esquemas/constelacao}
+\input{../relatorio/esquemas/estrela-matricula}
+\input{../relatorio/esquemas/estrela-fila}
+\input{../relatorio/esquemas/estrela-desfecho}
+\input{../relatorio/esquemas/estrela-turma}
+\input{../relatorio/esquemas/estrela-populacao}
+\end{document}

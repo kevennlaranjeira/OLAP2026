@@ -6,7 +6,8 @@
 
 CREATE SCHEMA IF NOT EXISTS dw;
 
--- Tempo, grão de mês. Usada pelo fato de fila, que é publicado por mês de referência.
+-- Tempo, grão de mês. Usada pelo fato de fila, que é publicado por mês de referência, e pelo fato de
+-- população, no mês de referência do Censo 2022.
 -- Hierarquias: mês ≤ trimestre ≤ semestre ≤ ano  e  mês ≤ bimestre ≤ ano
 CREATE TABLE dw.dim_tempo (
     chave_tempo              INTEGER PRIMARY KEY,
@@ -41,7 +42,7 @@ CREATE TABLE dw.dim_data (
 );
 
 -- Ano letivo, grão de ano. Rollup encolhido de dim_tempo, conformado pelo atributo `ano`.
--- Usada pelos fatos de matrícula e de desfecho, publicados por ano letivo.
+-- Usada pelos fatos de matrícula, de desfecho e de ocupação de turma, publicados por ano letivo.
 CREATE TABLE dw.dim_ano_letivo (
     chave_ano_letivo         INTEGER PRIMARY KEY,
     ano                      SMALLINT NOT NULL UNIQUE,
@@ -118,7 +119,8 @@ CREATE TABLE dw.dim_turno (
 );
 
 -- Idade em 31 de março do ano letivo.
--- Hierarquias paralelas: idade ≤ faixa escolar ≤ grupo etário  e  idade ≤ faixa IBGE
+-- Hierarquias paralelas: idade ≤ faixa escolar  e  idade ≤ grupo etário  e  idade ≤ faixa IBGE
+-- (faixa escolar não cabe em grupo etário: 11 a 14 tem criança e adolescente; 30 ou mais, adulto e idoso)
 CREATE TABLE dw.dim_idade (
     chave_idade              INTEGER PRIMARY KEY,
     idade                    SMALLINT UNIQUE,            -- nulo = não informada
@@ -162,4 +164,30 @@ CREATE TABLE dw.dim_situacao_matricula (
     aprovado BOOLEAN, reprovado BOOLEAN, abandono BOOLEAN, concluido BOOLEAN,
     transferido BOOLEAN, falecido BOOLEAN, nao_compareceu BOOLEAN, excluido BOOLEAN,
     cessado BOOLEAN, remanejado BOOLEAN, reclassificado BOOLEAN, ativo BOOLEAN
+);
+
+-- Faixa etária do IBGE, grão de faixa quinquenal (0 a 4, 5 a 9, ...). Rollup encolhido
+-- de dim_idade, conformado pelo atributo `faixa_ibge`. Usada pelo fato de população,
+-- que o Censo 2022 publica por grupo de idade, e não por idade simples.
+-- Sem hierarquia própria: idade_inicial, idade_final e variavel_ibge são descritivos.
+CREATE TABLE dw.dim_faixa_etaria (
+    chave_faixa_etaria       INTEGER  PRIMARY KEY,
+    faixa_ibge               VARCHAR  NOT NULL UNIQUE,   -- mesmo rótulo de dim_idade.faixa_ibge
+    idade_inicial            SMALLINT NOT NULL,
+    idade_final              SMALLINT,                   -- nulo na faixa aberta (70 anos ou mais)
+    variavel_ibge            VARCHAR  NOT NULL,          -- V01031 ... V01041 do tema Demografia
+    ordem                    SMALLINT NOT NULL
+);
+
+-- Setor censitário do IBGE (Censo 2022), grão de setor. É a menor unidade territorial
+-- publicada pelo Censo. Conformada com dim_territorio pelo atributo `distrito`.
+-- Hierarquia: setor censitário ≤ distrito ≤ DRE ≤ município ≤ UF (DRE vem de dim_territorio)
+CREATE TABLE dw.dim_setor_censitario (
+    chave_setor_censitario   INTEGER  PRIMARY KEY,
+    cd_setor                 VARCHAR  NOT NULL UNIQUE,   -- 15 dígitos: UF, município, distrito, subdistrito, setor
+    cd_distrito_ibge         VARCHAR  NOT NULL,          -- 9 primeiros dígitos do setor
+    nome_distrito_ibge       VARCHAR,                    -- grafia publicada pelo IBGE (com acento)
+    distrito                 VARCHAR  NOT NULL,          -- forma normalizada, chave de dim_territorio
+    municipio                VARCHAR  NOT NULL,
+    uf                       VARCHAR  NOT NULL
 );

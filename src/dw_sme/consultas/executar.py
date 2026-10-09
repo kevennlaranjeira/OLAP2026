@@ -67,5 +67,7 @@ def executar_todas(banco: str | Path, destino: str | Path | None = None) -> dict
         destino = Path(destino)
         destino.mkdir(parents=True, exist_ok=True)
         for c in listar():
-            resultados[c.codigo].to_csv(destino / f"{Path(c.arquivo).stem}.csv", index=False, encoding="utf-8")
+            # contagens com nulo viram float no pandas ('55.0'); no CSV voltam a inteiro
+            resultados[c.codigo].convert_dtypes().to_csv(destino / f"{Path(c.arquivo).stem}.csv", index=False,
+                                                         encoding="utf-8")
     return resultados

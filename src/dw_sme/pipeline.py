@@ -1,8 +1,8 @@
 """Etapas do pipeline, na ordem em que o fluxo de dados acontece.
 
-baixar     portal CKAN da prefeitura -> data/raw (com manifesto SHA-256)
+baixar     portal CKAN da prefeitura e diretório do IBGE -> data/raw (com manifesto SHA-256)
 preparar   pacotes de microdado -> data/interim/bruto (Parquet, tudo texto)
-carregar   bruto + planilhas de fila -> data/dw/dw_sme.duckdb (esquema dw)
+carregar   bruto + planilhas de fila + Censo 2022 -> data/dw/dw_sme.duckdb (esquema dw)
 verificar  dw -> data/relatorios/qualidade.md
 consultar  dw -> data/relatorios/consultas/*.csv
 """
@@ -17,7 +17,7 @@ import duckdb
 from .carga.carregar import carregar_tudo
 from .config import Configuracao
 from .consultas.executar import executar_todas
-from .extracao import ckan, fontes
+from .extracao import ckan, fontes, ibge
 from .preparacao import preparar_microdados
 from .qualidade import verificacoes
 
@@ -38,7 +38,23 @@ def baixar(cfg: Configuracao, abrir: Callable = urllib.request.urlopen) -> dict:
             cfg.log(f"  {r.nome}")
             ckan.baixar(r, destino, manifesto, cfg.user_agent, abrir=abrir, forcar=cfg.forcar)
         resumo[destino.name] = len(recursos)
+    resumo["ibge"] = _baixar_ibge(cfg, abrir)
     return resumo
+
+
+def _baixar_ibge(cfg: Configuracao, abrir: Callable) -> int:
+    """População do Censo 2022. É complementar: se o diretório do IBGE não responder, a carga segue sem ela."""
+    if not cfg.ibge_base:
+        return 0
+    try:
+        baixados = ibge.baixar(cfg.dir_raw_ibge, cfg.user_agent, abrir=abrir, base=cfg.ibge_base, forcar=cfg.forcar)
+    except OSError as erro:
+        cfg.log(f"  aviso: Censo 2022 não baixado ({erro}). Coloque os arquivos dos temas Básico e Demografia "
+                f"dos Agregados por Setores em {cfg.dir_raw_ibge} para carregar a população.")
+        return 0
+    for caminho in baixados.values():
+        cfg.log(f"  {caminho.name}")
+    return len(baixados)
 
 
 def preparar(cfg: Configuracao) -> list[dict]:

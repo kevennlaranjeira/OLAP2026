@@ -15,7 +15,7 @@ SELECT
         ELSE 'DISTRITO'
     END                                   AS nivel,
     t.ano_mes                             AS mes_referencia,
-    coalesce(d.dre, '(SEM DRE)')          AS dre,
+    CASE WHEN GROUPING(d.dre) = 1 THEN '(TODAS)' ELSE coalesce(d.dre, '(SEM DRE)') END AS dre,
     d.distrito,
     sum(f.qtd_demanda_total)              AS criancas_na_fila
 FROM dw.fato_fila f
