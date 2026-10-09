@@ -1,6 +1,6 @@
 # Decisões de projeto
 
-Cada decisão traz o contexto, a alternativa descartada e o argumento. As que dependem de medição citam o número.
+Cada decisão traz o contexto, a alternativa descartada e o argumento. D19 a D23 acompanham a inclusão do fato de turma e da população do Censo 2022. As que dependem de medição citam o número.
 
 ## D01. Tema: oferta, fila e desfecho na rede municipal de São Paulo
 
@@ -10,13 +10,13 @@ Cada decisão traz o contexto, a alternativa descartada e o argumento. As que de
 
 **Argumento.** A demanda não atendida deixa de ser estimativa e passa a ser medida. O volume (13,4 milhões de matrículas em dez anos) atende ao "dados reais e volumosos" do enunciado.
 
-## D02. Duas bases da mesma plataforma
+## D02. Duas bases da SME como núcleo, o Censo 2022 como terceira
 
-**Decisão.** Microdados de Matrículas e Demanda Registrada e Matrículas, ambas da SME-SP.
+**Decisão.** Microdados de Matrículas e Demanda Registrada e Matrículas, ambas da SME-SP, sustentam matrícula, fila, desfecho e ocupação. O Censo 2022 do IBGE entra como terceira fonte, para a população em idade escolar, como registrado na planilha do grupo.
 
-**Alternativa descartada.** Trocar a segunda pelo Censo 2022 do IBGE, para ter instituições diferentes.
+**Alternativa descartada.** Trocar a fila pelo Censo, para ter instituições diferentes nas duas fontes obrigatórias.
 
-**Argumento.** O enunciado permite fontes da mesma plataforma, e a fila é o diferencial do tema. As duas bases têm grão, formato e vocabulário diferentes, e a reconciliação entre elas (diferença abaixo de 1% de 2015 a 2020) é evidência de integração real.
+**Argumento.** O enunciado permite fontes da mesma plataforma, e a fila é o diferencial do tema. As duas bases da SME têm grão, formato e vocabulário diferentes, e a reconciliação entre elas (diferença abaixo de 1% de 2015 a 2020) é evidência de integração real. O Censo não substitui a fila, porque mede outra coisa (quantas crianças existem, não quantas pediram vaga); ele a complementa, e por isso entra como fonte adicional e não no lugar de uma delas.
 
 ## D03. DuckDB como banco
 
@@ -97,3 +97,33 @@ Cada decisão traz o contexto, a alternativa descartada e o argumento. As que de
 ## D18. Atividades complementares fora do fato de matrícula
 
 **Argumento.** Não são vagas de escolarização, e a planilha de fila só conta escolarização. Misturar inflaria a oferta e quebraria a reconciliação.
+
+## D19. Ocupação medida, capacidade não inventada
+
+**Contexto.** A planilha do grupo registra "capacidade e ocupação das turmas". Nenhuma das fontes publica o número de vagas de cada turma.
+
+**Decisão.** Fato de turma com a ocupação efetiva: alunos ativos em 30/06 e turmas com ao menos um aluno ativo. A média de alunos por turma é derivada e não aditiva. A matrícula em processo da planilha de fila (vaga oferecida aguardando documentação) é a informação publicada mais próxima de capacidade ociosa e fica no fato de fila.
+
+**Alternativa descartada.** Estimar a capacidade por um limite normativo de alunos por turma.
+
+**Argumento.** O limite seria um número externo às fontes, aplicado igualmente a turmas que podem ter salas e condições diferentes. A ocupação é medida no dado; a capacidade ficaria estimada, e o enunciado pede dados reais.
+
+## D20. Fato de turma agregado do fato de matrícula
+
+**Alternativas.** Contar alunos por turma em cada consulta, a partir do fato de matrícula.
+
+**Argumento.** A ocupação é uma propriedade da turma, com grão próprio. Guardar o agregado deixa a consulta simples e permite a verificação de conservação (Q11): a soma das matrículas do fato de turma é igual à do fato de matrícula. É o mesmo raciocínio do fato de desfecho.
+
+## D21. População no grão de setor censitário
+
+**Alternativa descartada.** Agregar para distrito já na carga.
+
+**Argumento.** É o grão em que o IBGE publica. Guardar o setor não custa nada às consultas por distrito (a hierarquia `setor ≤ distrito` faz o roll-up) e preserva a informação de onde, dentro do distrito, as crianças moram, que é o que o gestor precisa para escolher o lugar de uma unidade nova.
+
+## D22. Faixa de 0 a 4 anos e data de 31/07/2022 na comparação com a população
+
+**Argumento.** O IBGE só publica grupos de idade por setor; o grupo que contém a creche é 0 a 4. A matrícula é agregada pela mesma faixa (`faixa_ibge` da idade do aluno), não pela etapa. A população é um retrato na noite de 31/07 para 01/08/2022, então a matrícula comparável é a ativa em 31/07/2022, pelos dois papéis da dimensão Data. A fila entra pelo último mês publicado até o Censo (junho de 2022, no calendário trimestral daquele ano).
+
+## D23. Censo 2022 como fonte complementar e opcional
+
+**Argumento.** O IBGE publica num servidor de arquivos, sem API, e a estrutura do diretório pode mudar. Se o download falhar, o pipeline segue sem a população, avisa onde colocar os arquivos e a verificação Q12 fica em ALERTA. Os fatos da SME não dependem do IBGE. A leitura procura as colunas pelo nome e recusa o arquivo se o layout não for o documentado, para que uma mudança no arquivo não vire número com sentido errado; a recusa vale só para a população, e o motivo fica no resumo da carga.

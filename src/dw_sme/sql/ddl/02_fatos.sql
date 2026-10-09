@@ -1,11 +1,12 @@
 -- =============================================================================
--- Tabelas de fatos. Constelação: as três compartilham dim_territorio, e se
--- conformam por rollup encolhido em tempo (mês x ano letivo) e em etapa
--- (etapa x série).
+-- Tabelas de fatos. Constelação: as cinco compartilham dim_territorio, e se
+-- conformam por rollup encolhido em tempo (dia x mês x ano letivo), em etapa
+-- (etapa x série), em idade (faixa IBGE x idade) e em território (setor
+-- censitário x distrito).
 -- =============================================================================
 
 -- Matrícula. Grão: um vínculo aluno-turma em um ano letivo (uma linha do microdado
--- de escolarização). Tabela de fatos praticamente sem fato: qtd_matricula é um
+-- de escolarização). O fato principal é a ocorrência do vínculo: qtd_matricula é um
 -- campo artificial sempre igual a 1, que existe para somar e agrupar.
 --
 -- Sem restrição FOREIGN KEY declarada, por decisão de projeto: com 13,4 milhões de
@@ -91,3 +92,43 @@ SELECT
          THEN f.qtd_abandonos / NULLIF(f.qtd_aprovados + f.qtd_reprovados + f.qtd_abandonos, 0) END AS taxa_abandono
 FROM dw.fato_desfecho f
 JOIN dw.dim_serie s USING (chave_serie);
+
+-- Ocupação de turma. Grão: uma turma em um ano letivo (id_turma do fato de matrícula).
+-- Fato agregado a partir de fato_matricula. A capacidade (vagas por turma) não é
+-- publicada por nenhuma das fontes; a ocupação é medida pelos alunos da turma.
+--
+-- Como o fato de matrícula, não declara FOREIGN KEY: as chaves vêm do próprio
+-- fato de matrícula, e a verificação Q01 confere as cinco relações.
+CREATE TABLE dw.fato_turma (
+    chave_ano_letivo             INTEGER NOT NULL,
+    chave_escola                 INTEGER NOT NULL,
+    chave_territorio             INTEGER NOT NULL,
+    chave_serie                  INTEGER NOT NULL,
+    chave_turno                  INTEGER NOT NULL,
+    id_turma                     VARCHAR NOT NULL,   -- dimensão degenerada (mesma de fato_matricula)
+    qtd_turmas                   SMALLINT NOT NULL,  -- campo artificial = 1; aditivo
+    qtd_matriculas               INTEGER NOT NULL,   -- vínculos aluno-turma no ano; aditivo
+    qtd_matriculas_ativas_junho  INTEGER,            -- ativas em 30/06; aditivo; nulo sem datas publicadas
+    qtd_turmas_ativas_junho      SMALLINT            -- 1 se havia aluno ativo em 30/06; aditivo; nulo sem datas
+);
+
+-- Fato derivado não aditivo: média de alunos por turma em funcionamento em 30/06,
+-- sempre recalculada como soma de alunos ativos dividida pela soma de turmas ativas.
+CREATE VIEW dw.vw_ocupacao_turma AS
+SELECT
+    f.*,
+    f.qtd_matriculas_ativas_junho / NULLIF(f.qtd_turmas_ativas_junho, 0) AS alunos_por_turma_junho
+FROM dw.fato_turma f;
+
+-- População residente. Grão: setor censitário x faixa etária x data de referência
+-- do Censo (dim_tempo, mês de julho de 2022). Estoque: semiaditivo, soma entre
+-- setores, distritos e faixas, mas não ao longo do tempo.
+-- Valor nulo = não publicado para o setor (valor não numérico na origem).
+CREATE TABLE dw.fato_populacao (
+    chave_tempo              INTEGER NOT NULL REFERENCES dw.dim_tempo (chave_tempo),
+    chave_setor_censitario   INTEGER NOT NULL REFERENCES dw.dim_setor_censitario (chave_setor_censitario),
+    chave_territorio         INTEGER NOT NULL REFERENCES dw.dim_territorio (chave_territorio),
+    chave_faixa_etaria       INTEGER NOT NULL REFERENCES dw.dim_faixa_etaria (chave_faixa_etaria),
+    qtd_pessoas              INTEGER,
+    PRIMARY KEY (chave_tempo, chave_setor_censitario, chave_faixa_etaria)
+);

@@ -1,6 +1,6 @@
 # Consultas
 
-Seis consultas cobrem as operações exigidas pelo enunciado. Cada uma está num arquivo em [`src/dw_sme/sql/consultas/`](../src/dw_sme/sql/consultas/), com um cabeçalho que traz código, tipo, pergunta, justificativa e fatos usados. `dw-sme consultar` roda todas e grava um CSV por consulta em `data/relatorios/consultas/`.
+Oito consultas cobrem as operações exigidas pelo enunciado: três de roll-up ou drill-down (o mínimo é duas), uma de slice and dice, uma de pivot e três de drill-across. Cada uma está num arquivo em [`src/dw_sme/sql/consultas/`](../src/dw_sme/sql/consultas/), com um cabeçalho que traz código, tipo, pergunta, justificativa e fatos usados. `dw-sme consultar` roda todas e grava um CSV por consulta em `data/relatorios/consultas/`.
 
 | Consulta | Operação | Fatos | Linhas no resultado real |
 |---|---|---|---|
@@ -10,8 +10,10 @@ Seis consultas cobrem as operações exigidas pelo enunciado. Cada uma está num
 | C4 | pivot | matrícula | 13 |
 | C5 | drill-across | fila, matrícula | 1.920 |
 | C6 | drill-across | fila, matrícula, desfecho | 131 |
+| C7 | drill-across | população, matrícula, fila | 96 |
+| C8 | drill-down | turma | 836 |
 
-Os números abaixo vêm da carga com os dados reais de 2015 a 2024.
+Os números vêm da carga com os dados reais de 2015 a 2024 e com o Censo 2022 do IBGE. A ordenação de cada consulta termina numa chave única, de modo que duas execuções devolvem as mesmas linhas na mesma ordem; um teste confere isso carregando o mesmo dado em outra ordem física.
 
 ## C1 · Drill-down: fila de creche da DRE ao distrito
 
@@ -96,3 +98,36 @@ A fila de creche caiu 97% em dez anos e a pré-escola zerou a fila em 2018. No n
 **Como.** Três fatos agregados até DRE e ano: fila de creche em junho (`fato_fila`, subindo de distrito para DRE pela hierarquia integrada), matrículas de creche (`fato_matricula`, para pôr a fila em escala) e desfecho do fundamental (`fato_desfecho`). A taxa de abandono é recalculada pelas contagens e restrita ao fundamental, porque na educação infantil não há aprovação.
 
 **Resultado.** Em 2019, Santo Amaro tinha a maior fila relativa (173 crianças por mil matrículas de creche) e taxa de abandono no fundamental de 1,3%; Freguesia/Brasilândia e Ipiranga tinham as maiores taxas de abandono (2,0%) com filas relativas menores (87 e 67 por mil). A correlação entre as duas medidas nas 13 DREs muda de sinal de um ano para outro (de −0,27 a 0,56). O cruzamento não sustenta a hipótese de que as duas vulnerabilidades andam juntas no nível de DRE.
+
+## C7 · Drill-across: crianças de 0 a 4 anos residentes, matriculadas e na fila, por distrito
+
+**Pergunta.** Em cada distrito, quantas crianças de 0 a 4 anos o Censo 2022 contou, quantas crianças dessa idade estavam matriculadas em escolas municipais do distrito na data de referência do Censo, e quantas esperavam vaga em creche ou pré-escola no último mês publicado antes dela?
+
+**Como.** Três fatos agregados até distrito. `fato_populacao` na faixa 0 a 4 anos (sobe de setor censitário para distrito); `fato_matricula` com idade na faixa IBGE 0 a 4, contando as ativas em 31/07/2022 pelos dois papéis da dimensão Data; `fato_fila` de creche e pré-escola no último mês publicado até julho de 2022. União pelas dimensões conformadas Território, Tempo e Idade (`dim_faixa_etaria` como rollup encolhido de `dim_idade`). Saem duas razões: matrículas por 100 crianças residentes e fila por mil crianças residentes.
+
+**Por quê.** A fila mede quem pediu vaga; a população mede quantas crianças existem. Um distrito com fila baixa e poucas matrículas por criança residente pode ter demanda que não chega a virar pedido de vaga, ou pode estar sendo atendido por escolas de distritos vizinhos. É a pergunta que liga a política de expansão de vagas ao tamanho da população.
+
+**Cuidados de leitura.** A matrícula é contada pelo distrito da escola e a população pelo distrito de residência, porque o microdado não traz endereço do aluno; a razão é oferta municipal por criança residente, não taxa de atendimento dos moradores. A rede particular não conveniada não está no microdado. Em 2022 o microdado superestima as matrículas ativas de creche (+8,6% em junho, ver Q07), e isso vale também para 31/07.
+
+**Resultado (31/07/2022).** O Censo contou 598.406 crianças de 0 a 4 anos no município. Na mesma data havia 514.131 matrículas ativas dessa idade na rede municipal, 85,9 por 100 crianças residentes, e a fila de creche e pré-escola de junho tinha 4.761 crianças, 8,0 por mil. Os distritos ficam muito longe dessa média. Em 25 deles a rede municipal tem menos de 50 matrículas por 100 crianças residentes, entre eles Jardim Paulista (4,7), Itaim Bibi (13,1), Moema (18,4) e Pinheiros (19,8). Em outros 25 passa de 100, como Lajeado (169,7) e Cidade Tiradentes (157,3): a matrícula conta onde a escola fica, e as escolas desses distritos recebem crianças de fora. A fila relativa é maior na Sé (73,2 por mil), no Brás (40,6) e no Socorro (32,8). O distrito com mais crianças de 0 a 4 anos é o Grajaú (24.398), com 82,7 matrículas por 100.
+
+## C8 · Drill-down: ocupação das turmas do município ao distrito
+
+**Pergunta.** Em 2019 e no ano mais recente, quantos alunos em média havia por turma em funcionamento em 30 de junho, em cada etapa da educação infantil e do ensino fundamental, no município, em cada DRE e em cada distrito?
+
+**Como.** `GROUP BY ano, etapa, ROLLUP (dre, distrito)` sobre `fato_turma`, com slice em creche, pré-escola e fundamental (anos iniciais e finais) e dice em dois anos. A média é recalculada em cada nível como soma de alunos ativos dividida pela soma de turmas ativas, nunca como média de médias.
+
+**Por quê.** A fila diz onde falta vaga; a ocupação diz se a vaga que existe está cheia. Onde as turmas já estão acima da média da etapa, abrir vaga exige turma nova. As fontes não publicam a capacidade de cada turma, então a consulta mede a ocupação efetiva.
+
+**Cuidados de leitura.** Em 2022-2024 os vínculos encerrados publicados sem data de fim inflam os ativos (ver Q07), por isso 2019 é o ano de comparação mais confiável. Turma é identificada por ano, escola, nome da turma, série e turno; a verificação Q11 mede quantas matrículas caem em turma sem nome publicado.
+
+**Resultado.** Alunos por turma em funcionamento em 30 de junho, no município:
+
+| Etapa | 2019 | 2024 |
+|---|---|---|
+| Creche | 11,5 | 11,0 |
+| Pré-escola | 30,7 | 26,9 |
+| Fundamental, anos iniciais | 28,7 | 30,6 |
+| Fundamental, anos finais | 29,4 | 31,6 |
+
+A creche tem perto de 11 crianças por turma em todas as DREs (em 2019, de 10,8 em Guaianases a 11,9 em Campo Limpo). Nos anos finais do fundamental, em 2019, a média ia de 27,9 na Capela do Socorro a 31,4 em Itaquera. Entre 2019 e 2024 a média da pré-escola caiu e a do fundamental subiu; como 2024 tem ativos inflados pelos vínculos sem data de fim, a comparação entre DREs no mesmo ano é mais segura que a comparação entre anos.

@@ -1,0 +1,66 @@
+% Esquema de modelagem completo: constelação, cinco estrelas e matriz de barramento.
+% Compilar com: latexmk -xelatex modelagem.tex
+\documentclass[11pt]{article}
+\usepackage{fontspec}
+\usepackage[brazil]{babel}
+\usepackage[a4paper,landscape,margin=1.6cm]{geometry}
+\usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{shapes.multipart,positioning,calc}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{underscore}
+\pagestyle{empty}
+\setlist{itemsep=1pt,topsep=3pt}
+\newcommand{\pagina}[2]{\noindent{\Large\bfseries #1}\par\vspace{2pt}\noindent{\small #2}\par\vspace{8pt}}
+\input{../relatorio/esquemas/estilo}
+\begin{document}
+
+\pagina{Constelação de fatos}{Rede Municipal Paulistana: oferta escolar e demanda não atendida · SCC0245 · Grupo 7. Cinco tabelas de fatos e catorze dimensões. Linhas contínuas: fato e dimensão; as duas linhas entre Matrícula e Data são os dois papéis (início e fim). Tracejado: rollup encolhido conformado.}
+\begin{center}\resizebox{\linewidth}{!}{\input{../relatorio/esquemas/constelacao}}\end{center}
+
+\clearpage
+\pagina{Esquema estrela Matrícula}{Grão: um vínculo aluno-turma em um ano letivo. Fatos: quantidade de matrículas (campo artificial = 1, SOMA) e dias de matrícula (SOMA).}
+\begin{center}\resizebox{!}{0.78\textheight}{\input{../relatorio/esquemas/estrela-matricula}}\end{center}
+\noindent\small Hierarquias: dia $\leq$ mês $\leq$ trimestre $\leq$ semestre $\leq$ ano; distrito $\leq$ DRE $\leq$ município $\leq$ UF; escola $\leq$ tipo de unidade $\leq$ rede; série $\leq$ etapa $\leq$ nível e série $\leq$ ciclo; turno $\leq$ jornada; idade $\leq$ faixa escolar, idade $\leq$ grupo etário e idade $\leq$ faixa IBGE.
+
+\clearpage
+\pagina{Esquema estrela Fila por vaga}{Grão: distrito, mês de referência e etapa. Todos os fatos são estoques (semiaditivos): SOMA em Território e Etapa, valor de um único mês no Tempo.}
+\begin{center}\resizebox{0.9\linewidth}{!}{\input{../relatorio/esquemas/estrela-fila}}\end{center}
+\noindent\small Hierarquias: mês $\leq$ trimestre $\leq$ semestre $\leq$ ano e mês $\leq$ bimestre $\leq$ ano; distrito $\leq$ DRE $\leq$ município $\leq$ UF; etapa $\leq$ nível.
+
+\clearpage
+\pagina{Esquema estrela Desfecho da matrícula}{Grão: escola, ano letivo e série (fato agregado da Matrícula). Contagens: SOMA. Taxas: não aditivas, recalculadas pelas contagens em cada nível.}
+\begin{center}\resizebox{0.9\linewidth}{!}{\input{../relatorio/esquemas/estrela-desfecho}}\end{center}
+
+\clearpage
+\pagina{Esquema estrela Ocupação de Turma}{Grão: uma turma em um ano letivo (fato agregado da Matrícula). Contagens: SOMA. Alunos por turma: não aditivo, soma dos alunos ativos dividida pela soma das turmas ativas.}
+\begin{center}\resizebox{0.9\linewidth}{!}{\input{../relatorio/esquemas/estrela-turma}}\end{center}
+
+\clearpage
+\pagina{Esquema estrela População residente}{Grão: setor censitário, faixa etária e data de referência do Censo 2022. Estoque (semiaditivo): SOMA em setor, distrito e faixa; um único Censo no tempo.}
+\begin{center}\resizebox{0.9\linewidth}{!}{\input{../relatorio/esquemas/estrela-populacao}}\end{center}
+\noindent\small Hierarquias: setor censitário $\leq$ distrito $\leq$ DRE $\leq$ município $\leq$ UF; a faixa etária é o topo de idade $\leq$ faixa IBGE.
+
+\clearpage
+\pagina{Matriz de barramento}{Dimensões conformadas usadas por cada tabela de fatos.}
+\begin{center}\large
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Dimensão} & \textbf{Matrícula} & \textbf{Fila} & \textbf{Desfecho} & \textbf{Turma} & \textbf{População}\\\midrule
+Território & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\
+Ano Letivo (ano) & $\times$ & & $\times$ & $\times$ & \\
+Tempo (mês) & & $\times$ & & & $\times$ \\
+Data (dia, dois papéis) & $\times$ & & & & \\
+Escola & $\times$ & & $\times$ & $\times$ & \\
+Série & $\times$ & & $\times$ & $\times$ & \\
+Etapa (rollup de Série) & & $\times$ & & & \\
+Turno & $\times$ & & & $\times$ & \\
+Idade & $\times$ & & & & \\
+Faixa Etária (rollup de Idade) & & & & & $\times$ \\
+Setor Censitário & & & & & $\times$ \\
+Perfil do Aluno, Deficiência, Situação & $\times$ & & & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{document}

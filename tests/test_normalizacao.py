@@ -193,3 +193,9 @@ class TestResolverTurno:
     ])
     def test_ordem_de_precedencia(self, ano, desc, codigo, inicio, fim, esperado):
         assert n.resolver_turno(ano, desc, codigo, inicio, fim) == esperado
+
+
+def test_valores_que_nao_se_encaixam():
+    assert n.inteiro_br("5,50") is None            # fração não é contagem
+    assert n.tipo_escola(None) is None
+    assert n.situacao_escola("EM ANALISE") == "NAO INFORMADA"

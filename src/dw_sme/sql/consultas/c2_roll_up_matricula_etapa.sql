@@ -18,4 +18,4 @@ FROM dw.fato_matricula f
 JOIN dw.dim_ano_letivo a ON a.chave_ano_letivo = f.chave_ano_letivo
 JOIN dw.dim_serie s      ON s.chave_serie = f.chave_serie
 GROUP BY a.ano, ROLLUP (s.nivel, s.etapa)
-ORDER BY a.ano, GROUPING(s.nivel), s.nivel, GROUPING(s.etapa), matriculas DESC;
+ORDER BY a.ano, GROUPING(s.nivel), s.nivel, GROUPING(s.etapa), matriculas DESC, s.etapa;

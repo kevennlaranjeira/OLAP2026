@@ -71,3 +71,9 @@ def test_faixas_ibge_iguais_as_do_censo_2022():
     assert i.FAIXAS_IBGE[0] == (0, 4, "0 A 4 ANOS")
     assert i.FAIXAS_IBGE[-1] == (70, 999, "70 ANOS OU MAIS")
     assert len(i.FAIXAS_IBGE) == 11
+
+
+def test_idade_fora_de_todas_as_faixas_vira_nao_informada():
+    assert i.faixa_escolar(-1) == "NAO INFORMADA"
+    assert i.faixa_ibge(-1) == "NAO INFORMADA"
+    assert i.grupo_etario(-1) == "NAO INFORMADO"

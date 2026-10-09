@@ -2,7 +2,7 @@
 
 Cada problema abaixo foi encontrado nos dados reais, medido e tratado por uma regra testada. A coluna "Evidência" traz o número que justificou a decisão. O relatório gerado pela última carga está em [relatorios/qualidade.md](relatorios/qualidade.md).
 
-## Integração entre as duas bases
+## Integração entre as bases da SME
 
 ### Distrito: mesma entidade, mesma chave
 
@@ -44,6 +44,24 @@ A planilha de fila publica também a matrícula por distrito e etapa. O microdad
 | 2024 | 351.906 / 332.464 | +5,85% | 16% |
 
 Até 2020 as bases concordam com diferença abaixo de 1%, o que confirma a integração. De 2022 em diante o microdado conta mais matrículas ativas. A causa foi medida em 2022: 214.815 matrículas de creche ativas em junho não têm data de fim, e contando **alunos distintos** em vez de linhas o microdado dá 340.085 (−2,5% em relação à planilha), contra 378.954 linhas (+8,6%). São vínculos encerrados (transferências, remanejamentos) publicados sem data de fim, que por isso parecem ativos. Em 2023 e 2024 a mesma correção não é possível porque o código do aluno também foi destruído. A consulta C5 usa a matrícula da própria planilha para a fração de demanda fora da rede e mostra a do microdado ao lado. 2021 fica fora porque não publicou datas.
+
+## Integração com o Censo 2022 (IBGE)
+
+O mesmo dado aparece com representações diferentes nas bases da SME e no IBGE. Em cada caso, o data warehouse define uma única representação.
+
+| Dado | SME (microdado e fila) | IBGE (Agregados por Setores) | Representação no DW |
+|---|---|---|---|
+| Distrito | nome em maiúsculas, sem acento (`AGUA RASA`) | código de 9 dígitos no início do setor e nome com acento e caixa mista (`Água Rasa`) | nome normalizado pela mesma regra (`normalizacao.distrito`), chave natural de `dim_territorio`; o código e a grafia do IBGE ficam em `dim_setor_censitario` |
+| Idade | idade simples em 31 de março do ano letivo | grupo de idade (0 a 4, 5 a 9, ...) na data do Censo | faixa do IBGE como atributo `faixa_ibge` de `dim_idade`, conformado com `dim_faixa_etaria` |
+| Data | ano letivo e datas de matrícula | noite de 31/07 para 01/08/2022 | mês de julho de 2022 em `dim_tempo`, com a nota na `observacao`; a consulta C7 conta as matrículas ativas em 31/07/2022 |
+| Território abaixo do distrito | `CD_SETOR` da SME: setor administrativo de 4 dígitos | `CD_SETOR` do IBGE: setor censitário de 15 dígitos | atributos com nomes distintos (`setor_sme` em Escola, `cd_setor` em Setor Censitário), nunca cruzados |
+
+Duas regras de integração merecem destaque:
+
+- **Ligação setor-distrito.** O nome do distrito vem do tema Básico; se um setor do tema Demografia não aparecer no Básico, herda o nome mais comum entre os setores do mesmo código de distrito. Setor cujo distrito não existe na SME aponta para o membro NAO INFORMADO de `dim_territorio`, e a verificação Q12 mostra quantos são.
+- **Faixa comparável.** A creche atende de 0 a 3 anos e a pré-escola de 4 e 5, mas o IBGE agrupa 0 a 4. A comparação entre matrícula e população é feita na faixa 0 a 4, agregando a matrícula pela `faixa_ibge` da idade do aluno, e não pela etapa.
+
+Valor não numérico numa variável do IBGE vira nulo e é contado; se a maior parte dos valores de um arquivo não for número, a leitura para, porque isso indica um layout diferente do documentado.
 
 ## Problemas da planilha de fila
 
@@ -115,5 +133,9 @@ O artigo da disciplina cita os dois problemas como o centro do trabalho de integ
 | Q08 | Fração de matrículas em escola com chave sintética | OK (máximo 5,2%, em 2024) |
 | Q09 | Fração de matrículas em membros "não informado" | OK |
 | Q10 | Anos letivos com limitação registrada | ALERTA (2020 a 2024) |
+| Q11 | Fato de turma conserva as matrículas e tem uma linha por turma; fração de matrículas em turma sem nome | OK (FALHA se não conservar) |
+| Q12 | População carregada, setores sem distrito correspondente na SME, valores não publicados | ALERTA enquanto a população não for carregada |
+| Q13 | Cada hierarquia `A ≤ B` vale como dependência funcional (todo membro de A pertence a um único B) | OK (FALHA se não valer) |
+| Q14 | Conformidade: os rollups encolhidos têm os mesmos valores das dimensões de que derivam | OK (FALHA se não valer; ALERTA para distrito do IBGE sem correspondente) |
 
-`dw-sme verificar` sai com código 1 se qualquer verificação ficar em FALHA.
+Q01 passa a conferir 27 chaves estrangeiras (18 dos três fatos originais, 5 do fato de turma e 4 do fato de população). `dw-sme verificar` sai com código 1 se qualquer verificação ficar em FALHA.

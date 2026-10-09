@@ -41,3 +41,8 @@ docs/relatorio/compilacao.log
 # Build do pacote
 build/
 dist/
+
+# Gerador da apresentação (npm install pptxgenjs)
+node_modules/
+package.json
+package-lock.json

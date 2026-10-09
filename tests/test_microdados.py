@@ -98,3 +98,8 @@ def test_staging_preserva_texto_original_e_registra_arquivo():
     assert linha["def_autismo"] == "1"
     assert linha["arquivo"] == "Microdados_EOL_Matriculas_Ano_2019.csv"
     assert list(out.columns) == ["ano_letivo", "arquivo", *m.COLUNAS_CANONICAS]
+
+
+def test_sem_coluna_turma_escol_decide_pelo_nome_do_arquivo():
+    assert m.sql_filtro_escolarizacao(m._NULO, "Microdados_EOL_Matriculas_Ano_2019") == "true"
+    assert m.sql_filtro_escolarizacao(m._NULO, "Microdados_EOL_Matricula_Atividades_Complementares") == "false"

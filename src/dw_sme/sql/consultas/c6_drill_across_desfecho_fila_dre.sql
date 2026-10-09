@@ -48,4 +48,4 @@ FROM eixo e
 LEFT JOIN fila fl        ON fl.ano = e.ano AND fl.dre IS NOT DISTINCT FROM e.dre
 LEFT JOIN creche c       ON c.ano = e.ano AND c.dre IS NOT DISTINCT FROM e.dre
 LEFT JOIN fundamental fu ON fu.ano = e.ano AND fu.dre IS NOT DISTINCT FROM e.dre
-ORDER BY e.ano, fila_por_mil_matriculas_creche DESC NULLS LAST;
+ORDER BY e.ano, fila_por_mil_matriculas_creche DESC NULLS LAST, e.dre NULLS LAST;

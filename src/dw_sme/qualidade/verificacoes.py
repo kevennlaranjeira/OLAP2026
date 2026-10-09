@@ -41,6 +41,34 @@ CHAVES_ESTRANGEIRAS = {
         ("chave_territorio", "dim_territorio", "chave_territorio"),
         ("chave_serie", "dim_serie", "chave_serie"),
     ],
+    "fato_turma": [
+        ("chave_ano_letivo", "dim_ano_letivo", "chave_ano_letivo"),
+        ("chave_escola", "dim_escola", "chave_escola"),
+        ("chave_territorio", "dim_territorio", "chave_territorio"),
+        ("chave_serie", "dim_serie", "chave_serie"),
+        ("chave_turno", "dim_turno", "chave_turno"),
+    ],
+    "fato_populacao": [
+        ("chave_tempo", "dim_tempo", "chave_tempo"),
+        ("chave_setor_censitario", "dim_setor_censitario", "chave_setor_censitario"),
+        ("chave_territorio", "dim_territorio", "chave_territorio"),
+        ("chave_faixa_etaria", "dim_faixa_etaria", "chave_faixa_etaria"),
+    ],
+}
+# Hierarquias declaradas no modelo (docs/03 e relatório, seção 2), da mais fina para a mais agregada.
+# Cada nível é a tupla de colunas que identifica um membro: nas dimensões de calendário o ano entra no
+# nível, porque o mês 3 de 2019 e o mês 3 de 2020 são membros diferentes.
+HIERARQUIAS: dict[str, list[list[tuple[str, ...]]]] = {
+    "dim_data": [[("data",), ("ano", "mes"), ("ano", "trimestre"), ("ano", "semestre"), ("ano",)]],
+    "dim_tempo": [[("ano", "mes"), ("ano", "trimestre"), ("ano", "semestre"), ("ano",)],
+                  [("ano", "mes"), ("ano", "bimestre"), ("ano",)]],
+    "dim_territorio": [[("distrito",), ("dre",), ("municipio",), ("uf",)]],
+    "dim_escola": [[("chave_escola",), ("tipo_escola",), ("rede",)]],
+    "dim_serie": [[("chave_serie",), ("codigo_etapa",), ("nivel",)], [("chave_serie",), ("ciclo",)]],
+    "dim_etapa": [[("codigo",), ("nivel",)]],
+    "dim_turno": [[("turno",), ("jornada",)]],
+    "dim_idade": [[("idade",), ("faixa_escolar",)], [("idade",), ("grupo_etario",)], [("idade",), ("faixa_ibge",)]],
+    "dim_setor_censitario": [[("cd_setor",), ("distrito",)]],
 }
 ETAPAS_RECONCILIADAS = ("CRECHE", "PRE", "FUND_I", "FUND_II")
 TOLERANCIA_RECONCILIACAO = 0.02
@@ -222,17 +250,139 @@ def observacoes_ano(con) -> Verificacao:
                        det)
 
 
+def ocupacao_turmas(con) -> Verificacao:
+    """O fato de turma conserva as matrículas e tem uma linha por turma; turma sem nome é alerta."""
+    det = _df(con, """
+        WITH m AS (
+            SELECT a.ano, sum(f.qtd_matricula) AS matriculas, count(DISTINCT f.id_turma) AS turmas_distintas,
+                   sum(f.qtd_matricula) FILTER (WHERE f.id_turma LIKE '%-?-%') AS matriculas_sem_nome_de_turma
+            FROM dw.fato_matricula f JOIN dw.dim_ano_letivo a USING (chave_ano_letivo) GROUP BY 1),
+        t AS (
+            SELECT a.ano, sum(t.qtd_matriculas) AS matriculas_no_fato_turma, count(*) AS linhas_fato_turma,
+                   round(sum(t.qtd_matriculas_ativas_junho) / NULLIF(sum(t.qtd_turmas_ativas_junho), 0), 1)
+                       AS alunos_por_turma_junho
+            FROM dw.fato_turma t JOIN dw.dim_ano_letivo a USING (chave_ano_letivo) GROUP BY 1)
+        SELECT m.ano, m.matriculas, t.matriculas_no_fato_turma, m.turmas_distintas, t.linhas_fato_turma,
+               coalesce(m.matriculas_sem_nome_de_turma, 0) AS matriculas_sem_nome_de_turma,
+               t.alunos_por_turma_junho
+        FROM m LEFT JOIN t USING (ano) ORDER BY 1""")
+    if det.empty:
+        return Verificacao("Q11", "Ocupação das turmas", OK, "Nenhuma matrícula carregada.", det)
+    quebra = det[(det["matriculas"] != det["matriculas_no_fato_turma"])
+                 | (det["turmas_distintas"] != det["linhas_fato_turma"])]
+    sem_nome = det["matriculas_sem_nome_de_turma"].sum() / det["matriculas"].sum()
+    status = FALHA if len(quebra) else (ALERTA if sem_nome > 0.01 else OK)
+    turmas = int(det["linhas_fato_turma"].to_numpy().sum())
+    return Verificacao("Q11", "Ocupação das turmas", status,
+                       f"{turmas:,} turmas; {len(quebra)} anos em que o fato de turma "
+                       f"não conserva as matrículas ou as turmas do fato de matrícula; {sem_nome:.2%} das "
+                       f"matrículas em turma sem nome publicado.".replace(",", "."), det)
+
+
+def populacao(con) -> Verificacao:
+    """População do Censo 2022: carregada, ligada à dimensão Território e com poucos valores não publicados."""
+    det = _df(con, """
+        SELECT t.ano_mes, count(DISTINCT p.chave_setor_censitario) AS setores,
+               count(DISTINCT p.chave_territorio) AS distritos,
+               count(DISTINCT p.chave_setor_censitario) FILTER (WHERE d.distrito = 'NAO INFORMADO')
+                   AS setores_sem_distrito_da_sme,
+               count(*) FILTER (WHERE p.qtd_pessoas IS NULL) AS valores_nao_publicados,
+               sum(p.qtd_pessoas) AS pessoas
+        FROM dw.fato_populacao p JOIN dw.dim_tempo t USING (chave_tempo)
+        JOIN dw.dim_territorio d USING (chave_territorio) GROUP BY 1""")
+    if det.empty:
+        return Verificacao("Q12", "População do Censo 2022", ALERTA,
+                           "População não carregada: coloque os temas Básico e Demografia dos Agregados por "
+                           "Setores Censitários em data/raw/ibge (ou rode dw-sme baixar) e carregue de novo.", det)
+    r = det.iloc[0]
+    status = ALERTA if r.setores_sem_distrito_da_sme or r.valores_nao_publicados else OK
+    return Verificacao("Q12", "População do Censo 2022", status,
+                       f"{int(r.pessoas):,} pessoas em {int(r.setores):,} setores e {int(r.distritos)} distritos; "
+                       f"{int(r.setores_sem_distrito_da_sme)} setores sem distrito correspondente na SME; "
+                       f"{int(r.valores_nao_publicados)} valores não publicados.".replace(",", "."), det)
+
+
+def _chave(colunas: tuple[str, ...]) -> str:
+    return "concat_ws('|', " + ", ".join(f"coalesce(CAST({c} AS VARCHAR), '<nulo>')" for c in colunas) + ")"
+
+
+def violacoes_hierarquia(con, dimensao: str, filho: tuple[str, ...], pai: tuple[str, ...]) -> int:
+    """Membros do nível `filho` que pertencem a mais de um membro do nível `pai` (deveria ser zero)."""
+    nao_nulo = " AND ".join(f"{c} IS NOT NULL" for c in filho)
+    return con.execute(f"""
+        SELECT count(*) FROM (
+            SELECT {_chave(filho)} AS membro FROM dw.{dimensao} WHERE {nao_nulo}
+            GROUP BY 1 HAVING count(DISTINCT {_chave(pai)}) > 1)""").fetchone()[0]
+
+
+def hierarquias(con, declaradas=HIERARQUIAS) -> Verificacao:
+    """Cada hierarquia A ≤ B vale como dependência funcional: todo membro de A pertence a um único membro de B."""
+    linhas = []
+    for dimensao, lista in declaradas.items():
+        for niveis in lista:
+            for filho, pai in zip(niveis, niveis[1:], strict=False):
+                linhas.append({"dimensao": dimensao, "nivel": "+".join(filho), "agregado_em": "+".join(pai),
+                               "violacoes": violacoes_hierarquia(con, dimensao, filho, pai)})
+    det = pd.DataFrame(linhas)
+    total = sum(linha["violacoes"] for linha in linhas)
+    return Verificacao("Q13", "Hierarquias das dimensões (dependência funcional)", FALHA if total else OK,
+                       f"{len(det)} relações A ≤ B conferidas; {total} membros pertencem a mais de um pai.", det)
+
+
+# (descrição, consulta que conta as violações, é falha do modelo?)
+_CONFORMIDADE = [
+    ("Série -> Etapa: todo código de etapa da Série existe na Etapa",
+     """SELECT count(*) FROM dw.dim_serie s LEFT JOIN dw.dim_etapa e ON e.codigo = s.codigo_etapa
+        WHERE e.codigo IS NULL""", True),
+    ("Série -> Etapa: nome da etapa e nível iguais nas duas dimensões",
+     """SELECT count(*) FROM dw.dim_serie s JOIN dw.dim_etapa e ON e.codigo = s.codigo_etapa
+        WHERE s.etapa <> e.etapa OR s.nivel <> e.nivel""", True),
+    ("Idade -> Faixa Etária: toda faixa IBGE da Idade existe na Faixa Etária",
+     """SELECT count(*) FROM (SELECT DISTINCT faixa_ibge FROM dw.dim_idade WHERE idade IS NOT NULL) i
+        LEFT JOIN dw.dim_faixa_etaria f USING (faixa_ibge) WHERE f.chave_faixa_etaria IS NULL""", True),
+    ("Idade -> Faixa Etária: limites da faixa contêm a idade",
+     """SELECT count(*) FROM dw.dim_idade i JOIN dw.dim_faixa_etaria f USING (faixa_ibge)
+        WHERE i.idade < f.idade_inicial OR i.idade > coalesce(f.idade_final, 999)""", True),
+    ("Data/Tempo -> Ano Letivo: todo ano letivo existe em Tempo",
+     """SELECT count(*) FROM dw.dim_ano_letivo a WHERE a.ano NOT IN (SELECT ano FROM dw.dim_tempo)""", True),
+    ("Data -> Tempo: todo mês de Tempo existe em Data",
+     """SELECT count(*) FROM dw.dim_tempo t
+        WHERE NOT EXISTS (SELECT 1 FROM dw.dim_data d WHERE d.ano = t.ano AND d.mes = t.mes)""", True),
+    ("Escola -> Território: todo distrito de escola existe em Território",
+     """SELECT count(*) FROM dw.dim_escola e WHERE e.distrito IS NOT NULL
+        AND e.distrito NOT IN (SELECT distrito FROM dw.dim_territorio)""", True),
+    ("Setor Censitário -> Território: distrito do IBGE sem correspondente na SME (ver Q12)",
+     """SELECT count(*) FROM dw.dim_setor_censitario s
+        WHERE s.distrito NOT IN (SELECT distrito FROM dw.dim_territorio WHERE distrito <> 'NAO INFORMADO')""", False),
+]
+
+
+def conformidade(con) -> Verificacao:
+    """As dimensões de grão mais alto (rollups encolhidos) carregam os mesmos valores das de grão mais fino."""
+    det = pd.DataFrame([{"regra": d, "violacoes": con.execute(sql).fetchone()[0], "falha_do_modelo": f}
+                        for d, sql, f in _CONFORMIDADE])
+    falhas = int(det.loc[det["falha_do_modelo"], "violacoes"].sum())
+    alertas = int(det.loc[~det["falha_do_modelo"], "violacoes"].sum())
+    status = FALHA if falhas else (ALERTA if alertas else OK)
+    return Verificacao("Q14", "Conformidade entre as dimensões", status,
+                       f"{len(det)} regras de conformidade; {falhas} violações do modelo, "
+                       f"{alertas} distritos do IBGE sem correspondente na SME.", det)
+
+
 def verificar(con: duckdb.DuckDBPyConnection, fila_meta: list[dict]) -> list[Verificacao]:
     return [integridade(con), versoes_escola(con), conservacao(con), completude_fila(con),
             totais_publicados(fila_meta), total_e_partes(fila_meta), reconciliacao(con),
-            vinculo_escolas(con), membros_desconhecidos(con), observacoes_ano(con)]
+            vinculo_escolas(con), membros_desconhecidos(con), observacoes_ano(con),
+            ocupacao_turmas(con), populacao(con), hierarquias(con), conformidade(con)]
 
 
 # ----------------------------------------------------------------------------- relatório
 
-def _formatar(v) -> str:
+def _formatar(v, coluna: str = "") -> str:
     if v is None or (isinstance(v, float) and pd.isna(v)):
         return ""
+    if coluna == "ano" and isinstance(v, int | float) and not isinstance(v, bool):
+        return str(int(v))          # ano não leva ponto de milhar
     if isinstance(v, float):
         return f"{v:.4f}".rstrip("0").rstrip(".") if abs(v) < 1 else f"{v:,.0f}".replace(",", ".")
     if isinstance(v, int) and not isinstance(v, bool):
@@ -247,7 +397,8 @@ def tabela_markdown(df: pd.DataFrame, limite: int = 60) -> str:
     linhas = ["| " + " | ".join(str(c) for c in corpo.columns) + " |",
               "|" + "|".join("---" for _ in corpo.columns) + "|"]
     for r in corpo.itertuples(index=False):
-        linhas.append("| " + " | ".join(_formatar(v.item() if hasattr(v, "item") else v) for v in r) + " |")
+        linhas.append("| " + " | ".join(_formatar(v.item() if hasattr(v, "item") else v, str(c))
+                                        for c, v in zip(corpo.columns, r, strict=True)) + " |")
     if len(df) > limite:
         linhas.append(f"\n_… mais {len(df) - limite} linhas_")
     return "\n".join(linhas) + "\n"

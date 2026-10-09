@@ -1,7 +1,9 @@
 """Dados sintéticos com o formato dos arquivos reais, para os testes de carga, qualidade e consultas."""
 from __future__ import annotations
 
+import io
 import shutil
+import zipfile
 from pathlib import Path
 
 import duckdb
@@ -97,6 +99,108 @@ def microdado_2023() -> tuple[pd.DataFrame, pd.DataFrame]:
     return pd.DataFrame(infantil), pd.DataFrame(complementar)
 
 
+# Censo 2022 sintético no layout dos Agregados por Setores (temas Básico e Demografia).
+# Códigos de setor de 15 dígitos; os de São Paulo começam por 3550308.
+IBGE_BASICO = [
+    ("355030801000001", "3550308", "São Paulo", "Água Rasa"),
+    ("355030801000002", "3550308", "São Paulo", "Água Rasa"),
+    ("355030802000001", "3550308", "São Paulo", "Alto de Pinheiros"),
+    ("355030803000001", "3550308", "São Paulo", "Anhanguera"),
+    ("355030899000001", "3550308", "São Paulo", "Distrito Sintético"),     # sem correspondente na SME
+    ("350010505000001", "3500105", "Adamantina", "Adamantina"),            # outro município: fica fora
+]
+# CD_SETOR -> V01031 ... V01041 (0 a 4, 5 a 9, ..., 70 ou mais); 'X' = valor não publicado
+IBGE_DEMOGRAFIA = {
+    "355030801000001": [30, 25, 20, 22, 30, 31, 60, 55, 50, 40, 35],
+    "355030801000002": [10, 12, 11, 9, 14, 15, 30, 28, 22, 18, 12],
+    "355030801000003": [5, 4, "X", 3, 6, 6, 10, 9, 8, 7, 5],             # ausente do Básico: herda o distrito
+    "355030802000001": [8, 9, 10, 12, 15, 16, 30, 30, 28, 25, 30],
+    "355030803000001": [40, 35, 30, 28, 30, 33, 55, 45, 35, 20, 10],
+    "355030899000001": [1] * 11,
+    "350010505000001": [99] * 11,
+}
+POPULACAO_0_4 = {"AGUA RASA": 45, "ALTO DE PINHEIROS": 8, "ANHANGUERA": 40}
+
+
+def gravar_ibge(destino: Path) -> None:
+    """Tema Básico num .zip (latin-1, ';') e Demografia em .csv (UTF-8, ',', 'CD_setor' em caixa mista)."""
+    destino.mkdir(parents=True, exist_ok=True)
+    basico = "CD_SETOR;CD_MUN;NM_MUN;NM_DIST;v0001\n" + "".join(
+        f"{s};{m};{nm};{d};10\n" for s, m, nm, d in IBGE_BASICO)
+    with zipfile.ZipFile(destino / "Agregados_por_setores_basico_BR.zip", "w") as z:
+        z.writestr("Agregados_por_setores_basico_BR.csv", basico.encode("latin-1"))
+    variaveis = [f"V{1031 + i:05d}" for i in range(11)]
+    linhas = ["CD_setor,V01006," + ",".join(variaveis)]
+    for setor, valores in IBGE_DEMOGRAFIA.items():
+        linhas.append(f"{setor},999," + ",".join(str(v) for v in valores))
+    (destino / "Agregados_por_setores_demografia_BR.csv").write_bytes(("\n".join(linhas) + "\n").encode("utf-8"))
+
+
+# Volume maior: várias escolas em seis distritos de seis DREs, três etapas, desfechos variados.
+DISTRITOS_VOLUME = [("AGUA RASA", "PENHA"), ("ANHANGUERA", "PIRITUBA/JARAGUA"), ("ALTO DE PINHEIROS", "BUTANTA"),
+                    ("SAUDE", "IPIRANGA"), ("SANTO AMARO", "SANTO AMARO"), ("SAO MATEUS", "SAO MATEUS")]
+SERIE_FUND = {"MODALIDADE": "FUND", "MODALIDADE_SEGMENTO": "Fund2", "DESC_SERIE": "C.II 6.ANO F9", "CD_SERIE": "2096"}
+# etapa -> (série, turno, hora de início, hora de fim, idade em 31/03)
+ETAPAS_VOLUME = {
+    "C": (SERIE_CRECHE, ("06", "INTEGRAL"), "0700", "1700", 2),
+    "P": (SERIE_PRE, ("03", "TARDE"), "1300", "1900", 5),
+    "F": (SERIE_FUND, ("01", "MANHA"), "0700", "1200", 11),
+}
+DESFECHOS_VOLUME = ["APROV", "APROV", "APROV", "APROV", "REPROV", "ABAND", "TRANSF", "CONCL"]
+
+
+def microdado_volumoso(ano: int, escolas: int = 30, turmas_por_etapa: int = 2, alunos_por_turma: int = 25) -> pd.DataFrame:
+    """Um ano no formato de 2019, com escolas * 3 etapas * turmas_por_etapa * alunos_por_turma matrículas."""
+    linhas = []
+    for e in range(escolas):
+        distrito, dre = DISTRITOS_VOLUME[e % len(DISTRITOS_VOLUME)]
+        escola = {"CD_UNIDADE_EDUCACAO": f"{500000 + e}", "NOME_ESCOLA": f"ESCOLA SINTETICA {e:03d}",
+                  "TIPO_ESCOLA": "EMEI" if e % 2 else "CR.P.CONV", "NOME_DISTRITO": distrito,
+                  "DRE": f"DIRETORIA REGIONAL DE EDUCACAO {dre}", "CD_SETOR": f"{1000 + e}",
+                  "CD_INEP_ESCOLA": f"35{500000 + e}", "SITUACAO_ESCOLA": "ATIVA"}
+        for letra, (serie, (cd_turno, turno), inicio, fim, idade) in ETAPAS_VOLUME.items():
+            for t in range(turmas_por_etapa):
+                turma = {"CD_TURMA": f"{ano}{e:03d}{letra}{t}", "NOME_TURMA": f"{t + 1}{letra}", "CD_TURNO": cd_turno,
+                         "DESC_TURNO": turno, "HORA_IN_TURMA": inicio, "HORA_FIM_TURMA": fim, "TURMA_ESCOL": "S"}
+                for a in range(alunos_por_turma):
+                    desfecho = DESFECHOS_VOLUME[(e + t + a) % len(DESFECHOS_VOLUME)]
+                    saiu_cedo = desfecho in ("ABAND", "TRANSF")
+                    linhas.append(_linha(
+                        ano, escola, turma, serie,
+                        {"nasc": str(ano - idade - 1), "mes": str(a % 12 + 1), "mat": f"{ano}{e:03d}{letra}{t}{a:03d}",
+                         "sexo": "MF"[a % 2]},
+                        desfecho, IDADE_ALUNO_3103=str(idade), QTD_DIAS_MATR="90" if saiu_cedo else "200",
+                        DT_IN_MAT=f"{ano}-02-04 00:00:00",
+                        DT_FIM_MAT=f"{ano}-05-10 00:00:00" if saiu_cedo else f"{ano}-12-20 00:00:00"))
+    return pd.DataFrame(linhas)
+
+
+def gravar_volume(dados: Path, anos=(2019, 2020, 2022), embaralhar: int | None = None, **tamanho) -> int:
+    """Grava a árvore data/ com o microdado volumoso; `embaralhar` muda a ordem física das linhas. Devolve o total."""
+    bruto = dados / "interim" / "bruto"
+    total = 0
+    for ano in anos:
+        df = microdado_volumoso(ano, **tamanho)
+        if embaralhar is not None:
+            df = df.sample(frac=1, random_state=embaralhar).reset_index(drop=True)
+        _gravar(df, bruto / f"ano={ano}" / f"Microdados_EOL_Matriculas_Ano_{ano}.parquet")
+        total += len(df)
+    fila = dados / "raw" / "demanda"
+    fila.mkdir(parents=True, exist_ok=True)
+    for f in (FIXTURES / "fila").glob("*.csv"):
+        shutil.copy(f, fila / f.name)
+    gravar_ibge(dados / "raw" / "ibge")
+    return total
+
+
+def zip_em_memoria(arquivos: dict[str, bytes]) -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as z:
+        for nome, conteudo in arquivos.items():
+            z.writestr(nome, conteudo)
+    return buffer.getvalue()
+
+
 def _gravar(df: pd.DataFrame, caminho: Path) -> None:
     caminho.parent.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect()
@@ -106,7 +210,7 @@ def _gravar(df: pd.DataFrame, caminho: Path) -> None:
 
 @pytest.fixture
 def dados_sinteticos(tmp_path) -> Path:
-    """Árvore data/ mínima: bruto dos microdados (3 anos) e planilhas de fila de exemplo."""
+    """Árvore data/ mínima: bruto dos microdados (3 anos), planilhas de fila de exemplo e Censo 2022 sintético."""
     dados = tmp_path / "data"
     bruto = dados / "interim" / "bruto"
     _gravar(microdado_2019(), bruto / "ano=2019" / "Microdados_EOL_Matriculas_Ano_2019.parquet")
@@ -118,4 +222,5 @@ def dados_sinteticos(tmp_path) -> Path:
     fila.mkdir(parents=True)
     for f in (FIXTURES / "fila").glob("*.csv"):
         shutil.copy(f, fila / f.name)
+    gravar_ibge(dados / "raw" / "ibge")
     return dados

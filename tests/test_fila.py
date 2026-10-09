@@ -217,3 +217,39 @@ def test_dataframe_canonico(tmp_path):
     assert list(df.columns) == ["periodo", "distrito", "etapa", *fila.MEDIDAS, "layout", "arquivo"]
     assert len(df) == 3 * 8
     assert df["demanda_sem_opcao"].isna().sum() > 0  # nulos preservados
+
+
+# ------------------------------------------------------------------ arquivos fora do formato
+
+def test_arquivo_sem_cabecalho_de_duas_linhas(tmp_path):
+    alvo = tmp_path / "demanda-jun-2024.csv"
+    alvo.write_text("DISTRITO;CRECHE\n", encoding="latin-1")
+    with pytest.raises(ValueError, match="cabeçalho de duas linhas"):
+        fila.ler_planilha(alvo)
+
+
+def test_cabecalho_sem_coluna_reconhecida(tmp_path):
+    alvo = tmp_path / "demanda-jun-2024.csv"
+    alvo.write_text("A;B;C\nD;E;F\nX;1;2\nTOTAL;1;2\n", encoding="latin-1")
+    with pytest.raises(ValueError, match="nenhuma coluna reconhecida"):
+        fila.ler_planilha(alvo)
+
+
+def test_planilha_sem_linha_total(tmp_path):
+    origem = FIX / "publicacao-demanda-e-matricula-abr-2024.csv"
+    alvo = _sem_linha(origem, tmp_path / origem.name, "TOTAL")
+    with pytest.raises(ValueError, match="linha TOTAL"):
+        fila.ler_planilha(alvo)
+
+
+def test_linha_em_branco_no_meio_dos_distritos_e_ignorada(tmp_path):
+    origem = FIX / "publicacao-demanda-e-matricula-abr-2024.csv"
+    linhas = origem.read_text(encoding="latin1").splitlines()
+    alvo = tmp_path / origem.name
+    alvo.write_text("\n".join([*linhas[:3], ";;;;", "", *linhas[3:]]) + "\n", encoding="latin1")
+    assert fila.ler_planilha(alvo).linhas == fila.ler_planilha(origem).linhas
+
+
+def test_coluna_de_demanda_sem_nota_nao_vira_numero_com_sentido_errado():
+    with pytest.raises(ValueError, match="sem nota de rodapé"):
+        fila._combinar({("demanda", "9"): 5}, {}, "CRECHE", [], "teste")
