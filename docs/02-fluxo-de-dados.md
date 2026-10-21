@@ -4,7 +4,7 @@
 flowchart LR
     subgraph Portal["Portal de dados abertos (CKAN)"]
         P1["Microdados de Matrículas<br/>5 pacotes .zip/.rar"]
-        P2["Demanda Registrada e Matrículas<br/>44 planilhas CSV"]
+        P2["Demanda Registrada e Matrículas<br/>33 arquivos CSV, 44 meses"]
     end
     subgraph IBGE["Servidor de arquivos do IBGE"]
         P3["Censo 2022, Agregados por Setores<br/>temas Básico e Demografia"]

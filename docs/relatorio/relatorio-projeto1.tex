@@ -19,6 +19,7 @@
 \usepackage{pdflscape}
 \usepackage{underscore}
 \usepackage[hidelinks]{hyperref}
+\usepackage{xurl}   % endereços longos das referências quebram em qualquer ponto
 
 % ------------------------------------------------------------------ dados da capa
 % Preencher antes da entrega (ver docs/08-pendencias-da-entrega.md).
@@ -98,7 +99,7 @@ Luís Antônio Arruda Soares & 12559486 \\
 
 O trabalho modela a oferta escolar e a demanda não atendida na rede municipal de educação de São Paulo entre 2015 e 2024. A pergunta que organiza o modelo é onde existe fila por vaga, onde existe oferta, se a oferta que existe está cheia, quantas crianças moram em cada lugar e o que acontece com o aluno que consegue a vaga.
 
-\paragraph{Problema de política pública.} A falta de vaga em creche foi por anos o principal problema de acesso da educação infantil paulistana. O Plano Nacional de Educação (Lei 13.005/2014) fixou, na Meta 1, a universalização da pré-escola para crianças de 4 e 5 anos e a ampliação da creche para atender pelo menos metade das crianças de até 3 anos. A prefeitura publica a fila de espera por distrito justamente para dar transparência a esse problema. Para decidir onde abrir vagas, o gestor municipal precisa cruzar quatro informações que ficam em lugares diferentes: quem pediu vaga e não foi atendido (fila), quem está matriculado (oferta usada), se as turmas que existem estão cheias (ocupação) e quantas crianças moram em cada região (demanda potencial). O data warehouse junta as quatro no mesmo modelo e acrescenta uma quinta, o desfecho da matrícula, para acompanhar o que acontece depois do acesso.
+\paragraph{Problema de política pública.} A fila por vaga em creche foi, durante anos, o problema de acesso mais visível da educação infantil paulistana: em junho de 2015, 124.741 crianças esperavam vaga (Apêndice~\ref{sec:apendice}). O Plano Nacional de Educação~\cite{pne} fixou, na Meta 1, a universalização da pré-escola para crianças de 4 e 5 anos e a ampliação da creche para atender pelo menos metade das crianças de até 3 anos. A prefeitura publica a fila de espera por distrito, o que torna o problema mensurável. Para decidir onde abrir vagas, o gestor municipal precisa cruzar quatro informações que ficam em lugares diferentes: quem pediu vaga e não foi atendido (fila), quem está matriculado (oferta usada), se as turmas que existem estão cheias (ocupação) e quantas crianças moram em cada região (demanda potencial). O data warehouse junta as quatro no mesmo modelo e acrescenta uma quinta, o desfecho da matrícula, para acompanhar o que acontece depois do acesso.
 
 \paragraph{Decisões que o modelo apoia.} A Secretaria Municipal de Educação e as Diretorias Regionais de Educação (DREs) podem usar o modelo para: (i) priorizar distritos para expansão de vagas de creche e pré-escola (consultas 1, 5 e 7); (ii) acompanhar o peso da rede conveniada e da jornada integral na oferta (consultas 3 e 4); (iii) decidir se a expansão exige turma nova ou pode usar lugar em turma existente (consulta 8); (iv) verificar se as regiões com falta de vaga são as mesmas com abandono escolar, para orientar programas de permanência (consulta 6).
 
@@ -137,7 +138,7 @@ O modelo tem cinco processos de negócio:
 
 \subsection{Fontes de dados}
 
-São três fontes reais e oficiais. As duas primeiras vêm do Portal de Dados Abertos da Prefeitura de São Paulo, publicadas pela SME sob licença Creative Commons; a terceira é do IBGE. Elas têm grão, formato e vocabulário diferentes.
+São três fontes reais e oficiais. As duas primeiras vêm do Portal de Dados Abertos da Prefeitura de São Paulo, publicadas pela SME sob licença Creative Commons~\cite{sme-microdados,sme-fila}; a terceira é do IBGE~\cite{ibge-agregados}. Elas têm grão, formato e vocabulário diferentes.
 
 \begin{table}[H]
 \centering\small
@@ -147,7 +148,7 @@ São três fontes reais e oficiais. As duas primeiras vêm do Portal de Dados Ab
 \midrule
 Grão publicado & uma matrícula (vínculo de um aluno com uma turma) & um distrito, com uma coluna por etapa de ensino & um setor censitário, com uma coluna por grupo de idade \\
 Periodicidade & anual & trimestral até 2022, bimestral a partir de 2023; série histórica de 2006 a 2017 & decenal; data de referência na noite de 31/07 para 01/08/2022 \\
-Volume no recorte & 13,4 milhões de matrículas de escolarização & 44 planilhas, 96 distritos cada & setores do município de São Paulo, dentro do arquivo nacional \\
+Volume no recorte & 13,4 milhões de matrículas de escolarização & 44 meses de referência em 33 arquivos (um deles, a série histórica, cobre 2015 a 2017), com 96 distritos em cada mês & 26.889 setores do município de São Paulo com população, extraídos do arquivo nacional \\
 Conteúdo usado & escola, turma, turno, série, idade, sexo, raça e cor, deficiência, datas e desfecho da matrícula & matrículas, matrículas em processo e demanda registrada (fila) por etapa & pessoas residentes por grupo de idade (tema Demografia, variáveis V01031 a V01041) e nome do distrito (tema Básico) \\
 \bottomrule
 \end{tabularx}
@@ -175,6 +176,7 @@ População residente & setor censitário, faixa etária e data de referência d
 No processo de matrícula, o grão é o mais fino que a fonte permite. Isso preserva o perfil de cada aluno, que se perderia em qualquer agregação. No processo de fila, o grão é aquele em que a prefeitura publica, pois não há dado abaixo do distrito. O processo de desfecho é um fato agregado: taxas de rendimento só fazem sentido sobre um conjunto de alunos, e o grão escolhido é o de escola, ano e série. O processo de ocupação também é agregado, porque a ocupação é uma propriedade da turma e não do aluno. O processo de população usa o grão em que o IBGE publica, o setor censitário, que é a menor unidade territorial do modelo e mostra onde, dentro de cada distrito, as crianças moram.
 
 \subsection{Dimensões e atributos}
+\label{sec:dimensoes}
 
 Todas as dimensões têm chave primária artificial (inteiro sequencial gerado na carga). As chaves naturais da origem são guardadas como atributos. Nas tabelas, a coluna ``Papel'' indica se o atributo é chave, se participa de uma hierarquia ou se é apenas descritivo, e a coluna ``Povoamento'' indica de qual fonte e de qual coluna o valor vem e se há integração. Os nomes de coluna da origem estão em \cod{fonte monoespaçada}. As hierarquias de cada dimensão estão na Seção~\ref{sec:esquemas}.
 
@@ -192,7 +194,7 @@ observação & nota técnica do mês & descritivo & Demanda Registrada: notas de
 \end{atributos}
 
 \subsubsection{Dimensão Data (visão para dois papéis)}
-Representa um dia do calendário. É usada duas vezes pelo fato Matrícula: data de início e data de fim da matrícula, da mesma forma que a Dimensão Data do artigo da disciplina representa a data de internação e a data de alta. As duas datas permitem contar as matrículas ativas em um dia, que é a medida comparável com a fila e com a população. Grão: dia. O membro com data nula representa ``não informada''.
+Representa um dia do calendário. É usada duas vezes pelo fato Matrícula: data de início e data de fim da matrícula, da mesma forma que a Dimensão Data do artigo da disciplina~\cite{ciferri-saude} representa a data de internação e a data de alta. As duas datas permitem contar as matrículas ativas em um dia, que é a medida comparável com a fila e com a população. Grão: dia. O membro com data nula representa ``não informada''.
 
 \begin{atributos}
 chave data & chave artificial & chave & gerada na carga \\
@@ -333,7 +335,7 @@ desfecho & resumo exclusivo da situação final & descritivo & derivado com prio
 \toprule\textbf{Fato} & \textbf{Aditividade} & \textbf{Significado, derivação e povoamento}\\\midrule\endhead
 \bottomrule\endlastfoot
 \multicolumn{3}{l}{\textit{Tabela de fatos Matrícula}}\\
-quantidade de matrículas & aditivo & campo artificial sempre igual a 1, como a contagem de utilização do esquema de ocupação do artigo da disciplina: o fato principal é a ocorrência do vínculo, técnica de tabela de fatos sem fato; a tabela não é estritamente sem fato porque tem uma medida, dias de matrícula \\
+quantidade de matrículas & aditivo & campo artificial sempre igual a 1, como a contagem de utilização do esquema de ocupação do artigo da disciplina~\cite{ciferri-saude}: o fato principal é a ocorrência do vínculo, técnica de tabela de fatos sem fato; a tabela não é estritamente sem fato porque tem uma medida, dias de matrícula \\
 dias de matrícula & aditivo & duração do vínculo; Microdados: \cod{QTD_DIAS_MAT} ou \cod{QTD_DIAS_MATR}; nulo em 2021, que não publicou datas \\
 id turma, código matrícula & dimensões degeneradas & id turma construído com ano, escola, \cod{NOME_TURMA}, série e turno, porque \cod{CD_TURMA} está corrompido de 2022 em diante; código matrícula de \cod{CD_MAT}, nulo nos anos de código corrompido \\
 \midrule
@@ -344,7 +346,7 @@ demanda sem opção, sem opção até 30 dias, sem opção mais de 30 dias, com 
 \midrule
 \multicolumn{3}{l}{\textit{Tabela de fatos Desfecho}}\\
 matrículas e contagens por desfecho & aditivo & agregadas do fato Matrícula pelo desfecho da dimensão Situação; as contagens são exclusivas e somam o total de matrículas \\
-taxas de aprovação, reprovação e abandono & não aditivo, derivado & divisão da contagem pela soma de aprovados, reprovados e abandonos, como no indicador de rendimento do INEP; recalculada em cada nível, nunca como média de taxas; nula na educação infantil \\
+taxas de aprovação, reprovação e abandono & não aditivo, derivado & divisão da contagem pela soma de aprovados, reprovados e abandonos, como nas taxas de rendimento do INEP~\cite{inep-rendimento}; recalculada em cada nível, nunca como média de taxas; nula na educação infantil \\
 \midrule
 \multicolumn{3}{l}{\textit{Tabela de fatos Ocupação de Turma}}\\
 quantidade de turmas & aditivo & campo artificial igual a 1 \\
@@ -404,7 +406,7 @@ Setor cujo distrito não exista na SME aponta para o membro ``não informado'' d
 
 \subsubsection{Sinônimos e homônimos}
 
-São os dois problemas clássicos de integração citados no artigo da disciplina. Sinônimos: ``PIRITUBA'' e ``PIRITUBA/JARAGUA'' (mesma DRE); \cod{IDADE_ALUNO_31_03}, \cod{IDADE_ALUNO_3103} e \cod{IDADE_ALUNO_MAR} (mesma coluna em anos diferentes); ``AGUA RASA'' na SME e ``Água Rasa'' no IBGE (mesmo distrito). Homônimos: o campo \cod{CD_SETOR} da SME é um setor administrativo de quatro dígitos e não tem relação com o \cod{CD_SETOR} do IBGE, de quinze; e escolas diferentes com mesmo nome, tipo e distrito (de 14 a 34 casos por ano), que nunca recebem o mesmo código recuperado.
+São os dois problemas clássicos de integração citados no artigo da disciplina~\cite{ciferri-saude}. Sinônimos: ``PIRITUBA'' e ``PIRITUBA/JARAGUA'' (mesma DRE); \cod{IDADE_ALUNO_31_03}, \cod{IDADE_ALUNO_3103} e \cod{IDADE_ALUNO_MAR} (mesma coluna em anos diferentes); ``AGUA RASA'' na SME e ``Água Rasa'' no IBGE (mesmo distrito). Homônimos: o campo \cod{CD_SETOR} da SME é um setor administrativo de quatro dígitos e não tem relação com o \cod{CD_SETOR} do IBGE, de quinze; e escolas diferentes com mesmo nome, tipo e distrito (de 14 a 34 casos por ano), que nunca recebem o mesmo código recuperado.
 
 \subsubsection{Problemas das fontes e decisões}
 
@@ -431,7 +433,7 @@ Layout do arquivo do IBGE diferente do esperado & a leitura procura as colunas p
 \section{Esquemas}
 \label{sec:esquemas}
 
-A notação segue a do artigo da disciplina: cada dimensão é uma caixa com o nome da dimensão, a chave primária (PK) e os atributos; a tabela de fatos fica no centro, com borda mais grossa, as chaves estrangeiras (FK) e os fatos. Dimensões degeneradas, campos artificiais e fatos derivados estão indicados entre parênteses. Por espaço, algumas caixas mostram os atributos principais; a lista completa está na Seção~1.5. Nas hierarquias, $A \leq B$ indica a ordem parcial em que cada valor de $A$ pertence a um único valor de $B$, ou seja, $A$ é agregado em $B$.
+A notação segue a do artigo da disciplina~\cite{ciferri-saude}: cada dimensão é uma caixa com o nome da dimensão, a chave primária (PK) e os atributos; a tabela de fatos fica no centro, com borda mais grossa, as chaves estrangeiras (FK) e os fatos. Dimensões degeneradas, campos artificiais e fatos derivados estão indicados entre parênteses. Por espaço, algumas caixas mostram os atributos principais; a lista completa está na Seção~\ref{sec:dimensoes}. Nas hierarquias, $A \leq B$ indica a ordem parcial em que cada valor de $A$ pertence a um único valor de $B$, ou seja, $A$ é agregado em $B$.
 
 % ------------------------------------------------------------------ esquema 1
 \subsection{Esquema estrela Matrícula}
@@ -571,7 +573,7 @@ Perfil do Aluno, Deficiência, Situação & $\times$ & & & & \\
 \clearpage
 \section{Consultas}
 
-As consultas a seguir estão especificadas na forma textual, conforme o enunciado. O modelo foi desenhado para respondê-las.
+As consultas a seguir estão especificadas na forma textual, conforme o enunciado. O modelo foi desenhado para respondê-las, e cada uma foi também escrita em SQL e executada sobre os dados reais; os principais resultados estão no Apêndice~\ref{sec:apendice}.
 
 \subsection{Consulta 1: drill-down}
 \textbf{Consulta.} No último mês publicado, quantas crianças esperavam vaga em creche no município, em cada Diretoria Regional de Educação e, dentro de cada DRE, em cada distrito?
@@ -592,7 +594,7 @@ As consultas a seguir estão especificadas na forma textual, conforme o enunciad
 
 \textbf{Operação.} Slice na dimensão Série (etapa igual a creche); dice nas dimensões Escola (rede direta ou conveniada) e Ano Letivo (2019 e 2024), cruzando rede por jornada da dimensão Turno, sobre o fato Matrícula.
 
-\textbf{Importância e justificativa.} A rede conveniada tem papel central na oferta de creche, e a jornada importa porque vaga de período parcial não atende famílias em que os responsáveis trabalham o dia inteiro. É a consulta que responde à oferta escolar por setor da rede. 2019 é o último ano antes da pandemia.
+\textbf{Importância e justificativa.} A rede conveniada tem papel central na oferta de creche, e a jornada importa porque vaga de período parcial não atende famílias em que os responsáveis trabalham o dia inteiro. A consulta responde ao assunto oferta escolar por setor da rede. 2019 é o último ano antes da pandemia.
 
 \subsection{Consulta 4: pivot}
 \textbf{Consulta.} No ano mais recente, quantas matrículas cada DRE tem em jornada integral, parcial diurna e noturna, com a jornada nas colunas e a DRE nas linhas?
@@ -627,7 +629,7 @@ As consultas a seguir estão especificadas na forma textual, conforme o enunciad
 
 \textbf{Operação.} Drill-down na hierarquia \hier{\text{distrito} \leq \text{DRE} \leq \text{município}} da dimensão Território, sobre o fato Ocupação de Turma, com slice nas etapas creche, pré-escola e fundamental (dimensão Série) e dice em dois anos (dimensão Ano Letivo). A média de alunos por turma é recalculada em cada nível a partir das somas.
 
-\textbf{Importância e justificativa.} A fila diz onde falta vaga; a ocupação diz se a vaga que existe está cheia. Onde as turmas já estão acima da média da etapa, abrir vaga exige turma nova, e não só aproveitar lugar em turma existente. É a consulta que responde à capacidade e ocupação das turmas, medindo a ocupação efetiva, já que a capacidade não é publicada.
+\textbf{Importância e justificativa.} A fila diz onde falta vaga; a ocupação diz se a vaga que existe está cheia. Onde as turmas já estão acima da média da etapa, abrir vaga exige turma nova, e não só aproveitar lugar em turma existente. A consulta responde ao assunto capacidade e ocupação das turmas pela ocupação efetiva, já que a capacidade não é publicada.
 
 \begin{table}[H]\centering\small
 \begin{tabular}{llll}
@@ -643,6 +645,24 @@ As consultas a seguir estão especificadas na forma textual, conforme o enunciad
 \bottomrule\end{tabular}
 \caption{Cobertura das operações exigidas: três roll-up ou drill-down, um slice and dice, um pivot e três drill-across.}
 \end{table}
+
+% ================================================================== REFERÊNCIAS
+\clearpage
+\begin{thebibliography}{9}
+\addcontentsline{toc}{section}{Referências}
+\small
+\bibitem{ciferri-saude} C. D. A. Ciferri, R. R. Ciferri, R. J. Ogata, A. M. P. Lima e A. J. M. Traina. \emph{Data Warehousing na Saúde: Melhorando a Tomada de Decisão Médico-Analítica}. Artigo disponibilizado como material da disciplina SCC0245, ICMC-USP.
+
+\bibitem{pne} Brasil. Lei nº 13.005, de 25 de junho de 2014. Aprova o Plano Nacional de Educação (PNE) e dá outras providências. \url{https://www.planalto.gov.br/ccivil_03/_ato2011-2014/2014/lei/l13005.htm}.
+
+\bibitem{sme-microdados} Prefeitura de São Paulo, Secretaria Municipal de Educação. \emph{Microdados da Rede Municipal de Educação: Matrículas}. Portal de Dados Abertos da Prefeitura de São Paulo. \url{https://dados.prefeitura.sp.gov.br/dataset/microdados-matriculas}. Acesso em 1º out. 2026.
+
+\bibitem{sme-fila} Prefeitura de São Paulo, Secretaria Municipal de Educação. \emph{Demanda Registrada e Matrículas}. Portal de Dados Abertos da Prefeitura de São Paulo. \url{https://dados.prefeitura.sp.gov.br/dataset/demanda-e-matriculas}. Acesso em 1º out. 2026.
+
+\bibitem{ibge-agregados} Instituto Brasileiro de Geografia e Estatística (IBGE). \emph{Censo Demográfico 2022: Agregados por Setores Censitários}. \url{https://ftp.ibge.gov.br/Censos/Censo_Demografico_2022/Agregados_por_Setores_Censitarios/}. Acesso em 8 out. 2026.
+
+\bibitem{inep-rendimento} Instituto Nacional de Estudos e Pesquisas Educacionais Anísio Teixeira (INEP). \emph{Indicadores Educacionais: Taxas de Rendimento Escolar}. \url{https://www.gov.br/inep/pt-br/acesso-a-informacao/dados-abertos/indicadores-educacionais/taxas-de-rendimento-escolar}.
+\end{thebibliography}
 
 % ================================================================== APÊNDICE
 \clearpage
@@ -669,10 +689,12 @@ Dimensão Território & 97 \\
 \caption{Volumes da carga com os dados reais (SME de 2015 a 2024 e Censo 2022).}
 \end{table}
 
-A carga completa leva cerca de 3,5 minutos e gera um banco de 600 MB. As catorze verificações de qualidade rodam depois dela; nenhuma dá FALHA. As hierarquias declaradas valem como dependência funcional nos dados reais, e as dimensões conformadas se correspondem. Os 26.889 setores censitários com população ficam todos ligados a um dos 96 distritos da SME. O IBGE suprime 6.543 valores em setores pequenos, que ficam nulos; por isso a soma das faixas etárias (11.434.513 pessoas) fica 0,15\% abaixo do total de moradores que o próprio IBGE publica para o município no mesmo arquivo (11.451.999).
+A carga completa leva cerca de 3,5 minutos e gera um banco de 334 MB; feita do zero a partir do repositório, com o download das três fontes, leva cerca de 10 minutos. As catorze verificações de qualidade rodam depois dela; nenhuma dá FALHA. As hierarquias declaradas valem como dependência funcional nos dados reais, e as dimensões conformadas se correspondem. Os 26.889 setores censitários com população ficam todos ligados a um dos 96 distritos da SME. O IBGE suprime 6.543 valores em setores pequenos, que ficam nulos; por isso a soma das faixas etárias (11.434.513 pessoas) fica 0,15\% abaixo do total de moradores que o próprio IBGE publica para o município no mesmo arquivo (11.451.999).
 
 \paragraph{Reconciliação entre as fontes da SME.} A planilha de fila publica também a matrícula por distrito e etapa. Contando no microdado as matrículas ativas no fim de junho pelo distrito da escola, as duas fontes concordam com diferença abaixo de 1\% em todos os anos de 2015 a 2020 (na creche: +0,03\% em 2015, +0,17\% em 2019, $-$0,89\% em 2020). Isso confirma a integração e mostra que a planilha conta a matrícula pelo distrito da escola. De 2022 em diante a concordância cai (+8,6\% na creche em 2022), porque o arquivo publicado passou a trazer vínculos encerrados sem data de fim; contando alunos distintos, a diferença de 2022 cai para $-$2,5\%. Por isso a fração de demanda fora da rede da Consulta 5 usa a matrícula da própria planilha, e a do microdado é apresentada ao lado como comparação.
 
-\paragraph{Resultado preliminar.} A fila de creche em junho caiu de 124.741 crianças em 2015 para 3.633 em 2024; a fração da demanda fora da rede passou de 34\% para 1\%. No mesmo período, as matrículas de creche passaram de 320 mil para 474 mil, e 85\% delas estão na rede conveniada, quase todas em jornada integral. Na data do Censo 2022, a rede municipal tinha 514.131 matrículas ativas de crianças de 0 a 4 anos para 598.406 crianças dessa idade residentes no município, 85,9 por 100; por distrito, a razão vai de menos de 50 (25 distritos) a mais de 100 (outros 25), porque a matrícula conta onde a escola fica e a população onde a criança mora (Consulta 7). A creche funciona com cerca de 11 crianças por turma em todas as DREs, e o ensino fundamental com 28 a 32 alunos por turma (Consulta 8).
+\paragraph{Resultado preliminar.} A fila de creche em junho caiu de 124.741 crianças em 2015 para 3.633 em 2024; a fração da demanda fora da rede passou de 34\% para 1\%. No mesmo período, as matrículas de creche passaram de 320 mil para 474 mil, e 85\% delas estão na rede conveniada, quase todas em jornada integral. Na data do Censo 2022, a rede municipal tinha 514.131 matrículas ativas de crianças de 0 a 4 anos para 598.406 crianças dessa idade residentes no município, 85,9 por 100; por distrito, a razão vai de menos de 50 (25 distritos) a mais de 100 (outros 25), porque a matrícula conta onde a escola fica e a população onde a criança mora (Consulta 7). A creche funciona com cerca de 11 crianças por turma em todas as DREs, e o ensino fundamental com 28 a 32 alunos por turma (Consulta 8). A Consulta 6 não encontrou relação estável entre a fila de creche e o abandono no ensino fundamental: nas 13 DREs, a correlação entre as duas medidas muda de sinal de um ano para outro, de $-$0,27 a 0,56, e por isso não sustenta a hipótese de que as duas vulnerabilidades andam juntas no nível de DRE.
+
+\paragraph{Limitações.} Alguns limites vêm das fontes e precisam acompanhar a leitura dos resultados. A matrícula é contada pelo distrito da escola e a população pelo distrito de residência, porque o microdado não traz o endereço do aluno. De 2022 a 2024, o microdado publica vínculos encerrados sem data de fim, o que aumenta as matrículas ativas num dia e pesa nas consultas 7 e 8 nesses anos; a Consulta 5 não é afetada, porque usa a matrícula da própria planilha de fila. Em 2021 não há datas de matrícula, e por isso não há ocupação de turmas em junho. A capacidade das turmas não é publicada: o modelo mede ocupação, não vagas livres. A rede particular sem convênio com a prefeitura não está no microdado. A DRE de cada distrito é a predominante, o que afeta no máximo dois distritos por ano entre 2015 e 2021.
 
 \end{document}
