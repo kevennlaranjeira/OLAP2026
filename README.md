@@ -8,6 +8,25 @@ A pergunta que organiza o modelo: **onde existe fila por vaga, onde existe ofert
 
 Tema da disciplina: política pública municipal. O data warehouse serve para o gestor decidir onde abrir vagas de educação infantil, acompanhar a ocupação das turmas e monitorar o abandono escolar por região.
 
+Chegou agora no grupo? Leia o [Guia do grupo](docs/11-guia-do-grupo.md): ele explica como entrar no repositório, sugerir mudanças, editar o relatório e os slides e rodar os testes.
+
+## Onde fica cada coisa
+
+| Procuro... | Está em |
+|---|---|
+| o relatório para ler (PDF de entrega) | [docs/relatorio/relatorio-projeto1.pdf](docs/relatorio/relatorio-projeto1.pdf) |
+| o texto-fonte do relatório, para editar (LaTeX) | [docs/relatorio/relatorio-projeto1.tex](docs/relatorio/relatorio-projeto1.tex) |
+| os desenhos dos esquemas estrela e da constelação | fonte em [docs/relatorio/esquemas/](docs/relatorio/esquemas/) (um `.tex` por desenho); imagens PNG e PDF em [docs/modelagem/](docs/modelagem/) |
+| a apresentação | [docs/apresentacao/apresentacao-projeto1.pptx](docs/apresentacao/apresentacao-projeto1.pptx), gerada por [docs/apresentacao/gerar.js](docs/apresentacao/gerar.js) |
+| o que falta para a entrega e quem apresenta cada parte | [docs/08-pendencias-da-entrega.md](docs/08-pendencias-da-entrega.md) |
+| as consultas OLAP em SQL | [src/dw_sme/sql/consultas/](src/dw_sme/sql/consultas/), uma por arquivo; explicadas em [docs/05-consultas.md](docs/05-consultas.md) |
+| a criação das tabelas do data warehouse | [src/dw_sme/sql/ddl/](src/dw_sme/sql/ddl/) |
+| o resultado das 14 verificações de qualidade | [docs/relatorios/qualidade.md](docs/relatorios/qualidade.md) |
+| o código do pipeline | [src/dw_sme/](src/dw_sme/) (ver [Estrutura](#estrutura)) |
+| os testes | [tests/](tests/); o que cada um confere está no [guia, parte 7](docs/11-guia-do-grupo.md#7-rodar-os-testes) |
+| o que o GitHub roda a cada envio | [.github/workflows/testes.yml](.github/workflows/testes.yml) |
+| os dados baixados e o banco | na pasta `data/` do seu computador, depois de rodar o pipeline; ela não vai para o GitHub |
+
 ## O que tem aqui
 
 | | |
@@ -18,7 +37,7 @@ Tema da disciplina: política pública municipal. O data warehouse serve para o 
 | Volume | 13,4 milhões de matrículas, 551 mil turmas, 44 meses de fila × 96 distritos × 8 etapas, 26.889 setores censitários com 11,4 milhões de moradores |
 | Modelo | constelação com 5 tabelas de fatos e 14 dimensões |
 | Banco | DuckDB, um arquivo de ~600 MB, carregado em ~3,5 minutos |
-| Testes | 482 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 41 a coerência entre código, documentos, slides e imagens, 9 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
+| Testes | 485 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 41 a coerência entre código, documentos, slides e imagens, 10 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
 | Consultas | dois drill-down, um roll-up, slice and dice, pivot e três drill-across |
 
 ## O que os dados mostram
@@ -55,12 +74,13 @@ O comando baixa as bases do portal da prefeitura e o Censo 2022 do IBGE, prepara
 .venv/Scripts/python -m ruff check src tests
 ```
 
-O GitHub Actions roda as duas a cada push, em Python 3.11 e 3.13, e falha se a cobertura cair abaixo de 85%. Com os dados reais, `dw-sme verificar` acrescenta catorze verificações sobre o banco carregado (integridade referencial, conservação entre fatos, reconciliação entre as bases, ligação da população ao território, hierarquias e conformidade das dimensões); o resultado da última carga medida, ainda com dez verificações, está em [docs/relatorios/qualidade.md](docs/relatorios/qualidade.md).
+O GitHub Actions roda as duas a cada push, em Python 3.11 e 3.13, e falha se a cobertura cair abaixo de 85%. Com os dados reais, `dw-sme verificar` acrescenta catorze verificações sobre o banco carregado (integridade referencial, conservação entre fatos, reconciliação entre as bases, ligação da população ao território, hierarquias e conformidade das dimensões); o resultado da última carga com os dados reais está em [docs/relatorios/qualidade.md](docs/relatorios/qualidade.md).
 
 ## Documentação
 
 | Documento | Conteúdo |
 |---|---|
+| [11 Guia do grupo](docs/11-guia-do-grupo.md) | **comece por aqui**: acesso ao repositório, onde fica o texto-fonte do relatório, como sugerir mudanças, editar o relatório e os slides, testar e enviar pelo GitHub |
 | [01 Fontes de dados](docs/01-fontes-de-dados.md) | as três bases, os sete formatos da planilha de fila, as variações do microdado ano a ano, o layout do Censo 2022 |
 | [02 Fluxo de dados](docs/02-fluxo-de-dados.md) | do portal ao banco, etapa por etapa, com o argumento de cada escolha |
 | [03 Modelo dimensional](docs/03-modelo-dimensional.md) | grãos, dimensões, hierarquias, fatos, aditividade e a constelação |
@@ -68,17 +88,19 @@ O GitHub Actions roda as duas a cada push, em Python 3.11 e 3.13, e falha se a c
 | [05 Consultas](docs/05-consultas.md) | as oito consultas analíticas, com pergunta, justificativa e resultado |
 | [06 Decisões](docs/06-decisoes.md) | 23 decisões de projeto, com alternativa descartada e argumento |
 | [07 Como executar](docs/07-como-executar.md) | instalação, comandos, testes e problemas comuns |
-| [Relatório de qualidade](docs/relatorios/qualidade.md) | gerado pela última carga com os dados reais |
-| [Relatório do Projeto 1 (PDF)](docs/relatorio/relatorio-projeto1.pdf) | o documento de entrega, no formato do enunciado |
-| [Apresentação (PPTX)](docs/apresentacao/apresentacao-projeto1.pptx) | slides da apresentação, com a divisão de tempo entre os integrantes |
-| [Pendências da entrega](docs/08-pendencias-da-entrega.md) | o que só o grupo pode fazer antes de entregar |
+| [08 Pendências da entrega](docs/08-pendencias-da-entrega.md) | o que só o grupo pode fazer antes de entregar e a divisão da apresentação |
 | [09 Verificação da modelagem](docs/09-verificacao-da-modelagem.md) | como a modelagem foi conferida, o que foi corrigido e os pontos de atenção |
 | [10 Auditoria do trabalho](docs/10-auditoria-do-trabalho.md) | revisão de ponta a ponta: código, processo, documentos, slides e imagens |
-| [Esquemas da modelagem (PDF e PNG)](docs/modelagem/) | constelação, cinco estrelas e matriz de barramento |
 
 ## Estrutura
 
 ```
+docs/
+  relatorio/       relatório do Projeto 1: texto-fonte (.tex), desenhos (esquemas/) e PDF
+  apresentacao/    slides (.pptx) e o script que os gera (gerar.js)
+  modelagem/       os esquemas em PNG e PDF
+  relatorios/      relatório de qualidade da última carga com os dados reais
+  01 a 11 (.md)    documentação técnica e guia do grupo
 src/dw_sme/
   extracao/        cliente do portal CKAN e do diretório do IBGE, manifesto de downloads, pacotes .zip/.rar
   transformacao/   regras de normalização, parser da fila, etapas, idade, datas, escolas, população
@@ -90,7 +112,6 @@ src/dw_sme/
   pipeline.py      etapas baixar, preparar, carregar, verificar, consultar
   cli.py           linha de comando dw-sme
 tests/             testes, fixtures reais da fila, microdado e Censo sintéticos
-docs/              documentação, relatório e apresentação
 .github/workflows/ testes e lint a cada push
 pyproject.toml     pacote, dependências e configuração de pytest, ruff e pyright
 ```

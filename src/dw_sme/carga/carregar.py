@@ -102,7 +102,7 @@ def _staging_matricula(con, cfg: Configuracao) -> int:
     if not partes:
         raise FileNotFoundError(f"nenhum Parquet bruto do recorte em {cfg.dir_bruto}; rode a etapa preparar")
     con.execute("CREATE OR REPLACE TABLE stgdb.stg.matricula AS " + "\nUNION ALL BY NAME\n".join(partes))
-    return con.execute("SELECT count(*) FROM stgdb.stg.matricula").fetchone()[0]
+    return con.execute("SELECT count(*) FROM stgdb.stg.matricula").fetchall()[0][0]
 
 
 def _mapas(con) -> dict:
@@ -217,8 +217,8 @@ def _preparar_matricula(con) -> tuple[int, int]:
         LEFT JOIN stgdb.stg.map_situacao msit ON msit.bruto = {_b('s.situacao_matricula')}
         WHERE ms.valido
     """)
-    preparadas = con.execute("SELECT count(*) FROM stgdb.stg.matricula_preparada").fetchone()[0]
-    total = con.execute("SELECT count(*) FROM stgdb.stg.matricula").fetchone()[0]
+    preparadas = con.execute("SELECT count(*) FROM stgdb.stg.matricula_preparada").fetchall()[0][0]
+    total = con.execute("SELECT count(*) FROM stgdb.stg.matricula").fetchall()[0][0]
     return preparadas, total - preparadas
 
 
@@ -385,7 +385,7 @@ def _fato_matricula(con) -> int:
         JOIN dw.dim_perfil_aluno dp ON dp.codigo_combinacao = p.cod_perfil
         JOIN dw.dim_deficiencia dd ON dd.codigo_combinacao = p.cod_deficiencia
         JOIN dw.dim_situacao_matricula dsit ON dsit.codigo_combinacao = p.cod_situacao""")
-    return con.execute("SELECT count(*) FROM dw.fato_matricula").fetchone()[0]
+    return con.execute("SELECT count(*) FROM dw.fato_matricula").fetchall()[0][0]
 
 
 def _fato_fila(con, fila_df: pd.DataFrame) -> int:
@@ -402,7 +402,7 @@ def _fato_fila(con, fila_df: pd.DataFrame) -> int:
         JOIN dw.dim_territorio d ON d.distrito = f.distrito
         JOIN dw.dim_etapa e ON e.codigo = f.etapa""")
     con.unregister("_fila")
-    return con.execute("SELECT count(*) FROM dw.fato_fila").fetchone()[0]
+    return con.execute("SELECT count(*) FROM dw.fato_fila").fetchall()[0][0]
 
 
 def _fato_desfecho(con) -> int:
@@ -417,7 +417,7 @@ def _fato_desfecho(con) -> int:
         SELECT f.chave_ano_letivo, f.chave_escola, f.chave_territorio, f.chave_serie, count(*), {medidas}
         FROM dw.fato_matricula f JOIN dw.dim_situacao_matricula s USING (chave_situacao)
         GROUP BY ALL""")
-    return con.execute("SELECT count(*) FROM dw.fato_desfecho").fetchone()[0]
+    return con.execute("SELECT count(*) FROM dw.fato_desfecho").fetchall()[0][0]
 
 
 def _fato_turma(con) -> int:
@@ -451,7 +451,7 @@ def _fato_turma(con) -> int:
                CASE WHEN c.ano IS NOT NULL THEN t.ativas END,
                CASE WHEN c.ano IS NOT NULL THEN (t.ativas > 0)::SMALLINT END
         FROM turma t LEFT JOIN anos_com_datas c USING (ano)""")
-    return con.execute("SELECT count(*) FROM dw.fato_turma").fetchone()[0]
+    return con.execute("SELECT count(*) FROM dw.fato_turma").fetchall()[0][0]
 
 
 def _populacao(con, cfg: Configuracao) -> dict:
@@ -468,8 +468,9 @@ def _populacao(con, cfg: Configuracao) -> dict:
     if pop is None:
         cfg.log(f"  população do Censo 2022 não carregada: arquivos ausentes em {cfg.dir_raw_ibge}")
         return {"carregada": False, "motivo": "arquivos ausentes"}
-    chave_tempo = con.execute("SELECT chave_tempo FROM dw.dim_tempo WHERE data_referencia = ?",
-                              [MES_REFERENCIA_CENSO]).fetchone()
+    linhas = con.execute("SELECT chave_tempo FROM dw.dim_tempo WHERE data_referencia = ?",
+                         [MES_REFERENCIA_CENSO]).fetchall()
+    chave_tempo = linhas[0] if linhas else None
     if chave_tempo is None:
         cfg.log("  população do Censo 2022 não carregada: 2022 fora do recorte")
         return {"carregada": False, "motivo": "2022 fora do recorte", **pop.meta}
@@ -502,7 +503,7 @@ def _populacao(con, cfg: Configuracao) -> dict:
     sem_territorio = con.execute("""
         SELECT count(DISTINCT s.distrito) FROM dw.dim_setor_censitario s
         LEFT JOIN dw.dim_territorio t ON t.distrito = s.distrito AND t.distrito <> 'NAO INFORMADO'
-        WHERE t.chave_territorio IS NULL""").fetchone()[0]
+        WHERE t.chave_territorio IS NULL""").fetchall()[0][0]
     return {"carregada": True, **pop.meta, "distritos_sem_territorio": sem_territorio}
 
 
@@ -586,12 +587,12 @@ def carregar_tudo(cfg: Configuracao) -> dict:
         }
         cfg.log("  população do Censo 2022")
         resumo["populacao"] = _populacao(con, cfg)
-        resumo["fato_populacao"] = con.execute("SELECT count(*) FROM dw.fato_populacao").fetchone()[0]
+        resumo["fato_populacao"] = con.execute("SELECT count(*) FROM dw.fato_populacao").fetchall()[0][0]
         _observacoes_ano(con, aux["identificadas"])
         for tabela in ("dim_tempo", "dim_data", "dim_ano_letivo", "dim_territorio", "dim_escola", "dim_etapa",
                        "dim_serie", "dim_turno", "dim_idade", "dim_faixa_etaria", "dim_setor_censitario",
                        "dim_perfil_aluno", "dim_deficiencia", "dim_situacao_matricula"):
-            resumo[tabela] = con.execute(f"SELECT count(*) FROM dw.{tabela}").fetchone()[0]
+            resumo[tabela] = con.execute(f"SELECT count(*) FROM dw.{tabela}").fetchall()[0][0]
         resumo["vinculo_escola"] = esc.resumo_vinculo(aux["identificadas"]).astype(int).to_dict(orient="index")
         resumo["fila_metadados"] = fila_meta
         con.execute("DETACH stgdb")

@@ -94,7 +94,7 @@ def integridade(con, chaves=CHAVES_ESTRANGEIRAS) -> Verificacao:
     for fato, fks in chaves.items():
         for coluna, dim, pk in fks:
             orfas = con.execute(f"""SELECT count(*) FROM dw.{fato} f LEFT JOIN dw.{dim} d ON d.{pk} = f.{coluna}
-                                    WHERE d.{pk} IS NULL""").fetchone()[0]
+                                    WHERE d.{pk} IS NULL""").fetchall()[0][0]
             linhas.append({"fato": fato, "chave": coluna, "dimensao": dim, "orfas": orfas})
     det = pd.DataFrame(linhas)
     total = int(det["orfas"].sum())
@@ -105,14 +105,14 @@ def integridade(con, chaves=CHAVES_ESTRANGEIRAS) -> Verificacao:
 def versoes_escola(con) -> Verificacao:
     sobrepostas = con.execute("""
         SELECT count(*) FROM dw.dim_escola a JOIN dw.dim_escola b
-          ON a.cod_escola = b.cod_escola AND a.versao < b.versao AND a.ano_fim >= b.ano_inicio""").fetchone()[0]
+          ON a.cod_escola = b.cod_escola AND a.versao < b.versao AND a.ano_fim >= b.ano_inicio""").fetchall()[0][0]
     sem_atual = con.execute("""
         SELECT count(*) FROM (
-            SELECT cod_escola FROM dw.dim_escola GROUP BY 1 HAVING sum(versao_atual::INT) <> 1)""").fetchone()[0]
+            SELECT cod_escola FROM dw.dim_escola GROUP BY 1 HAVING sum(versao_atual::INT) <> 1)""").fetchall()[0][0]
     fora = con.execute("""
         SELECT count(*) FROM dw.fato_matricula f JOIN dw.dim_escola e USING (chave_escola)
         JOIN dw.dim_ano_letivo a USING (chave_ano_letivo)
-        WHERE a.ano NOT BETWEEN e.ano_inicio AND e.ano_fim""").fetchone()[0]
+        WHERE a.ano NOT BETWEEN e.ano_inicio AND e.ano_fim""").fetchall()[0][0]
     det = _df(con, """SELECT count(DISTINCT cod_escola) AS escolas, count(*) AS versoes,
                              count(*) FILTER (WHERE versao > 1) AS versoes_adicionais,
                              count(DISTINCT cod_escola) FILTER (WHERE codigo_sintetico) AS escolas_sinteticas
@@ -312,7 +312,7 @@ def violacoes_hierarquia(con, dimensao: str, filho: tuple[str, ...], pai: tuple[
     return con.execute(f"""
         SELECT count(*) FROM (
             SELECT {_chave(filho)} AS membro FROM dw.{dimensao} WHERE {nao_nulo}
-            GROUP BY 1 HAVING count(DISTINCT {_chave(pai)}) > 1)""").fetchone()[0]
+            GROUP BY 1 HAVING count(DISTINCT {_chave(pai)}) > 1)""").fetchall()[0][0]
 
 
 def hierarquias(con, declaradas=HIERARQUIAS) -> Verificacao:
@@ -359,7 +359,7 @@ _CONFORMIDADE = [
 
 def conformidade(con) -> Verificacao:
     """As dimensões de grão mais alto (rollups encolhidos) carregam os mesmos valores das de grão mais fino."""
-    det = pd.DataFrame([{"regra": d, "violacoes": con.execute(sql).fetchone()[0], "falha_do_modelo": f}
+    det = pd.DataFrame([{"regra": d, "violacoes": con.execute(sql).fetchall()[0][0], "falha_do_modelo": f}
                         for d, sql, f in _CONFORMIDADE])
     falhas = int(det.loc[det["falha_do_modelo"], "violacoes"].sum())
     alertas = int(det.loc[~det["falha_do_modelo"], "violacoes"].sum())

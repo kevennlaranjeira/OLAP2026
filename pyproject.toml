@@ -9,7 +9,10 @@ description = "Data warehouse da oferta escolar e da demanda não atendida na re
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "duckdb>=1.1",
+    # O DuckDB 2.0.0 erra a soma de colunas pequenas (SMALLINT) quando a consulta tem janela e ORDER BY:
+    # a C3 falha com erro de conversão ou devolve -46 no lugar de 4.050. Rever quando sair correção;
+    # o teste test_c3_soma_certa_em_volume pega a regressão.
+    "duckdb>=1.1,<2",
     "pandas>=2.2",
     "pyarrow>=15",
 ]
