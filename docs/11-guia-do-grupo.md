@@ -147,9 +147,13 @@ xelatex relatorio-projeto1.tex
 
 Rode o comando **duas vezes**: a segunda passada acerta o índice e as referências. Os arquivos auxiliares (`.aux`, `.log`, `.toc`, `.out`) ficam fora do Git pelo `.gitignore`.
 
+### Compilar pelo próprio GitHub
+
+Toda vez que um commit muda algo em `docs/relatorio/`, o GitHub compila o relatório com XeLaTeX (verificação **relatorio**). Se o `.tex` tiver um erro de LaTeX, essa verificação fica vermelha. Se compilar, o PDF fica disponível para baixar por 30 dias: na aba **Actions**, abra a execução do commit e baixe **relatorio-projeto1-pdf** em **Artifacts**. Assim dá para editar pelo navegador e conferir o PDF sem instalar nada.
+
 ### Antes de mandar
 
-Mande sempre o `.tex` e o `.pdf` juntos, no mesmo commit. O PDF é o arquivo de entrega; se só o `.tex` mudar, o PDF do repositório fica desatualizado.
+Mande sempre o `.tex` e o `.pdf` juntos, no mesmo commit. O PDF é o arquivo de entrega; se só o `.tex` mudar, o PDF do repositório fica desatualizado. Quem editou pelo navegador pode baixar o PDF que o GitHub compilou e enviá-lo no mesmo pull request.
 
 ## 5. Editar a apresentação
 
@@ -232,7 +236,7 @@ Os testes não precisam de internet nem dos dados reais, e levam cerca de 1 minu
 .venv/Scripts/python -m pytest
 ```
 
-O resultado esperado termina com algo como `485 passed`. Qualquer `failed` ou `error` indica um problema.
+O resultado esperado termina com algo como `487 passed` (o número cresce quando entram testes novos). Qualquer `failed` ou `error` indica um problema.
 
 Para rodar só uma parte:
 
@@ -359,7 +363,7 @@ O terminal mostra um link; ou abra o repositório no GitHub, onde aparece a faix
 
 ### 6. Espere o CI
 
-Na página do pull request aparece a verificação **testes**, que roda o lint e os 485 testes em Python 3.11 e 3.13 e exige cobertura de pelo menos 85%. Um ✓ verde quer dizer que passou; um ✗ vermelho, que algo falhou. Clique em **Details** para ver qual teste falhou e corrija na mesma branch: um novo `git push` roda tudo de novo.
+Na página do pull request aparece a verificação **testes** (e, se o relatório mudou, também **relatorio**), que roda o lint e todos os testes em Python 3.11 e 3.13 e exige cobertura de pelo menos 85%. Um ✓ verde quer dizer que passou; um ✗ vermelho, que algo falhou. Clique em **Details** para ver qual teste falhou e corrija na mesma branch: um novo `git push` roda tudo de novo.
 
 ### 7. Junte na `main`
 

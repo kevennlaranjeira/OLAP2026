@@ -1,0 +1,32 @@
+name: relatorio
+
+# Compila o relatório LaTeX sempre que ele ou os desenhos mudam, para que uma edição feita
+# pelo navegador não quebre a compilação sem ninguém perceber. O PDF fica disponível para
+# download na página da execução (Artifacts).
+on:
+  push:
+    paths:
+      - "docs/relatorio/**"
+      - ".github/workflows/relatorio.yml"
+  pull_request:
+    paths:
+      - "docs/relatorio/**"
+      - ".github/workflows/relatorio.yml"
+
+jobs:
+  compilar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compilar com XeLaTeX
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: relatorio-projeto1.tex
+          working_directory: docs/relatorio
+          latexmk_use_xelatex: true
+      - name: Guardar o PDF compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-projeto1-pdf
+          path: docs/relatorio/relatorio-projeto1.pdf
+          retention-days: 30
