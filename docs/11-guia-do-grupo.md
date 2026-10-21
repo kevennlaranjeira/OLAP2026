@@ -388,6 +388,7 @@ No GitHub Desktop os passos são os mesmos: **Current branch > New branch**, dep
 | o PDF compilado está sem índice ou com "??" | compile uma segunda vez |
 | `git pull` fala em conflito | duas pessoas mudaram a mesma linha. Abra o arquivo, procure os marcadores `<<<<<<<`, `=======` e `>>>>>>>`, deixe só a versão certa, salve, e rode `git add` e `git commit`. Na dúvida, peça ajuda antes |
 | `requer o 7-Zip instalado` | instale o 7-Zip ou rode com `--anos 2022-2024` |
+| erro com `ResourceInUseException` ou `Conversion Error` vindo do DuckDB | você tem o DuckDB 2.0, que o projeto não aceita (ele erra uma das somas). Rode de novo `.venv/Scripts/python -m pip install -e ".[dev]"`, que instala a versão 1.x |
 | algum teste falhou depois de mudar o relatório | veja a tabela da parte 7 |
 
 Outros erros do pipeline estão em [07 Como executar](07-como-executar.md#problemas-comuns).
