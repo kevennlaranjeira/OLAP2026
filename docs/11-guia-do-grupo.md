@@ -241,7 +241,7 @@ Os testes não precisam de internet nem dos dados reais, e levam cerca de 1 minu
 .venv/Scripts/python -m pytest
 ```
 
-O resultado esperado termina com algo como `482 passed`. Qualquer `failed` ou `error` indica um problema.
+O resultado esperado termina com algo como `485 passed`. Qualquer `failed` ou `error` indica um problema.
 
 Para rodar só uma parte:
 
@@ -368,7 +368,7 @@ O terminal mostra um link; ou abra o repositório no GitHub, onde aparece a faix
 
 ### 6. Espere o CI
 
-Na página do pull request aparece a verificação **testes**, que roda o lint e os 482 testes em Python 3.11 e 3.13 e exige cobertura de pelo menos 85%. Um ✓ verde quer dizer que passou; um ✗ vermelho, que algo falhou. Clique em **Details** para ver qual teste falhou e corrija na mesma branch: um novo `git push` roda tudo de novo.
+Na página do pull request aparece a verificação **testes**, que roda o lint e os 485 testes em Python 3.11 e 3.13 e exige cobertura de pelo menos 85%. Um ✓ verde quer dizer que passou; um ✗ vermelho, que algo falhou. Clique em **Details** para ver qual teste falhou e corrija na mesma branch: um novo `git push` roda tudo de novo.
 
 ### 7. Junte na `main`
 
