@@ -214,3 +214,33 @@ def test_csv_em_caminho_com_apostrofo_vira_parquet(tmp_path):
                                        [str(pasta / "saida d'água" / "x.parquet")]).fetchall()]
     con.close()
     assert nomes == ["ESCOLA D'OESTE", "OUTRA"]
+
+
+# ----------------------------------------------------------------------------- arquivo do banco
+
+def test_recarga_nao_infla_o_arquivo_do_banco(dados_sinteticos):
+    """O DuckDB não devolve ao disco o espaço das tabelas apagadas: recarregar no mesmo arquivo o fazia crescer."""
+    base = ["--dados", str(dados_sinteticos)]
+    banco = dados_sinteticos / "dw" / "dw_sme.duckdb"
+    tamanhos = []
+    for _ in range(3):
+        assert cli.main(["carregar", *base]) == 0
+        tamanhos.append(banco.stat().st_size)
+    assert tamanhos[2] <= tamanhos[0] * 1.05, tamanhos
+    assert not list(banco.parent.glob("*_carregando*"))
+
+
+def test_carga_que_falha_preserva_o_banco_anterior(dados_sinteticos, monkeypatch):
+    from dw_sme.carga import carregar
+    cfg = Configuracao(dir_dados=dados_sinteticos, log=lambda *_: None)
+    carregar.carregar_tudo(cfg)
+    antes = contagens(cfg.banco)
+
+    def quebra(con):
+        raise RuntimeError("falha simulada no meio da carga")
+
+    monkeypatch.setattr(carregar, "_fato_turma", quebra)
+    with pytest.raises(RuntimeError, match="falha simulada"):
+        carregar.carregar_tudo(cfg)
+    assert contagens(cfg.banco) == antes
+    assert not list(cfg.banco.parent.glob("*_carregando*"))
