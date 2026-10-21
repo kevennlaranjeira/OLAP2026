@@ -4,30 +4,15 @@ Este guia é para quem entrou agora no trabalho e quer ler o relatório, sugerir
 
 | Quero... | Vá para |
 |---|---|
-| achar o texto-fonte do relatório | [Resposta rápida](#resposta-rápida-onde-está-o-bruto-do-relatório) |
 | entrar no repositório | [1. Acesso](#1-acesso-ao-repositório) |
 | entender onde fica cada coisa | [2. Mapa do repositório](#2-mapa-do-repositório) |
 | sugerir uma mudança sem instalar nada | [3. Sugerir mudanças pelo navegador](#3-sugerir-mudanças-pelo-navegador) |
-| editar o relatório e ver o PDF | [4. Editar o relatório](#4-editar-o-relatório-latex) |
+| achar, editar e compilar o relatório | [4. Editar o relatório](#4-editar-o-relatório-latex) |
 | mexer nos slides | [5. Editar a apresentação](#5-editar-a-apresentação) |
 | rodar o projeto no meu computador | [6. Preparar o computador](#6-preparar-o-computador) e [8. Rodar o pipeline](#8-rodar-o-pipeline-com-os-dados-reais) |
 | conferir se não quebrei nada | [7. Testes](#7-rodar-os-testes) |
 | mandar minhas mudanças | [9. Fluxo de trabalho em equipe](#9-fluxo-de-trabalho-em-equipe) |
 | resolver um erro | [10. Problemas comuns](#10-problemas-comuns) |
-
-## Resposta rápida: onde está o "bruto" do relatório
-
-O relatório é escrito em LaTeX. O texto-fonte é o arquivo [`docs/relatorio/relatorio-projeto1.tex`](relatorio/relatorio-projeto1.tex). Os desenhos dos esquemas estrela e da constelação ficam separados, em [`docs/relatorio/esquemas/`](relatorio/esquemas/), um arquivo `.tex` por desenho. O PDF pronto é o [`docs/relatorio/relatorio-projeto1.pdf`](relatorio/relatorio-projeto1.pdf).
-
-No GitHub, o caminho é: repositório > pasta `docs` > pasta `relatorio` > `relatorio-projeto1.tex`. O botão **Raw** mostra o texto puro, e o ícone de download baixa o arquivo.
-
-Para indicar alterações, há três jeitos, do mais simples ao mais completo:
-
-1. abrir uma **Issue** dizendo o que mudar e onde (seção, página ou trecho);
-2. editar o `.tex` direto no navegador e propor a mudança como **pull request**;
-3. editar no computador ou no Overleaf, compilar o PDF e mandar os dois arquivos.
-
-As três estão explicadas nas partes 3 e 4.
 
 ## 1. Acesso ao repositório
 
@@ -107,6 +92,12 @@ O GitHub roda os testes sozinho (ver [parte 9](#9-fluxo-de-trabalho-em-equipe)).
 Em qualquer pull request, aba **Files changed**: passe o mouse sobre a linha, clique no **+** azul e escreva o comentário. Para propor o texto exato, clique no ícone de sugestão (o de "±") e reescreva a linha. Quem abriu o pull request aceita com um clique.
 
 ## 4. Editar o relatório (LaTeX)
+
+### Os arquivos do relatório
+
+O relatório é escrito em LaTeX. O texto-fonte é [`docs/relatorio/relatorio-projeto1.tex`](relatorio/relatorio-projeto1.tex), e o PDF compilado, que é o arquivo de entrega, fica ao lado: [`docs/relatorio/relatorio-projeto1.pdf`](relatorio/relatorio-projeto1.pdf). Os desenhos dos esquemas estrela e da constelação ficam em [`docs/relatorio/esquemas/`](relatorio/esquemas/), um arquivo `.tex` por desenho.
+
+No GitHub, abra a pasta `docs`, depois `relatorio`, e clique no arquivo. O botão **Raw** mostra o texto puro, e o ícone de download baixa o arquivo. Para pedir uma mudança sem editar, use uma Issue (parte 3).
 
 ### Onde fica cada parte do `.tex`
 
