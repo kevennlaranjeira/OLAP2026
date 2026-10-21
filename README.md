@@ -55,12 +55,13 @@ O comando baixa as bases do portal da prefeitura e o Censo 2022 do IBGE, prepara
 .venv/Scripts/python -m ruff check src tests
 ```
 
-O GitHub Actions roda as duas a cada push, em Python 3.11 e 3.13, e falha se a cobertura cair abaixo de 85%. Com os dados reais, `dw-sme verificar` acrescenta catorze verificações sobre o banco carregado (integridade referencial, conservação entre fatos, reconciliação entre as bases, ligação da população ao território, hierarquias e conformidade das dimensões); o resultado da última carga medida, ainda com dez verificações, está em [docs/relatorios/qualidade.md](docs/relatorios/qualidade.md).
+O GitHub Actions roda as duas a cada push, em Python 3.11 e 3.13, e falha se a cobertura cair abaixo de 85%. Com os dados reais, `dw-sme verificar` acrescenta catorze verificações sobre o banco carregado (integridade referencial, conservação entre fatos, reconciliação entre as bases, ligação da população ao território, hierarquias e conformidade das dimensões); o resultado da última carga com os dados reais está em [docs/relatorios/qualidade.md](docs/relatorios/qualidade.md).
 
 ## Documentação
 
 | Documento | Conteúdo |
 |---|---|
+| [11 Guia do grupo](docs/11-guia-do-grupo.md) | **comece por aqui**: acesso ao repositório, onde fica o texto-fonte do relatório, como sugerir mudanças, editar o relatório e os slides, testar e enviar pelo GitHub |
 | [01 Fontes de dados](docs/01-fontes-de-dados.md) | as três bases, os sete formatos da planilha de fila, as variações do microdado ano a ano, o layout do Censo 2022 |
 | [02 Fluxo de dados](docs/02-fluxo-de-dados.md) | do portal ao banco, etapa por etapa, com o argumento de cada escolha |
 | [03 Modelo dimensional](docs/03-modelo-dimensional.md) | grãos, dimensões, hierarquias, fatos, aditividade e a constelação |
