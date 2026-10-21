@@ -56,8 +56,8 @@ def _csv_para_parquet(csv: Path, destino: Path) -> dict:
             CREATE TABLE t AS SELECT * FROM read_csv('{csv.as_posix()}', delim='{sep}', header=true,
                 all_varchar=true, encoding='{'utf-8' if enc == 'utf-8' else 'latin-1'}', quote='"',
                 strict_mode=false, null_padding=true, store_rejects=true)""")
-        linhas = con.execute("SELECT count(*) FROM t").fetchone()[0]
-        rejeitadas = con.execute("SELECT count(*) FROM reject_errors").fetchone()[0]
+        linhas = con.execute("SELECT count(*) FROM t").fetchall()[0][0]
+        rejeitadas = con.execute("SELECT count(*) FROM reject_errors").fetchall()[0][0]
         con.execute(f"COPY t TO '{destino.as_posix()}' (FORMAT parquet, COMPRESSION zstd)")
     finally:
         con.close()

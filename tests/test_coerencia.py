@@ -160,10 +160,13 @@ def test_nenhum_texto_pendente_esquecido(arquivo):
 
 
 def test_so_curso_e_data_ficam_para_o_grupo_preencher():
+    """Os únicos marcadores admitidos são os de curso e data, e só nas macros; preenchidos, eles somem."""
     texto = ler(RELATORIO)
     marcadores = set(re.findall(r"\[[A-ZÇÃÕÉÍ ]{6,}\]", texto))
-    assert marcadores == {"[NOME DO CURSO]", "[DATA DE ENTREGA]"}
-    assert texto.count("[NOME DO CURSO]") == 1 and texto.count("[DATA DE ENTREGA]") == 1   # só nas macros
+    assert marcadores <= {"[NOME DO CURSO]", "[DATA DE ENTREGA]"}
+    assert texto.count("[NOME DO CURSO]") <= 1 and texto.count("[DATA DE ENTREGA]") <= 1   # só nas macros
+    assert re.search(r"\\newcommand\{\\curso\}\{[^}]+\}", texto)
+    assert re.search(r"\\newcommand\{\\dataentrega\}\{[^}]+\}", texto)
 
 
 # ----------------------------------------------------------------------------- figuras
