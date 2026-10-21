@@ -175,3 +175,13 @@ def test_consultas_iguais_quando_repetidas(volume):
     primeira = pipeline.consultar(cfg)
     for codigo, df in pipeline.consultar(cfg).items():
         assert df.equals(primeira[codigo]), codigo
+
+
+def test_c3_soma_certa_em_volume(volume):
+    """Confere o valor, não só a repetição: o DuckDB 2.0.0 truncava esta soma em 8 bits (4.050 virava -46)."""
+    cfg, _, _ = volume
+    c3 = pipeline.consultar(cfg)["C3"]
+    creche_por_ano = TAMANHO["escolas"] * TAMANHO["turmas_por_etapa"] * TAMANHO["alunos_por_turma"]   # 8.100
+    assert c3.groupby("ano")["matriculas"].sum().to_dict() == {ano: creche_por_ano for ano in (2019, 2022)}
+    assert set(c3["matriculas"]) == {creche_por_ano // 2}        # metade das escolas direta, metade conveniada
+    assert c3.groupby("ano")["participacao_no_ano"].sum().round(4).eq(1).all()

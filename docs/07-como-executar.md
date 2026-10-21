@@ -113,6 +113,7 @@ As consultas do trabalho estão em `src/dw_sme/sql/consultas/`, uma por arquivo,
 
 | Sintoma | Causa | Solução |
 |---|---|---|
+| `ResourceInUseException: connection has an unfinished result` na carga, ou `Conversion Error: Type INT128 ... can't be cast` na consulta C3 | DuckDB 2.0 instalado; ele erra a soma da C3 (chega a devolver -46 no lugar de 4.050) | o projeto exige DuckDB 1.x; rode de novo `.venv/Scripts/python -m pip install -e ".[dev]"` e confira com `.venv/Scripts/python -c "import duckdb; print(duckdb.__version__)"` |
 | página HTML de "Requisição Bloqueada" no lugar do JSON | o portal recusa requisição sem User-Agent | o cliente já envia; se mudar `user_agent` na configuração, mantenha um valor descritivo |
 | `requer o 7-Zip instalado` | pacote `.rar` de 2019-2021 | instale o 7-Zip ou rode com `--anos 2022-2024` |
 | `o arquivo do banco não pode se chamar 'dw.duckdb'` | o DuckDB usa o nome do arquivo como catálogo, que colidiria com o esquema `dw` | use outro nome em `--banco` |
