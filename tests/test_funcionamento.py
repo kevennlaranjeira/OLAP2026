@@ -185,3 +185,32 @@ def test_c3_soma_certa_em_volume(volume):
     assert c3.groupby("ano")["matriculas"].sum().to_dict() == {ano: creche_por_ano for ano in (2019, 2022)}
     assert set(c3["matriculas"]) == {creche_por_ano // 2}        # metade das escolas direta, metade conveniada
     assert c3.groupby("ano")["participacao_no_ano"].sum().round(4).eq(1).all()
+
+
+# ----------------------------------------------------------------------------- caminhos com apóstrofo
+
+def test_pasta_com_apostrofo_e_acento_no_caminho(dados_sinteticos, tmp_path):
+    """Sobrenomes como D'Ávila aparecem em pastas de usuário; o caminho entra na SQL entre aspas simples."""
+    import shutil
+    dados = tmp_path / "dados d'água"
+    shutil.copytree(dados_sinteticos, dados)
+    base = ["--dados", str(dados)]
+    assert cli.main(["carregar", *base]) == 0
+    assert cli.main(["verificar", *base]) == 0
+    assert cli.main(["consultar", *base]) == 0
+    assert contagens(dados / "dw" / "dw_sme.duckdb")["fato_matricula"] == 7
+
+
+def test_csv_em_caminho_com_apostrofo_vira_parquet(tmp_path):
+    from dw_sme.preparacao import _csv_para_parquet
+    pasta = tmp_path / "planilhas d'Ávila"
+    pasta.mkdir()
+    csv = pasta / "Microdados_EOL_Matriculas_Ano_2019.csv"
+    csv.write_text("AN_LETIVO;NOME_ESCOLA\n2019;ESCOLA D'OESTE\n2019;OUTRA\n", encoding="utf-8")
+    r = _csv_para_parquet(csv, pasta / "saida d'água" / "x.parquet")
+    assert (r["linhas"], r["rejeitadas"]) == (2, 0)
+    con = duckdb.connect()
+    nomes = [n for (n,) in con.execute("SELECT NOME_ESCOLA FROM read_parquet(?) ORDER BY 1",
+                                       [str(pasta / "saida d'água" / "x.parquet")]).fetchall()]
+    con.close()
+    assert nomes == ["ESCOLA D'OESTE", "OUTRA"]

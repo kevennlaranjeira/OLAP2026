@@ -16,6 +16,7 @@ import pandas as pd
 
 from .config import Configuracao
 from .extracao import arquivos, fontes
+from .texto_sql import literal
 from .transformacao import fila as fila_mod
 
 
@@ -53,12 +54,12 @@ def _csv_para_parquet(csv: Path, destino: Path) -> dict:
     con = duckdb.connect()
     try:
         con.execute(f"""
-            CREATE TABLE t AS SELECT * FROM read_csv('{csv.as_posix()}', delim='{sep}', header=true,
+            CREATE TABLE t AS SELECT * FROM read_csv({literal(csv)}, delim={literal(sep)}, header=true,
                 all_varchar=true, encoding='{'utf-8' if enc == 'utf-8' else 'latin-1'}', quote='"',
                 strict_mode=false, null_padding=true, store_rejects=true)""")
         linhas = con.execute("SELECT count(*) FROM t").fetchall()[0][0]
         rejeitadas = con.execute("SELECT count(*) FROM reject_errors").fetchall()[0][0]
-        con.execute(f"COPY t TO '{destino.as_posix()}' (FORMAT parquet, COMPRESSION zstd)")
+        con.execute(f"COPY t TO {literal(destino)} (FORMAT parquet, COMPRESSION zstd)")
     finally:
         con.close()
     return {"situacao": "convertido", "encoding": enc, "separador": sep,

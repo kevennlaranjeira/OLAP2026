@@ -26,6 +26,7 @@ import pandas as pd
 
 from ..config import Configuracao
 from ..preparacao import preparar_fila
+from ..texto_sql import literal
 from ..transformacao import datas, etapas, idade, microdados, populacao, situacao
 from ..transformacao import escolas as esc
 from ..transformacao import normalizacao as n
@@ -96,7 +97,7 @@ def _staging_matricula(con, cfg: Configuracao) -> int:
         ano = int(parquet.parent.name.split("=")[1])
         if ano not in cfg.anos:
             continue
-        fonte = f"read_parquet('{parquet.as_posix()}')"
+        fonte = f"read_parquet({literal(parquet)})"
         colunas = [r[0] for r in con.execute(f"DESCRIBE SELECT * FROM {fonte}").fetchall()]
         partes.append(microdados.sql_staging(fonte, ano, parquet.stem, colunas))
     if not partes:
@@ -555,7 +556,7 @@ def carregar_tudo(cfg: Configuracao) -> dict:
     con = duckdb.connect(str(cfg.banco))
     try:
         criar_esquema(con)
-        con.execute(f"ATTACH '{staging.as_posix()}' AS stgdb")
+        con.execute(f"ATTACH {literal(staging)} AS stgdb")
         cfg.log("  staging do microdado")
         linhas_staging = _staging_matricula(con, cfg)
         cfg.log("  tabelas de correspondência e identificação das escolas")
