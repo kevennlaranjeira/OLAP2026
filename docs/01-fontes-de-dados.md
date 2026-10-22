@@ -13,7 +13,7 @@ O modelo usa três fontes, as mesmas registradas na planilha do grupo. As duas p
 | Identificador no portal | `microdados-matriculas` | `demanda-e-matriculas` |
 | Grão publicado | uma matrícula (vínculo aluno-turma) | distrito, com uma coluna por etapa |
 | Periodicidade | anual | trimestral até 2022, bimestral desde 2023; série histórica 2006-2017 |
-| Volume no recorte 2015-2024 | 15,7 milhões de linhas nos arquivos lidos, 13,4 milhões de escolarização | 44 planilhas, 96 distritos cada |
+| Volume no recorte 2015-2024 | 15,7 milhões de linhas nos arquivos lidos, 13,4 milhões de escolarização | 44 meses de referência em 33 arquivos (a série histórica cobre 2015 a 2017), 96 distritos em cada mês |
 | Formato | CSV dentro de .zip (e um .rar), até ~900 MB por ano descompactado | CSV de duas linhas de cabeçalho, ~8 KB |
 | Usada para | fato de matrícula, fato de desfecho, dimensões Escola, Série, Turno, Idade, Data, bugigangas, DRE do território | fato de fila, dimensão Tempo, distritos do território |
 

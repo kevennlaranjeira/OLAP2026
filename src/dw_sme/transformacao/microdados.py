@@ -15,6 +15,7 @@ sobre os valores distintos (ver normalizacao.py).
 """
 from __future__ import annotations
 
+from ..texto_sql import literal
 from .normalizacao import texto
 from .situacao import COLUNA_ORIGEM as _SITUACAO_ORIGEM
 
@@ -122,10 +123,9 @@ def sql_filtro_escolarizacao(expr_turma_escol: str, nome_arquivo: str) -> str:
 def sql_staging(fonte: str, ano: int, nome_arquivo: str, colunas_disponiveis: list[str]) -> str:
     """SELECT que leva um arquivo bruto ao staging canônico, já filtrado."""
     expr = expressoes(colunas_disponiveis)
-    arquivo = nome_arquivo.replace("'", "''")
     campos = ",\n  ".join(f"{e} AS {c}" for c, e in expr.items())
     return (
-        f"SELECT CAST({int(ano)} AS INTEGER) AS ano_letivo, '{arquivo}' AS arquivo,\n  {campos}\n"
+        f"SELECT CAST({int(ano)} AS INTEGER) AS ano_letivo, {literal(nome_arquivo)} AS arquivo,\n  {campos}\n"
         f"FROM {fonte}\n"
         f"WHERE {sql_filtro_escolarizacao(expr['turma_escol'], nome_arquivo)}"
     )

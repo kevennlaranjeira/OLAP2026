@@ -58,6 +58,30 @@ Cada correção de código tem teste novo: C1 e C8 com "(TODAS)", formatação d
 | 16 | gráfico da fila nos slides | pulava 2016, 2018 e 2023 | série completa de 2015 a 2024, tirada da C5 |
 | 17 | imagens nos slides | o texto alternativo era o caminho do arquivo na máquina onde os slides foram gerados | descrição de cada esquema |
 
+## Terceira rodada: replicação a partir do GitHub, esquemas e relatório
+
+| Frente | Como | Resultado |
+|---|---|---|
+| Replicação completa | clone do GitHub (`main`), ambiente virtual novo, `pip install ".[dev]"`, testes e `dw-sme tudo` numa pasta vazia, baixando tudo de novo | DuckDB 1.5.6 instalado pela restrição `<2`; testes e ruff passam; 647 MB baixados e pipeline completo em 566 s, sem FALHA, com as 8 consultas gravadas |
+| Imagens dos esquemas | `figuras.tex` compilado de novo e cada página comparada com o PNG do repositório | os 6 idênticos pixel a pixel |
+| Modelo no banco | leitura do DDL contra os conceitos da disciplina; Q13 e Q14 nos dados reais | grão declarado em cada fato, chave artificial em todas as dimensões, hierarquias válidas nos dados |
+| Dados das bugigangas | indicadores de deficiência por ano no microdado | os quatro que só existem em 2024 ficam "não coletado" antes disso; 169 linhas de 2016 sem nenhum indicador e um valor "2" isolado em 2018 e 2023 ficam "não informado", como devem |
+| Revisão de código | casos de borda, recursos abertos, exceções, `pyright` | 1 defeito (abaixo); nenhum erro de tipo real |
+| Relatório | revisão de cada afirmação contra os dados e as fontes, estrutura contra o enunciado | 4 problemas de texto (abaixo) |
+
+### Erros encontrados e corrigidos nesta rodada
+
+| # | Onde | Problema | Correção |
+|---|---|---|---|
+| 18 | carga | recarregar no mesmo arquivo deixava nele o espaço das tabelas apagadas (o banco real tinha 636 MB, dos quais 1.118 blocos livres; feito do zero, tem 334 MB), e uma carga que falhasse no meio deixava o banco anterior pela metade | a carga monta um arquivo novo e só no fim troca o anterior; dois testes cobrem o tamanho em recargas e a falha no meio |
+| 19 | carga e preparação | caminho com apóstrofo (`dados d'água`, sobrenome D'Ávila) quebrava a SQL | `texto_sql.literal()` em todo caminho que entra na SQL; dois testes |
+| 20 | relatório, seção 1.1 | duas afirmações sem fonte: a falta de vaga como "principal problema" e a intenção da prefeitura ao publicar a fila | a primeira ancorada no número da Consulta 5; a segunda reescrita sem supor intenção |
+| 21 | relatório, docs/01, docs/02, slide 7 | "44 planilhas" de fila; são 44 meses de referência em 33 arquivos, porque a série histórica traz 2015 a 2017 num arquivo só | texto corrigido nos quatro lugares |
+| 22 | relatório | citava o artigo da disciplina, a Lei do PNE e o INEP sem seção de referências, e não dava o endereço das fontes | seção Referências com 6 entradas e datas de acesso; os endereços foram conferidos |
+| 23 | relatório, apêndice | o resultado negativo da Consulta 6 e as limitações das fontes não estavam no relatório | um parágrafo para cada |
+
+O CI ganhou um segundo fluxo, `relatorio.yml`, que compila o relatório com XeLaTeX sempre que algo em `docs/relatorio/` muda e deixa o PDF para baixar. Quem edita o `.tex` pelo navegador passa a saber se ele compila.
+
 ## O que continua dependendo do grupo
 
 Está em [08 Pendências da entrega](08-pendencias-da-entrega.md):
