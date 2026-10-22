@@ -42,6 +42,8 @@ OLAP2026/
     apresentacao/
       gerar.js                   script que gera os slides
       apresentacao-projeto1.pptx slides gerados (21 slides)
+      apresentacao-projeto1.html a mesma apresentação, para abrir no navegador
+      embutir_figuras.py         atualiza as figuras guardadas dentro do HTML
     modelagem/                   os mesmos esquemas em PNG e num PDF separado
     01 a 11 *.md                 documentação técnica (fontes, fluxo, modelo, consultas, decisões...)
     relatorios/qualidade.md      resultado das 14 verificações na última carga real
@@ -182,6 +184,28 @@ Também funciona, com duas ressalvas:
 
 Combine com o grupo qual dos dois caminhos usar até a entrega.
 
+### Versão em HTML
+
+O arquivo [`docs/apresentacao/apresentacao-projeto1.html`](apresentacao/apresentacao-projeto1.html) traz os mesmos 21 slides, com as mesmas notas e os mesmos tempos. Ele abre com dois cliques em qualquer navegador e funciona sozinho, porque as figuras dos esquemas estão guardadas dentro dele. Só a fonte vem da internet; sem conexão, o texto aparece em Arial.
+
+| Tecla | O que faz |
+|---|---|
+| seta para a direita, espaço ou clique | avança |
+| seta para a esquerda | volta |
+| F | tela cheia |
+| N | mostra ou esconde as notas de quem apresenta |
+| Home e End | primeiro e último slide |
+
+O endereço termina com o número do slide (`#18`), e dá para abrir direto nele. Os cartões entram em sequência, e os gráficos dos slides 18 e 19 se desenham quando o slide aparece, com os números da carga real.
+
+Para gerar um PDF, abra o arquivo com `?imprimir` no fim do endereço (`apresentacao-projeto1.html?imprimir`), aperte Ctrl+P e escolha "Salvar como PDF". Sai uma página por slide, com os gráficos já desenhados.
+
+O texto de cada slide fica no próprio HTML, dentro das tags `<section>`, e qualquer editor de texto abre o arquivo. As duas versões são independentes: mudar um número no HTML não muda o `.pptx`, e o contrário também vale. Os testes conferem que as duas têm os mesmos slides, apresentadores, tempos e números nos gráficos. Se as figuras de `docs/modelagem/` mudarem, atualize as que estão dentro do HTML com:
+
+```bash
+python docs/apresentacao/embutir_figuras.py
+```
+
 ## 6. Preparar o computador
 
 Esta parte só é necessária para rodar os testes ou o pipeline no seu computador.
@@ -260,14 +284,16 @@ Reescrever um parágrafo do relatório não quebra teste. Os testes reclamam qua
 
 | Se você mudar... | Também precisa mudar | Teste que acusa |
 |---|---|---|
-| nome ou Nº USP de um integrante | README, `relatorio-projeto1.tex` e `gerar.js` | `test_integrantes_e_numeros_usp_iguais_em_todo_lugar` |
-| o tipo de uma consulta (ex.: drill-down) | o arquivo SQL, `docs/05-consultas.md`, o título `\subsection{Consulta N: tipo}` e a tabela de consultas do `gerar.js` | `test_consultas_iguais_na_documentacao_no_relatorio_e_nos_slides` |
+| nome ou Nº USP de um integrante | README, `relatorio-projeto1.tex`, `gerar.js` e `apresentacao-projeto1.html` | `test_integrantes_e_numeros_usp_iguais_em_todo_lugar` |
+| o tipo de uma consulta (ex.: drill-down) | o arquivo SQL, `docs/05-consultas.md`, o título `\subsection{Consulta N: tipo}`, a tabela de consultas do `gerar.js` e o slide 17 do HTML | `test_consultas_iguais_na_documentacao_no_relatorio_e_nos_slides` |
 | uma hierarquia (`\hier{...}`) | o DDL em `src/dw_sme/sql/ddl/` e `docs/03-modelo-dimensional.md` | `test_hierarquias_iguais_no_relatorio_no_ddl_e_na_documentacao` |
 | uma caixa ou ligação de um esquema | o DDL (as caixas mostram as colunas das tabelas) | `test_caixas_do_desenho_batem_com_o_ddl` e vizinhos em `test_modelo.py` |
 | a matriz de barramento | o DDL e `docs/modelagem/modelagem.tex` | `test_matriz_de_barramento_bate_com_o_ddl` |
 | uma contagem citada em vários lugares (5 fatos, 14 dimensões, 14 verificações, 23 decisões) | README, `docs/` e relatório, que citam o mesmo número | `test_cinco_fatos_quatorze_dimensoes_vinte_e_sete_chaves_em_todo_lugar`, `test_quatorze_verificacoes_documentadas`, `test_decisoes_numeradas_em_sequencia` |
 | um link entre documentos | o arquivo para o qual ele aponta | `test_links_internos_apontam_para_arquivos_que_existem` |
 | o número de slides ou o tempo de um slide | `docs/08-pendencias-da-entrega.md` e os tempos dos outros blocos | `test_vinte_e_um_slides_em_quatro_blocos` e `test_todos_apresentam_com_o_mesmo_tempo` |
+| um slide, um tempo ou um número de gráfico em uma das versões da apresentação | a outra versão (`gerar.js` ou `apresentacao-projeto1.html`) | `test_versao_html_tem_os_mesmos_slides_apresentadores_e_tempos` e `test_graficos_da_versao_html_usam_os_numeros_dos_slides` |
+| uma figura de `docs/modelagem/` | o `.pptx` (rodar o `gerar.js`) e o HTML (rodar o `embutir_figuras.py`) | `test_slides_usam_as_imagens_atuais_da_modelagem` e `test_versao_html_embute_as_imagens_atuais_da_modelagem` |
 
 Preencher o curso e a data na capa não quebra nada. Já deixar no texto um marcador de pendência (um nome entre colchetes no lugar de um integrante, uma anotação de tarefa em maiúsculas ou texto falso de preenchimento) faz o teste `test_nenhum_texto_pendente_esquecido` falhar, de propósito. A lista exata do que ele procura está no próprio teste, em `tests/test_coerencia.py`.
 
