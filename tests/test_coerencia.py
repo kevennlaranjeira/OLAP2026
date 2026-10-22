@@ -6,7 +6,9 @@ links, textos pendentes, hierarquias citadas e imagens embutidas nos slides.
 """
 from __future__ import annotations
 
+import base64
 import hashlib
+import json
 import re
 import zipfile
 from pathlib import Path
@@ -23,6 +25,7 @@ README = RAIZ / "README.md"
 RELATORIO = DOCS / "relatorio" / "relatorio-projeto1.tex"
 GERADOR = DOCS / "apresentacao" / "gerar.js"
 SLIDES = DOCS / "apresentacao" / "apresentacao-projeto1.pptx"
+HTML = DOCS / "apresentacao" / "apresentacao-projeto1.html"
 MODELAGEM = DOCS / "modelagem"
 
 INTEGRANTES = [
@@ -43,7 +46,7 @@ def markdowns() -> list[Path]:
 
 # ----------------------------------------------------------------------------- integrantes
 
-@pytest.mark.parametrize("arquivo", [README, RELATORIO, GERADOR], ids=lambda p: p.name)
+@pytest.mark.parametrize("arquivo", [README, RELATORIO, GERADOR, HTML], ids=lambda p: p.name)
 def test_integrantes_e_numeros_usp_iguais_em_todo_lugar(arquivo):
     texto = ler(arquivo)
     for nome, nusp in INTEGRANTES:
@@ -68,9 +71,11 @@ def test_consultas_iguais_na_documentacao_no_relatorio_e_nos_slides():
     doc = dict(re.findall(r"^\| (C\d) \| ([a-z\- ]+?) \|", ler(DOCS / "05-consultas.md"), re.MULTILINE))
     relatorio = {f"C{n}": t for n, t in re.findall(r"\\subsection\{Consulta (\d): ([a-z\- ]+)\}", ler(RELATORIO))}
     slides = dict(re.findall(r'\["(C\d)", "([a-z\- ]+)"', ler(GERADOR)))
+    html = dict(re.findall(r'>(C\d)</p><p style="[^"]*">([a-z\- ]+)</p>', ler(HTML)))
     assert doc == esperado
     assert relatorio == esperado
     assert slides == esperado
+    assert html == esperado
 
 
 # ----------------------------------------------------------------------------- contagens
@@ -82,7 +87,7 @@ def test_quatorze_verificacoes_documentadas():
     assert "def hierarquias" in ler(RAIZ / "src" / "dw_sme" / "qualidade" / "verificacoes.py")
     con.close()
     for arquivo, trecho in [(README, "catorze verificações"), (DOCS / "02-fluxo-de-dados.md", "Catorze verificações"),
-                            (GERADOR, "14 verificações")]:
+                            (GERADOR, "14 verificações"), (HTML, "14 verificações")]:
         assert trecho in ler(arquivo), f"{arquivo.name} não fala em {trecho}"
 
 
@@ -149,6 +154,62 @@ def test_todos_apresentam_com_o_mesmo_tempo():
     assert len(set(tempos.values())) == 1, f"tempos diferentes por integrante: {tempos}"
 
 
+# ----------------------------------------------------------------------------- versão em HTML
+
+APRESENTADOR = re.compile(r"Apresenta: ([^(]+) \(bloco (\d) de 4\)\. Tempo previsto: ([\d,]+) min")
+
+
+def secoes_html() -> list[str]:
+    return re.findall(r'<section id="[\w-]+".*?</section>', ler(HTML), re.S)
+
+
+def lista(texto: str, padrao: str) -> list[float]:
+    return [float(v) for v in re.search(padrao, texto, re.S).group(1).split(",")]
+
+
+def test_versao_html_tem_os_mesmos_slides_apresentadores_e_tempos():
+    secoes = secoes_html()
+    assert len(secoes) == 21
+    for numero, secao in enumerate(secoes[1:], start=2):
+        assert f"<b>{numero}</b></span> / 21" in secao, f"slide {numero} sem o número da página"
+    notas_html = [re.search(r"<aside>(.*?)</aside>", s, re.S).group(1) for s in secoes]
+    assert [APRESENTADOR.search(n).groups() for n in notas_html] == \
+        [APRESENTADOR.search(n).groups() for n in notas_dos_slides()]
+
+
+def test_graficos_da_versao_html_usam_os_numeros_dos_slides():
+    js, html = ler(GERADOR), ler(HTML)
+    fila_html = [float(v) for v in re.findall(r'\["20\d\d",(\d+)\]', re.search(r"var D=(\[.*?\]);", html).group(1))]
+    assert fila_html == lista(js, r'name: "Fila de creche em junho".*?values: \[([^\]]+)\]')
+    assert lista(html, r"var V=\[([\d.,]+)\],X0") == lista(js, r'name: "Fração fora da rede".*?values: \[([^\]]+)\]')
+    turmas = re.findall(r'\["[^"]+",([\d.]+),([\d.]+)\]', re.search(r"var G=(\[.*?\]);", html).group(1))
+    assert [float(a) for a, _ in turmas] == lista(js, r'name: "2019", labels: \[[^\]]+\], values: \[([^\]]+)\]')
+    assert [float(b) for _, b in turmas] == lista(js, r'name: "2024", labels: \[[^\]]+\], values: \[([^\]]+)\]')
+    for numero in ["124.741", "3.633", "13,4 mi", "26.889", "551 mil", "514.131", "598.406", "94,8% a 98,6%",
+                   "6.543", "402 escolas"]:
+        assert numero in js and numero in html, f"{numero} não está nas duas versões"
+
+
+def test_distritos_do_grafico_da_c7_batem_com_a_documentacao():
+    distritos = lista(ler(HTML), r"var V=\[([\d.,]+)\];")
+    consultas = ler(DOCS / "05-consultas.md")
+    assert len(distritos) == 96 and distritos == sorted(distritos)
+    assert sum(v < 50 for v in distritos) == 25 and "Em 25 deles" in consultas
+    assert sum(v > 100 for v in distritos) == 25 and "Em outros 25" in consultas
+    assert distritos[0] == 4.7 and "Jardim Paulista (4,7)" in consultas
+    assert distritos[-1] == 169.7 and "Lajeado (169,7)" in consultas
+
+
+def test_versao_html_abre_sozinha():
+    """Um arquivo só: sem scripts nem imagens de fora; da internet, só a fonte (com fonte do sistema de reserva)."""
+    html = ler(HTML)
+    assert "<script src" not in html and 'src="' not in html
+    assert set(re.findall(r'href="([^"]+)"', html)) <= {
+        "https://fonts.googleapis.com", "https://fonts.gstatic.com",
+        "https://fonts.googleapis.com/css2?family=Public+Sans:wght@400..800&family=Space+Grotesk:wght@400..700&display=swap",
+    }
+
+
 # ----------------------------------------------------------------------------- links e pendências
 
 @pytest.mark.parametrize("arquivo", markdowns(), ids=lambda p: p.name)
@@ -164,10 +225,12 @@ def test_links_internos_apontam_para_arquivos_que_existem(arquivo):
 PENDENTES = re.compile(r"\[NOME COMPLETO\]|\[Nº USP\]|\bTODO\b|\bFIXME\b|\bXXX\b|(?i:lorem ipsum)")
 
 
-@pytest.mark.parametrize("arquivo", [*markdowns(), RELATORIO, GERADOR, MODELAGEM / "modelagem.tex"],
+@pytest.mark.parametrize("arquivo", [*markdowns(), RELATORIO, GERADOR, HTML, MODELAGEM / "modelagem.tex"],
                          ids=lambda p: p.name)
 def test_nenhum_texto_pendente_esquecido(arquivo):
-    assert not PENDENTES.findall(ler(arquivo))
+    # as figuras embutidas no HTML são base64, não texto: "XXX" aparece nelas por acaso
+    texto = re.sub(r'<script id="figuras".*?</script>', "", ler(arquivo), flags=re.S)
+    assert not PENDENTES.findall(texto)
 
 
 def test_so_curso_e_data_ficam_para_o_grupo_preencher():
@@ -191,6 +254,15 @@ def test_slides_usam_as_imagens_atuais_da_modelagem():
     with zipfile.ZipFile(SLIDES) as z:
         embutidas = {hash_arquivo(z.read(n)) for n in z.namelist() if n.startswith("ppt/media/") and n.endswith(".png")}
     assert embutidas and embutidas == atuais
+
+
+def test_versao_html_embute_as_imagens_atuais_da_modelagem():
+    html = ler(HTML)
+    bloco = re.search(r'<script id="figuras" type="application/json">(.*?)</script>', html, re.S).group(1)
+    embutidas = {nome: hash_arquivo(base64.b64decode(dado.split(",", 1)[1])) for nome, dado in json.loads(bloco).items()}
+    atuais = {p.stem: hash_arquivo(p.read_bytes()) for p in MODELAGEM.glob("*.png")}
+    assert embutidas == atuais, "figuras do HTML desatualizadas: rode docs/apresentacao/embutir_figuras.py"
+    assert set(re.findall(r'data-figura="([\w-]+)"', html)) == set(atuais)
 
 
 def test_uma_imagem_por_esquema_do_relatorio():
