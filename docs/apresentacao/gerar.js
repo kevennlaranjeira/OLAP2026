@@ -292,7 +292,7 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
     ["Microdados de Matrículas", "SME-SP · anual",
       "Uma linha por vínculo aluno-turma: escola, turma, turno, série, idade, perfil, deficiência, datas e desfecho.\n\n13,4 milhões de matrículas de escolarização (2015-2024)."],
     ["Demanda Registrada e Matrículas", "SME-SP · trimestral, bimestral desde 2023",
-      "Por distrito e etapa: matrículas, matrículas em processo e fila.\n\n44 planilhas × 96 distritos no recorte; sete formatos diferentes."],
+      "Por distrito e etapa: matrículas, matrículas em processo e fila.\n\n44 meses (33 arquivos) × 96 distritos no recorte; sete formatos diferentes."],
     ["Censo Demográfico 2022", "IBGE · Agregados por Setores",
       "Pessoas residentes por setor censitário e grupo de idade (variáveis V01031 a V01041).\n\n26.889 setores do município, 11,4 milhões de moradores; referência 31/07/2022."],
   ];

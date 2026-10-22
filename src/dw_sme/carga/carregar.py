@@ -20,12 +20,14 @@ from __future__ import annotations
 import time
 from datetime import date
 from importlib import resources
+from pathlib import Path
 
 import duckdb
 import pandas as pd
 
 from ..config import Configuracao
 from ..preparacao import preparar_fila
+from ..texto_sql import literal
 from ..transformacao import datas, etapas, idade, microdados, populacao, situacao
 from ..transformacao import escolas as esc
 from ..transformacao import normalizacao as n
@@ -96,7 +98,7 @@ def _staging_matricula(con, cfg: Configuracao) -> int:
         ano = int(parquet.parent.name.split("=")[1])
         if ano not in cfg.anos:
             continue
-        fonte = f"read_parquet('{parquet.as_posix()}')"
+        fonte = f"read_parquet({literal(parquet)})"
         colunas = [r[0] for r in con.execute(f"DESCRIBE SELECT * FROM {fonte}").fetchall()]
         partes.append(microdados.sql_staging(fonte, ano, parquet.stem, colunas))
     if not partes:
@@ -546,60 +548,84 @@ def _observacoes_ano(con, identificadas: pd.DataFrame) -> None:
 
 # ----------------------------------------------------------------------------- orquestração
 
+def _apagar_banco(caminho: Path) -> None:
+    for arquivo in (caminho, caminho.with_name(caminho.name + ".wal")):
+        arquivo.unlink(missing_ok=True)
+
+
 def carregar_tudo(cfg: Configuracao) -> dict:
+    """Carrega o data warehouse num arquivo novo e só no fim troca o anterior por ele.
+
+    Recarregar sobre o mesmo arquivo deixaria nele o espaço das tabelas apagadas, que o DuckDB não
+    devolve ao disco (o banco quase dobrava a cada recarga), e uma falha no meio da carga deixaria o
+    banco anterior pela metade. Assim, o arquivo final tem só o que foi carregado, e uma carga que
+    falha não toca no banco que já existia.
+    """
     inicio = time.time()
     cfg.banco.parent.mkdir(parents=True, exist_ok=True)
+    novo = cfg.banco.with_name(f"{cfg.banco.stem}_carregando{cfg.banco.suffix}")
+    _apagar_banco(novo)
+    con = duckdb.connect(str(novo))
+    try:
+        resumo = _carregar(con, cfg)
+    except BaseException:
+        con.close()
+        _apagar_banco(novo)
+        raise
+    con.close()
+    _apagar_banco(cfg.banco)
+    novo.replace(cfg.banco)
+    resumo["segundos"] = round(time.time() - inicio, 1)
+    return resumo
+
+
+def _carregar(con, cfg: Configuracao) -> dict:
     staging = cfg.dir_dados / "interim" / "staging.duckdb"
     staging.parent.mkdir(parents=True, exist_ok=True)
     staging.unlink(missing_ok=True)
-    con = duckdb.connect(str(cfg.banco))
-    try:
-        criar_esquema(con)
-        con.execute(f"ATTACH '{staging.as_posix()}' AS stgdb")
-        cfg.log("  staging do microdado")
-        linhas_staging = _staging_matricula(con, cfg)
-        cfg.log("  tabelas de correspondência e identificação das escolas")
-        aux = _mapas(con)
-        preparadas, excluidas = _preparar_matricula(con)
-        cfg.log("  planilhas de fila")
-        fila_df, fila_meta = preparar_fila(cfg)
+    criar_esquema(con)
+    con.execute(f"ATTACH {literal(staging)} AS stgdb")
+    cfg.log("  staging do microdado")
+    linhas_staging = _staging_matricula(con, cfg)
+    cfg.log("  tabelas de correspondência e identificação das escolas")
+    aux = _mapas(con)
+    preparadas, excluidas = _preparar_matricula(con)
+    cfg.log("  planilhas de fila")
+    fila_df, fila_meta = preparar_fila(cfg)
 
-        cfg.log("  dimensões")
-        _dim_tempo(con, cfg, fila_meta)
-        _dim_data(con, cfg)
-        _dim_ano_letivo(con, aux["qualidade"])
-        _dim_territorio(con, fila_df)
-        _dim_escola(con, aux["versoes"])
-        _dim_etapa_e_serie(con)
-        _dim_turno(con)
-        _dim_idade(con)
-        _dim_faixa_etaria(con)
-        _dims_bugiganga(con)
+    cfg.log("  dimensões")
+    _dim_tempo(con, cfg, fila_meta)
+    _dim_data(con, cfg)
+    _dim_ano_letivo(con, aux["qualidade"])
+    _dim_territorio(con, fila_df)
+    _dim_escola(con, aux["versoes"])
+    _dim_etapa_e_serie(con)
+    _dim_turno(con)
+    _dim_idade(con)
+    _dim_faixa_etaria(con)
+    _dims_bugiganga(con)
 
-        cfg.log("  fatos")
-        resumo: dict[str, object] = {
-            "linhas_staging": linhas_staging,
-            "excluidas_sem_etapa": excluidas,
-            "fato_matricula": _fato_matricula(con),
-            "fato_fila": _fato_fila(con, fila_df),
-            "fato_desfecho": _fato_desfecho(con),
-            "fato_turma": _fato_turma(con),
-        }
-        cfg.log("  população do Censo 2022")
-        resumo["populacao"] = _populacao(con, cfg)
-        resumo["fato_populacao"] = con.execute("SELECT count(*) FROM dw.fato_populacao").fetchall()[0][0]
-        _observacoes_ano(con, aux["identificadas"])
-        for tabela in ("dim_tempo", "dim_data", "dim_ano_letivo", "dim_territorio", "dim_escola", "dim_etapa",
-                       "dim_serie", "dim_turno", "dim_idade", "dim_faixa_etaria", "dim_setor_censitario",
-                       "dim_perfil_aluno", "dim_deficiencia", "dim_situacao_matricula"):
-            resumo[tabela] = con.execute(f"SELECT count(*) FROM dw.{tabela}").fetchall()[0][0]
-        resumo["vinculo_escola"] = esc.resumo_vinculo(aux["identificadas"]).astype(int).to_dict(orient="index")
-        resumo["fila_metadados"] = fila_meta
-        con.execute("DETACH stgdb")
-        if not cfg.manter_staging:
-            staging.unlink(missing_ok=True)
-        con.execute("CHECKPOINT")
-        resumo["segundos"] = round(time.time() - inicio, 1)
-        return resumo
-    finally:
-        con.close()
+    cfg.log("  fatos")
+    resumo: dict[str, object] = {
+        "linhas_staging": linhas_staging,
+        "excluidas_sem_etapa": excluidas,
+        "fato_matricula": _fato_matricula(con),
+        "fato_fila": _fato_fila(con, fila_df),
+        "fato_desfecho": _fato_desfecho(con),
+        "fato_turma": _fato_turma(con),
+    }
+    cfg.log("  população do Censo 2022")
+    resumo["populacao"] = _populacao(con, cfg)
+    resumo["fato_populacao"] = con.execute("SELECT count(*) FROM dw.fato_populacao").fetchall()[0][0]
+    _observacoes_ano(con, aux["identificadas"])
+    for tabela in ("dim_tempo", "dim_data", "dim_ano_letivo", "dim_territorio", "dim_escola", "dim_etapa",
+                   "dim_serie", "dim_turno", "dim_idade", "dim_faixa_etaria", "dim_setor_censitario",
+                   "dim_perfil_aluno", "dim_deficiencia", "dim_situacao_matricula"):
+        resumo[tabela] = con.execute(f"SELECT count(*) FROM dw.{tabela}").fetchall()[0][0]
+    resumo["vinculo_escola"] = esc.resumo_vinculo(aux["identificadas"]).astype(int).to_dict(orient="index")
+    resumo["fila_metadados"] = fila_meta
+    con.execute("DETACH stgdb")
+    if not cfg.manter_staging:
+        staging.unlink(missing_ok=True)
+    con.execute("CHECKPOINT")
+    return resumo

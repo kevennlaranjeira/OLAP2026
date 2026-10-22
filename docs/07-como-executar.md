@@ -6,7 +6,7 @@
 |---|---|---|
 | Python | 3.11 ou mais novo (testado no 3.13) | todo o pipeline |
 | 7-Zip | qualquer | abrir o pacote `.rar` de microdados de 2019 a 2021 |
-| Espaço em disco | cerca de 3,5 GB livres | 0,9 GB de pacotes, 0,4 GB de Parquet, 0,6 GB de banco, ~1,5 GB de staging temporário durante a carga e 38 MB dos arquivos do Censo 2022 |
+| Espaço em disco | cerca de 3,5 GB livres | 0,65 GB de pacotes e planilhas baixados (inclui os 38 MB do Censo 2022), 0,4 GB de Parquet, 0,35 GB de banco e, durante a carga, o staging temporário (cerca de 2 GB) e o banco novo ao lado do anterior até a troca no fim |
 | Memória | 8 GB recomendados | a carga usa de 2 a 4 GB |
 
 Sem o 7-Zip o pipeline roda todos os anos exceto 2019, 2020 e 2021, e avisa com uma mensagem clara.

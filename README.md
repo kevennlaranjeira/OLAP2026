@@ -24,7 +24,7 @@ Chegou agora no grupo? Leia o [Guia do grupo](docs/11-guia-do-grupo.md): ele exp
 | o resultado das 14 verificações de qualidade | [docs/relatorios/qualidade.md](docs/relatorios/qualidade.md) |
 | o código do pipeline | [src/dw_sme/](src/dw_sme/) (ver [Estrutura](#estrutura)) |
 | os testes | [tests/](tests/); o que cada um confere está no [guia, parte 7](docs/11-guia-do-grupo.md#7-rodar-os-testes) |
-| o que o GitHub roda a cada envio | [.github/workflows/testes.yml](.github/workflows/testes.yml) |
+| o que o GitHub roda a cada envio | [.github/workflows/testes.yml](.github/workflows/testes.yml) (lint e testes) e [.github/workflows/relatorio.yml](.github/workflows/relatorio.yml) (compila o relatório e deixa o PDF para baixar) |
 | os dados baixados e o banco | na pasta `data/` do seu computador, depois de rodar o pipeline; ela não vai para o GitHub |
 
 ## O que tem aqui
@@ -36,8 +36,8 @@ Chegou agora no grupo? Leia o [Guia do grupo](docs/11-guia-do-grupo.md): ele exp
 | Recorte | 2015 a 2024 (configurável); população na data do Censo 2022 |
 | Volume | 13,4 milhões de matrículas, 551 mil turmas, 44 meses de fila × 96 distritos × 8 etapas, 26.889 setores censitários com 11,4 milhões de moradores |
 | Modelo | constelação com 5 tabelas de fatos e 14 dimensões |
-| Banco | DuckDB, um arquivo de ~600 MB, carregado em ~3,5 minutos |
-| Testes | 485 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 41 a coerência entre código, documentos, slides e imagens, 10 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
+| Banco | DuckDB, um arquivo de ~335 MB, carregado em ~3,5 minutos |
+| Testes | 487 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 43 a coerência entre código, documentos, slides e imagens, 12 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
 | Consultas | dois drill-down, um roll-up, slice and dice, pivot e três drill-across |
 
 ## O que os dados mostram
@@ -112,7 +112,7 @@ src/dw_sme/
   pipeline.py      etapas baixar, preparar, carregar, verificar, consultar
   cli.py           linha de comando dw-sme
 tests/             testes, fixtures reais da fila, microdado e Censo sintéticos
-.github/workflows/ testes e lint a cada push
+.github/workflows/ testes e lint a cada push; compilação do relatório quando ele muda
 pyproject.toml     pacote, dependências e configuração de pytest, ruff e pyright
 ```
 
