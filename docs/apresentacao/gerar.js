@@ -3,24 +3,34 @@
 // As figuras dos esquemas vêm de docs/modelagem/ (geradas por figuras.tex na mesma pasta).
 // Todos os números dos slides vêm da carga com os dados reais documentada em docs/05-consultas.md.
 // Cada slide declara quem apresenta e o tempo previsto; o slide de roteiro soma os tempos por bloco.
+//
+// Sistema visual: azul-ardósia dominante, cobalto para dados, âmbar como único acento; cartões
+// arredondados com sombra leve e selos numerados em âmbar; etiqueta do bloco acima de cada título;
+// número da página no rodapé. Movimento só por opacidade: transição de esmaecimento em todos os
+// slides e entrada em sequência dos elementos marcados com objectName "anim:<ordem>:<nome>".
 "use strict";
 const fs = require("fs");
 const path = require("path");
-const pptxgen = require(process.env.PPTXGENJS || "pptxgenjs");
+const MODULO_PPTX = process.env.PPTXGENJS || "pptxgenjs";
+const pptxgen = require(MODULO_PPTX);
 
 const AQUI = __dirname;
 const FIG = (nome) => path.join(AQUI, "..", "modelagem", nome);
+const TOTAL_SLIDES = 21;
 
-const ESCURO = "183D3D";
-const TINTA = "E7F0ED";
-const AREIA = "F6EBD3";
-const DESTAQUE = "D98E04";
-const DESTAQUE_TEXTO = "8A5A00";
-const TEXTO = "1E2B2B";
-const SUAVE = "56676A";
-const BRANCO = "FFFFFF";
-const TITULO = "Cambria";
-const CORPO = "Calibri";
+const COR = {
+  tinta: "1B2A4A",        // azul-ardósia profundo, cor dominante
+  cobalto: "2E5EAA",      // dados e destaques sobre fundo claro
+  ambar: "F2A541",        // acento único: selos e números sobre fundo escuro
+  ambarTexto: "8A5300",   // âmbar escuro, legível como texto sobre fundo claro
+  nevoa: "EEF2F8",        // fundo de cartão e de linha alternada
+  borda: "D6E0F0",
+  texto: "1F2937",
+  suave: "566175",
+  branco: "FFFFFF",
+  claroNoEscuro: "C9D3E6",
+};
+const FONTE = "Calibri";
 
 const INTEGRANTES = [
   ["Kevenn Laranjeira de Oliveira", "18046529"],
@@ -34,6 +44,8 @@ const BLOCO = {
   3: "Daniel Afonso Borges dos Santos",
   4: "Luís Antônio Arruda Soares",
 };
+const PRIMEIRO_NOME = { 1: "Kevenn", 2: "Thiago", 3: "Daniel", 4: "Luís" };
+const TEMA_DO_BLOCO = { 1: "Motivação", 2: "Fontes e integração", 3: "Esquemas", 4: "Consultas e decisões" };
 const ASSUNTO_DO_BLOCO = {
   1: "Motivação: o problema, as perguntas do gestor, a escolha de São Paulo e os cinco assuntos de interesse.",
   2: "Fontes de dados, integração, problemas nos dados, grão e aditividade e a estrela Matrícula.",
@@ -45,77 +57,115 @@ const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE"; // 13,33 x 7,5 polegadas
 pres.title = "Rede Municipal Paulistana: oferta escolar e demanda não atendida";
 pres.author = "Grupo 7, SCC0245";
+pres.theme = { headFontFace: FONTE, bodyFontFace: FONTE };
 
+// ------------------------------------------------------------------ layouts: rodapé e número da página
+function layout(nome, fundo, corRodape, corNumero) {
+  pres.defineSlideMaster({
+    title: nome,
+    background: { color: fundo },
+    objects: [
+      { text: { text: "SCC0245 · Grupo 7 · Rede Municipal Paulistana", options: {
+        x: 0.6, y: 7.02, w: 7.5, h: 0.3, fontFace: FONTE, fontSize: 10, color: corRodape, margin: 0 } } },
+      { text: { text: `/ ${TOTAL_SLIDES}`, options: {
+        x: 12.31, y: 7.0, w: 0.5, h: 0.32, fontFace: FONTE, fontSize: 11, color: corRodape, margin: 0, valign: "middle" } } },
+    ],
+    slideNumber: { x: 11.79, y: 7.0, w: 0.5, h: 0.32, fontFace: FONTE, fontSize: 11, bold: true, color: corNumero, align: "right" },
+  });
+}
+layout("CLARO", COR.branco, COR.suave, COR.cobalto);
+layout("ESCURO", COR.tinta, COR.claroNoEscuro, COR.ambar);
+pres.defineSlideMaster({ title: "CAPA", background: { color: COR.tinta } });
+
+// ------------------------------------------------------------------ utilitários
 let numero = 0;
+let objeto = 0;
 const slidesDoBloco = { 1: [], 2: [], 3: [], 4: [] };
 const minutosDoBloco = { 1: 0, 2: 0, 3: 0, 4: 0 };
 const virgula = (n) => String(n).replace(".", ",");
+const anim = (ordem) => ({ objectName: `anim:${ordem}:${(objeto += 1)}` });
+const sombra = () => ({ type: "outer", blur: 8, offset: 2, angle: 90, color: "1B2A4A", opacity: 0.14 });
 
-function novoSlide(titulo, bloco, minutos, notas, escuro = false) {
-  const s = pres.addSlide();
+function novoSlide(titulo, bloco, minutos, notas, opcoes = {}) {
+  const s = pres.addSlide({ masterName: opcoes.master || "CLARO" });
   numero += 1;
   slidesDoBloco[bloco].push(numero);
   minutosDoBloco[bloco] += minutos;
-  s.background = { color: escuro ? ESCURO : BRANCO };
+  const escuro = opcoes.master === "ESCURO";
   if (titulo) {
-    s.addText(titulo, {
-      x: 0.6, y: 0.35, w: 12.1, h: 0.85, fontFace: TITULO, fontSize: 30, bold: true,
-      color: escuro ? BRANCO : ESCURO, margin: 0, isTextBox: true, valign: "middle",
+    s.addText(`BLOCO ${bloco} · ${TEMA_DO_BLOCO[bloco].toUpperCase()} · ${PRIMEIRO_NOME[bloco].toUpperCase()}`, {
+      x: 0.6, y: 0.38, w: 12.1, h: 0.3, fontFace: FONTE, fontSize: 12, bold: true, charSpacing: 1,
+      color: escuro ? COR.ambar : COR.cobalto, margin: 0, isTextBox: true,
     });
-  }
-  if (numero > 1) {
-    s.addText(String(numero), {
-      x: 12.2, y: 7.0, w: 0.6, h: 0.3, fontFace: CORPO, fontSize: 10, color: escuro ? "B9CFC9" : SUAVE,
-      align: "right", margin: 0, isTextBox: true,
+    s.addText(titulo, {
+      x: 0.6, y: 0.7, w: 12.1, h: 0.75, fontFace: FONTE, fontSize: 32, bold: true,
+      color: escuro ? COR.branco : COR.tinta, margin: 0, isTextBox: true, valign: "middle",
     });
   }
   s.addNotes(`Apresenta: ${BLOCO[bloco]} (bloco ${bloco} de 4). Tempo previsto: ${virgula(minutos)} min.\n\n${notas}`);
   return s;
 }
 
-function cartao(s, x, y, w, h, titulo, corpo, opcoes = {}) {
+function cartao(s, x, y, w, h, opcoes = {}) {
   s.addShape(pres.shapes.ROUNDED_RECTANGLE, {
-    x, y, w, h, fill: { color: opcoes.fundo || TINTA }, line: { color: opcoes.fundo || TINTA }, rectRadius: 0.08,
-  });
-  s.addText(titulo, {
-    x: x + 0.25, y: y + 0.18, w: w - 0.5, h: opcoes.altTitulo || 0.45, fontFace: CORPO, fontSize: opcoes.tamTitulo || 17,
-    bold: true, color: ESCURO, margin: 0, isTextBox: true, valign: "top",
-  });
-  s.addText(corpo, {
-    x: x + 0.25, y: y + (opcoes.corpoY || 0.68), w: w - 0.5, h: h - (opcoes.corpoY || 0.68) - 0.17,
-    fontFace: CORPO, fontSize: opcoes.tamCorpo || 13.5,
-    color: TEXTO, margin: 0, isTextBox: true, valign: "top", paraSpaceAfter: 4,
+    x, y, w, h, rectRadius: 0.12,
+    fill: { color: opcoes.fundo || COR.branco, transparency: opcoes.transparencia || 0 },
+    line: { color: opcoes.borda || (opcoes.fundo ? opcoes.fundo : COR.borda), width: 0.75 },
+    shadow: opcoes.semSombra ? undefined : sombra(), ...(opcoes.ordem ? anim(opcoes.ordem) : {}),
   });
 }
 
-function circulo(s, x, y, rotulo, d = 0.55) {
-  s.addShape(pres.shapes.OVAL, { x, y, w: d, h: d, fill: { color: DESTAQUE }, line: { color: DESTAQUE } });
-  s.addText(rotulo, {
-    x, y, w: d, h: d, fontFace: CORPO, fontSize: 15, bold: true, color: BRANCO, align: "center",
-    valign: "middle", margin: 0, isTextBox: true,
+function texto(s, conteudo, x, y, w, h, opcoes = {}) {
+  s.addText(conteudo, {
+    x, y, w, h, fontFace: FONTE, fontSize: opcoes.tam || 15, bold: Boolean(opcoes.negrito),
+    italic: Boolean(opcoes.italico), color: opcoes.cor || COR.texto, align: opcoes.alinhar || "left",
+    valign: opcoes.valign || "top", margin: 0, isTextBox: true, paraSpaceAfter: opcoes.espaco || 0,
+    charSpacing: opcoes.espacamento, ...(opcoes.ordem ? anim(opcoes.ordem) : {}),
   });
 }
 
-function itens(lista, tam = 15) {
+function selo(s, x, y, rotulo, opcoes = {}) {
+  const d = opcoes.d || 0.5;
+  s.addShape(pres.shapes.OVAL, {
+    x, y, w: d, h: d, fill: { color: opcoes.fundo || COR.ambar }, line: { color: opcoes.fundo || COR.ambar },
+    ...(opcoes.ordem ? anim(opcoes.ordem) : {}),
+  });
+  texto(s, rotulo, x, y, d, d, { tam: opcoes.tam || 15, negrito: true, cor: opcoes.cor || COR.tinta,
+    alinhar: "center", valign: "middle", ordem: opcoes.ordem });
+}
+
+function etiqueta(s, rotulo, x, y, w, opcoes = {}) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, {
+    x, y, w, h: opcoes.h || 0.34, rectRadius: 0.17, fill: { color: opcoes.fundo || COR.cobalto },
+    line: { color: opcoes.fundo || COR.cobalto }, ...(opcoes.ordem ? anim(opcoes.ordem) : {}),
+  });
+  texto(s, rotulo, x, y, w, opcoes.h || 0.34, { tam: opcoes.tam || 12, negrito: true, cor: opcoes.cor || COR.branco,
+    alinhar: "center", valign: "middle", ordem: opcoes.ordem });
+}
+
+function itens(lista, tam = 15, cor = COR.texto) {
   return lista.map((t, i) => ({
-    text: t, options: { bullet: true, breakLine: i < lista.length - 1, fontSize: tam, paraSpaceAfter: 8 },
+    text: t, options: { bullet: { indent: 18 }, breakLine: i < lista.length - 1, fontSize: tam, color: cor, paraSpaceAfter: 6 },
   }));
 }
 
-function fonte(s, texto) {
-  s.addText(texto, {
-    x: 0.6, y: 6.95, w: 11.2, h: 0.35, fontFace: CORPO, fontSize: 10, color: SUAVE, italic: true,
-    margin: 0, isTextBox: true,
-  });
+function fonte(s, conteudo) {
+  texto(s, conteudo, 0.6, 6.66, 11.2, 0.28, { tam: 10, italico: true, cor: COR.suave });
 }
 
 function tabela(s, cabecalho, linhas, opcoes) {
-  const cab = cabecalho.map((t) => ({ text: t, options: { bold: true, color: BRANCO, fill: { color: ESCURO } } }));
+  const cab = cabecalho.map((t) => ({ text: t, options: { bold: true, color: COR.branco, fill: { color: COR.tinta } } }));
   const corpo = linhas.map((l, i) => l.map((t, j) => ({
-    text: t, options: { fill: { color: i % 2 ? BRANCO : TINTA }, bold: Boolean(opcoes.primeiraEmNegrito && j === 0) },
+    text: t,
+    options: {
+      fill: { color: i % 2 ? COR.branco : COR.nevoa },
+      bold: Boolean(opcoes.primeiraEmNegrito && j === 0) || Boolean(opcoes.corDaColuna && opcoes.corDaColuna(j, t)),
+      color: (opcoes.corDaColuna && opcoes.corDaColuna(j, t)) || COR.texto,
+    },
   })));
   s.addTable([cab, ...corpo], {
-    fontFace: CORPO, color: TEXTO, border: { type: "solid", color: "C9D8D3", pt: 0.75 }, valign: "middle", ...opcoes.tabela,
+    fontFace: FONTE, color: COR.texto, border: { type: "solid", color: COR.borda, pt: 0.75 }, valign: "middle",
+    margin: [0.06, 0.12, 0.06, 0.12], ...opcoes.tabela,
   });
 }
 
@@ -125,28 +175,14 @@ function proporcao(arquivo) {
   return cab.readUInt32BE(0) / cab.readUInt32BE(4);
 }
 
-// cabe a figura na caixa (x, y, w, hMax) sem distorcer
-function figura(s, arquivo, x, y, w, hMax, descricao) {
+// figura dentro de uma moldura branca com sombra, centrada na caixa (x, y, w, h)
+function figuraEmMoldura(s, arquivo, x, y, w, h, descricao, ordem) {
+  cartao(s, x, y, w, h, { ordem });
   const p = proporcao(arquivo);
-  const largura = Math.min(w, hMax * p);
-  s.addImage({ path: FIG(arquivo), x, y, w: largura, h: largura / p, altText: descricao });
-}
-
-// slide de um esquema estrela largo: figura na largura do slide, leitura do esquema em duas colunas embaixo
-function estrela(titulo, arquivo, descricao, lista, notas) {
-  const s = novoSlide(titulo, 3, 1, notas);
-  const p = proporcao(arquivo);
-  const largura = Math.min(12.1, 4.1 * p);
+  const largura = Math.min(w - 0.4, (h - 0.3) * p);
   const altura = largura / p;
-  s.addImage({ path: FIG(arquivo), x: 0.6 + (12.1 - largura) / 2, y: 1.3, w: largura, h: altura, altText: descricao });
-  const y = 1.3 + altura + 0.3;
-  const meio = Math.ceil(lista.length / 2);
-  [lista.slice(0, meio), lista.slice(meio)].forEach((coluna, i) => {
-    s.addText(itens(coluna, 15).map((t) => ({ ...t, options: { ...t.options, paraSpaceAfter: 4 } })), {
-      x: 0.6 + i * 6.15, y, w: 5.95, h: 6.9 - y, fontFace: CORPO, color: TEXTO, margin: 0, isTextBox: true, valign: "top",
-    });
-  });
-  return s;
+  s.addImage({ path: FIG(arquivo), x: x + (w - largura) / 2, y: y + (h - altura) / 2, w: largura, h: altura,
+    altText: descricao, ...anim(ordem) });
 }
 
 // ================================================================== bloco 1: motivação
@@ -156,25 +192,29 @@ function estrela(titulo, arquivo, descricao, lista, notas) {
   const s = novoSlide(null, 1, 0.5,
     "Abertura. Apresentar o grupo, a disciplina e o tema: política pública municipal de educação. " +
     "Dizer em uma frase a pergunta do trabalho: onde existe fila por vaga, onde existe oferta, se a oferta está cheia, " +
-    "quantas crianças moram em cada lugar e o que acontece com quem consegue a vaga.", true);
-  s.addText("SCC0245 Processamento Analítico de Dados · Primeiro Trabalho Prático · Grupo 7", {
-    x: 0.8, y: 0.7, w: 11.5, h: 0.4, fontFace: CORPO, fontSize: 15, color: "B9CFC9", margin: 0, isTextBox: true,
+    "quantas crianças moram em cada lugar e o que acontece com quem consegue a vaga.", { master: "CAPA" });
+  texto(s, "SCC0245 · PROCESSAMENTO ANALÍTICO DE DADOS · PRIMEIRO TRABALHO PRÁTICO", 0.8, 0.75, 11.5, 0.35,
+    { tam: 13, negrito: true, cor: COR.ambar, espacamento: 1 });
+  texto(s, "Rede Municipal Paulistana: oferta escolar e demanda não atendida", 0.8, 1.25, 8.0, 1.95,
+    { tam: 40, negrito: true, cor: COR.branco });
+  texto(s, "Um data warehouse para decidir onde abrir vagas, com dados abertos da SME-SP e do IBGE", 0.8, 3.3, 7.6, 0.8,
+    { tam: 18, cor: COR.claroNoEscuro });
+  etiqueta(s, "GRUPO 7", 0.8, 4.35, 1.35, { fundo: COR.ambar, cor: COR.tinta, ordem: 1 });
+  INTEGRANTES.forEach(([nome, nusp], i) => {
+    const x = 0.8 + (i % 2) * 4.05;
+    const y = 4.9 + Math.floor(i / 2) * 0.86;
+    cartao(s, x, y, 3.85, 0.72, { fundo: COR.branco, transparencia: 90, borda: "3A4D73", semSombra: true, ordem: 2 + i });
+    texto(s, nome, x + 0.2, y + 0.07, 3.5, 0.32, { tam: 14, negrito: true, cor: COR.branco, ordem: 2 + i });
+    texto(s, `Nº USP ${nusp}`, x + 0.2, y + 0.38, 3.5, 0.26, { tam: 12, cor: COR.claroNoEscuro, ordem: 2 + i });
   });
-  s.addText("Rede Municipal Paulistana: oferta escolar e demanda não atendida", {
-    x: 0.8, y: 1.45, w: 11.0, h: 1.9, fontFace: TITULO, fontSize: 40, bold: true, color: BRANCO, margin: 0,
-    isTextBox: true, valign: "top",
-  });
-  s.addText("Um data warehouse para decidir onde abrir vagas, com dados abertos da SME-SP e do IBGE", {
-    x: 0.8, y: 3.35, w: 11.0, h: 0.5, fontFace: CORPO, fontSize: 18, italic: true, color: "F2C46B", margin: 0,
-    isTextBox: true,
-  });
-  s.addText(INTEGRANTES.map(([nome, nusp], i) => ({
-    text: `${nome}   ${nusp}`, options: { breakLine: i < INTEGRANTES.length - 1, fontSize: 16, paraSpaceAfter: 6 },
-  })), { x: 0.8, y: 4.45, w: 7.5, h: 1.8, fontFace: CORPO, color: BRANCO, margin: 0, isTextBox: true, valign: "top" });
-  s.addText("Profa. Dra. Cristina Dutra de Aguiar\nICMC-USP, São Carlos", {
-    x: 8.6, y: 5.45, w: 4.0, h: 0.8, fontFace: CORPO, fontSize: 14, color: "B9CFC9", align: "right", margin: 0,
-    isTextBox: true,
-  });
+  [["13,4 mi", "matrículas de 2015 a 2024"], ["44", "meses de fila por distrito"], ["26.889", "setores censitários do Censo 2022"]]
+    .forEach(([valor, rotulo], i) => {
+      const y = 1.35 + i * 1.55;
+      texto(s, valor, 9.35, y, 3.4, 0.75, { tam: 40, negrito: true, cor: COR.ambar, ordem: 6 + i });
+      texto(s, rotulo, 9.35, y + 0.75, 3.4, 0.4, { tam: 13, cor: COR.claroNoEscuro, ordem: 6 + i });
+    });
+  texto(s, "Profa. Dra. Cristina Dutra de Aguiar · ICMC-USP, São Carlos", 0.8, 6.8, 9.0, 0.35,
+    { tam: 13, cor: COR.claroNoEscuro });
 }
 
 // ------------------------------------------------------------------ 2. roteiro (preenchido no fim)
@@ -194,21 +234,16 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
     "A falta de vaga em creche foi por anos o principal problema de acesso da educação infantil em São Paulo.",
     "PNE (Lei 13.005/2014), Meta 1: creche para ao menos metade das crianças de até 3 anos; pré-escola universal.",
     "Para decidir onde abrir vagas, o gestor precisa cruzar fila, matrícula, ocupação das turmas e população, que estão em bases diferentes.",
-  ], 16), { x: 0.6, y: 1.5, w: 6.4, h: 4.6, fontFace: CORPO, color: TEXTO, margin: 0, isTextBox: true, valign: "top" });
-  cartao(s, 7.5, 1.5, 5.2, 2.3, "Fila de creche em junho de 2015", "");
-  s.addText("124.741 crianças", {
-    x: 7.75, y: 2.2, w: 4.8, h: 1.0, fontFace: TITULO, fontSize: 34, bold: true, color: DESTAQUE_TEXTO, margin: 0,
-    isTextBox: true,
-  });
-  s.addText("34% da demanda de creche fora da rede", { x: 7.75, y: 3.15, w: 4.8, h: 0.4, fontFace: CORPO, fontSize: 14,
-    color: TEXTO, margin: 0, isTextBox: true });
-  cartao(s, 7.5, 4.05, 5.2, 2.3, "Fila de creche em junho de 2024", "");
-  s.addText("3.633 crianças", {
-    x: 7.75, y: 4.75, w: 4.8, h: 1.0, fontFace: TITULO, fontSize: 34, bold: true, color: ESCURO, margin: 0,
-    isTextBox: true,
-  });
-  s.addText("1% da demanda de creche fora da rede", { x: 7.75, y: 5.7, w: 4.8, h: 0.4, fontFace: CORPO, fontSize: 14,
-    color: TEXTO, margin: 0, isTextBox: true });
+  ], 17), { x: 0.6, y: 1.8, w: 6.2, h: 4.4, fontFace: FONTE, margin: 0, isTextBox: true, valign: "top", ...anim(1) });
+  cartao(s, 7.2, 1.75, 5.5, 4.75, { fundo: COR.nevoa, semSombra: true, ordem: 2 });
+  texto(s, "FILA DE CRECHE EM JUNHO", 7.55, 1.98, 4.8, 0.3, { tam: 12, negrito: true, cor: COR.suave, espacamento: 1, ordem: 2 });
+  texto(s, "2015", 7.55, 2.45, 1.2, 0.4, { tam: 15, negrito: true, cor: COR.suave, ordem: 2 });
+  texto(s, "124.741", 7.55, 2.8, 4.5, 0.9, { tam: 48, negrito: true, cor: COR.tinta, ordem: 2 });
+  texto(s, "crianças · 34% da demanda fora da rede", 7.55, 3.7, 4.8, 0.35, { tam: 14, cor: COR.texto, ordem: 2 });
+  etiqueta(s, "-97%", 11.25, 3.98, 1.1, { fundo: COR.ambar, cor: COR.tinta, tam: 14, h: 0.42, ordem: 3 });
+  texto(s, "2024", 7.55, 4.45, 1.2, 0.4, { tam: 15, negrito: true, cor: COR.suave, ordem: 4 });
+  texto(s, "3.633", 7.55, 4.8, 4.5, 0.9, { tam: 48, negrito: true, cor: COR.cobalto, ordem: 4 });
+  texto(s, "crianças · 1% da demanda fora da rede", 7.55, 5.7, 4.8, 0.35, { tam: 14, cor: COR.texto, ordem: 4 });
   fonte(s, "Fonte: Demanda Registrada e Matrículas (SME-SP); consulta 5 sobre a carga com os dados reais.");
 }
 
@@ -218,17 +253,19 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
     "Quem usa: Secretaria Municipal de Educação e as 13 Diretorias Regionais. Cada cartão é uma decisão real de política " +
     "pública e cita as consultas que a apoiam. Destacar que a capacidade das turmas não é publicada, então medimos a ocupação.");
   const perguntas = [
-    ["Onde abrir vagas?", "Fila por distrito e DRE, fila contra matrícula e contra a população de 0 a 4 anos.", "C1 · C5 · C7"],
-    ["Como a oferta é feita?", "Peso da rede conveniada e da jornada integral na creche e em cada DRE.", "C3 · C4"],
-    ["Turma nova ou lugar ocioso?", "Alunos por turma em funcionamento, do município ao distrito.", "C8"],
-    ["Fila e abandono andam juntos?", "Fila de creche e abandono no ensino fundamental, por DRE.", "C6"],
+    ["Onde abrir vagas?", "Fila por distrito e DRE, fila contra matrícula e contra a população de 0 a 4 anos.", ["C1", "C5", "C7"]],
+    ["Como a oferta é feita?", "Peso da rede conveniada e da jornada integral na creche e em cada DRE.", ["C3", "C4"]],
+    ["Turma nova ou lugar ocioso?", "Alunos por turma em funcionamento, do município ao distrito.", ["C8"]],
+    ["Fila e abandono andam juntos?", "Fila de creche e abandono no ensino fundamental, por DRE.", ["C6"]],
   ];
-  perguntas.forEach(([t, c, q], i) => {
+  perguntas.forEach(([t, c, cods], i) => {
     const x = 0.6 + (i % 2) * 6.15;
-    const y = 1.5 + Math.floor(i / 2) * 2.65;
-    cartao(s, x, y, 5.95, 2.4, t, c, { tamTitulo: 19, tamCorpo: 15 });
-    s.addText(q, { x: x + 0.25, y: y + 1.85, w: 5.4, h: 0.4, fontFace: CORPO, fontSize: 14, bold: true,
-      color: DESTAQUE_TEXTO, margin: 0, isTextBox: true });
+    const y = 1.75 + Math.floor(i / 2) * 2.5;
+    cartao(s, x, y, 5.95, 2.25, { ordem: i + 1 });
+    selo(s, x + 0.3, y + 0.32, String(i + 1), { d: 0.6, ordem: i + 1 });
+    texto(s, t, x + 1.15, y + 0.3, 4.55, 0.45, { tam: 19, negrito: true, cor: COR.tinta, ordem: i + 1 });
+    texto(s, c, x + 1.15, y + 0.8, 4.55, 0.8, { tam: 15, ordem: i + 1 });
+    cods.forEach((cod, j) => etiqueta(s, cod, x + 1.15 + j * 0.75, y + 1.68, 0.62, { ordem: i + 1 }));
   });
 }
 
@@ -239,20 +276,24 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
     "em São Carlos. Sem dado aberto de vaga nem de fila, a demanda não atendida teria de ser estimada, e o enunciado pede dados reais. " +
     "São Paulo publica o microdado de cada matrícula e a fila por distrito. O modelo não depende de São Paulo: matrícula, turma e desfecho " +
     "vêm do tipo de registro que qualquer sistema de gestão escolar mantém, e o Censo 2022 tem população por setor para todos os municípios.");
-  cartao(s, 0.6, 1.5, 5.9, 3.2, "Primeira proposta: São Carlos",
-    "Oferta escolar por setor censitário.\n\nSem dado aberto de vaga nem de fila, a demanda não atendida teria de ser estimada.",
-    { tamCorpo: 16, tamTitulo: 19 });
-  cartao(s, 6.8, 1.5, 5.9, 3.2, "Escolha: São Paulo",
-    "A SME publica o microdado de cada matrícula e a fila de espera por distrito: demanda medida, não estimada.\n\n" +
-    "13,4 milhões de matrículas de 2015 a 2024.", { tamCorpo: 16, tamTitulo: 19 });
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.0, w: 12.1, h: 1.55, fill: { color: AREIA },
-    line: { color: AREIA }, rectRadius: 0.08 });
+  cartao(s, 0.6, 1.75, 5.95, 3.15, { ordem: 1 });
+  etiqueta(s, "PRIMEIRA PROPOSTA", 0.9, 2.0, 2.2, { fundo: COR.suave, ordem: 1 });
+  texto(s, "São Carlos", 0.9, 2.5, 5.3, 0.55, { tam: 24, negrito: true, cor: COR.tinta, ordem: 1 });
+  texto(s, "Oferta escolar por setor censitário. Sem dado aberto de vaga nem de fila, a demanda não atendida teria de ser estimada.",
+    0.9, 3.15, 5.3, 1.5, { tam: 16, ordem: 1 });
+  cartao(s, 6.75, 1.75, 5.95, 3.15, { ordem: 2 });
+  etiqueta(s, "ESCOLHA", 7.05, 2.0, 1.3, { ordem: 2 });
+  texto(s, "São Paulo", 7.05, 2.5, 5.3, 0.55, { tam: 24, negrito: true, cor: COR.tinta, ordem: 2 });
+  texto(s, "A SME publica o microdado de cada matrícula e a fila de espera por distrito: demanda medida, não estimada. " +
+    "13,4 milhões de matrículas de 2015 a 2024.", 7.05, 3.15, 5.3, 1.5, { tam: 16, ordem: 2 });
+  cartao(s, 0.6, 5.15, 12.1, 1.35, { fundo: COR.nevoa, semSombra: true, ordem: 3 });
+  selo(s, 0.9, 5.52, "✓", { d: 0.6, tam: 18, ordem: 3 });
   s.addText([
-    { text: "O modelo vale para São Carlos: ", options: { bold: true, color: DESTAQUE_TEXTO } },
+    { text: "O modelo vale para São Carlos: ", options: { bold: true, color: COR.tinta } },
     { text: "matrícula, turma e desfecho vêm do registro que todo sistema de gestão escolar mantém, e o Censo 2022 já tem a " +
       "população por setor censitário do município. Falta só a rede registrar e publicar a fila." },
-  ], { x: 0.85, y: 5.1, w: 11.6, h: 1.35, fontFace: CORPO, fontSize: 16, color: TEXTO, margin: 0, isTextBox: true,
-    valign: "middle" });
+  ], { x: 1.75, y: 5.27, w: 10.7, h: 1.1, fontFace: FONTE, fontSize: 15, color: COR.texto, margin: 0, isTextBox: true,
+    valign: "middle", ...anim(3) });
 }
 
 // ------------------------------------------------------------------ 6. assuntos de interesse
@@ -263,20 +304,30 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
     "população é a demanda potencial, que existe mesmo sem pedido; oferta por setor mostra onde e por qual rede a vaga é oferecida. " +
     "Quatro assuntos viram tabelas de fatos; a oferta por setor é respondida pelas dimensões Escola, Território e Setor Censitário. " +
     "O quinto processo, desfecho da matrícula, acompanha o que acontece depois do acesso.");
-  tabela(s, ["Assunto de interesse", "Por que importa", "No modelo"], [
+  const linhas = [
     ["Matrículas", "oferta efetivamente usada, com o perfil de cada aluno", "fato Matrícula"],
     ["Fila (demanda registrada)", "quem pediu vaga e não foi atendido", "fato Fila"],
     ["Capacidade e ocupação das turmas", "se a oferta existente está cheia: turma nova ou lugar ocioso", "fato Ocupação de Turma"],
     ["População em idade escolar", "demanda potencial, mesmo sem pedido de vaga", "fato População"],
     ["Oferta escolar por setor", "onde e por qual rede (direta ou conveniada) a vaga é oferecida", "dimensões Escola, Território, Setor"],
-  ], { primeiraEmNegrito: true, tabela: { x: 0.6, y: 1.45, w: 12.1, colW: [3.3, 5.4, 3.4], fontSize: 15, rowH: 0.62 } });
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.55, w: 12.1, h: 1.0, fill: { color: AREIA },
-    line: { color: AREIA }, rectRadius: 0.08 });
+  ];
+  texto(s, "ASSUNTO", 0.75, 1.6, 3.2, 0.28, { tam: 11, negrito: true, cor: COR.suave, espacamento: 1 });
+  texto(s, "POR QUE IMPORTA", 4.15, 1.6, 5.0, 0.28, { tam: 11, negrito: true, cor: COR.suave, espacamento: 1 });
+  texto(s, "NO MODELO", 9.55, 1.6, 3.0, 0.28, { tam: 11, negrito: true, cor: COR.suave, espacamento: 1 });
+  linhas.forEach(([assunto, porque, modelo], i) => {
+    const y = 1.95 + i * 0.7;
+    cartao(s, 0.6, y, 12.1, 0.6, { fundo: i % 2 ? COR.branco : COR.nevoa, borda: COR.borda, semSombra: true, ordem: i + 1 });
+    etiqueta(s, assunto, 0.75, y + 0.11, 3.25, { h: 0.38, tam: 12, ordem: i + 1 });
+    texto(s, porque, 4.15, y, 5.25, 0.6, { tam: 15, valign: "middle", ordem: i + 1 });
+    texto(s, modelo, 9.55, y, 3.05, 0.6, { tam: 13, negrito: true, cor: COR.cobalto, valign: "middle", ordem: i + 1 });
+  });
+  cartao(s, 0.6, 5.65, 12.1, 0.9, { fundo: COR.nevoa, semSombra: true, ordem: 6 });
+  selo(s, 0.85, 5.82, "5", { d: 0.56, ordem: 6 });
   s.addText([
-    { text: "Quinto processo: desfecho da matrícula. ", options: { bold: true, color: DESTAQUE_TEXTO } },
+    { text: "Quinto processo: desfecho da matrícula. ", options: { bold: true, color: COR.tinta } },
     { text: "Acompanha o que acontece depois do acesso: aprovação, reprovação, abandono e transferência." },
-  ], { x: 0.85, y: 5.6, w: 11.6, h: 0.9, fontFace: CORPO, fontSize: 16, color: TEXTO, margin: 0, isTextBox: true,
-    valign: "middle" });
+  ], { x: 1.65, y: 5.7, w: 10.9, h: 0.8, fontFace: FONTE, fontSize: 15, color: COR.texto, margin: 0, isTextBox: true,
+    valign: "middle", ...anim(6) });
 }
 
 // ================================================================== bloco 2: fontes, integração e grão
@@ -289,20 +340,21 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
     "O Censo traz a demanda potencial: quantas crianças moram em cada setor. Na carga real entraram 26.889 setores do município, " +
     "todos ligados a um distrito da SME.");
   const fontes = [
-    ["Microdados de Matrículas", "SME-SP · anual",
-      "Uma linha por vínculo aluno-turma: escola, turma, turno, série, idade, perfil, deficiência, datas e desfecho.\n\n13,4 milhões de matrículas de escolarização (2015-2024)."],
-    ["Demanda Registrada e Matrículas", "SME-SP · trimestral, bimestral desde 2023",
-      "Por distrito e etapa: matrículas, matrículas em processo e fila.\n\n44 meses (33 arquivos) × 96 distritos no recorte; sete formatos diferentes."],
-    ["Censo Demográfico 2022", "IBGE · Agregados por Setores",
-      "Pessoas residentes por setor censitário e grupo de idade (variáveis V01031 a V01041).\n\n26.889 setores do município, 11,4 milhões de moradores; referência 31/07/2022."],
+    ["SME-SP · ANUAL", "Microdados de Matrículas", "13,4 mi", "matrículas de escolarização, 2015 a 2024",
+      "Uma linha por vínculo aluno-turma: escola, turma, turno, série, idade, perfil, deficiência, datas e desfecho."],
+    ["SME-SP · TRIMESTRAL E BIMESTRAL", "Demanda Registrada e Matrículas", "44 meses", "44 meses (33 arquivos) × 96 distritos no recorte",
+      "Por distrito e etapa: matrículas, matrículas em processo e fila. Trimestral até 2022, bimestral desde 2023; sete formatos diferentes."],
+    ["IBGE · AGREGADOS POR SETORES", "Censo Demográfico 2022", "26.889", "setores do município, 11,4 milhões de moradores",
+      "Pessoas residentes por setor censitário e grupo de idade (variáveis V01031 a V01041); referência 31/07/2022."],
   ];
-  fontes.forEach(([t, sub, c], i) => {
+  fontes.forEach(([quem, nome, valor, rotulo, desc], i) => {
     const x = 0.6 + i * 4.1;
-    cartao(s, x, 1.5, 3.9, 5.0, t, "", { tamTitulo: 18, altTitulo: 0.8 });
-    s.addText(sub, { x: x + 0.25, y: 2.55, w: 3.4, h: 0.6, fontFace: CORPO, fontSize: 13, bold: true,
-      color: DESTAQUE_TEXTO, margin: 0, isTextBox: true, valign: "top" });
-    s.addText(c, { x: x + 0.25, y: 3.25, w: 3.4, h: 3.1, fontFace: CORPO, fontSize: 14, color: TEXTO, margin: 0,
-      isTextBox: true, valign: "top" });
+    cartao(s, x, 1.75, 3.9, 4.8, { ordem: i + 1 });
+    texto(s, quem, x + 0.3, 1.97, 3.4, 0.3, { tam: 11, negrito: true, cor: COR.ambarTexto, espacamento: 1, ordem: i + 1 });
+    texto(s, nome, x + 0.3, 2.3, 3.4, 0.75, { tam: 18, negrito: true, cor: COR.tinta, ordem: i + 1 });
+    texto(s, valor, x + 0.3, 3.1, 3.4, 0.75, { tam: 36, negrito: true, cor: COR.cobalto, ordem: i + 1 });
+    texto(s, rotulo, x + 0.3, 3.85, 3.4, 0.5, { tam: 12, cor: COR.suave, ordem: i + 1 });
+    texto(s, desc, x + 0.3, 4.45, 3.35, 1.95, { tam: 14, ordem: i + 1 });
   });
 }
 
@@ -319,14 +371,14 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
     ["Idade", "idade simples em 31/03", "grupo de 0 a 4, 5 a 9, ...", "faixa IBGE na dimensão Idade"],
     ["Etapa", "Creche, Pré Escola (fila); MODALIDADE (microdado)", "não se aplica", "catálogo único de etapas"],
     ["Setor", "CD_SETOR: 4 dígitos, administrativo", "CD_SETOR: 15 dígitos, censitário", "homônimo: nunca cruzados"],
-  ], { tabela: { x: 0.6, y: 1.5, w: 12.1, colW: [1.6, 3.6, 3.3, 3.6], fontSize: 14, rowH: 0.7 } });
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.6, y: 5.35, w: 12.1, h: 1.2, fill: { color: AREIA },
-    line: { color: AREIA }, rectRadius: 0.08 });
+  ], { primeiraEmNegrito: true, tabela: { x: 0.6, y: 1.7, w: 12.1, colW: [1.6, 3.6, 3.3, 3.6], fontSize: 14, rowH: 0.62 } });
+  cartao(s, 0.6, 5.0, 12.1, 1.5, { fundo: COR.nevoa, semSombra: true, ordem: 1 });
+  texto(s, "< 1%", 0.9, 5.1, 2.2, 1.3, { tam: 44, negrito: true, cor: COR.cobalto, valign: "middle", ordem: 1 });
   s.addText([
-    { text: "Reconciliação: ", options: { bold: true, color: DESTAQUE_TEXTO } },
+    { text: "Reconciliação: ", options: { bold: true, color: COR.tinta } },
     { text: "matrículas ativas em junho no microdado contra a matrícula da planilha de fila, por distrito e etapa: diferença abaixo de 1% de 2015 a 2020 (creche: +0,03% em 2015, +0,17% em 2019)." },
-  ], { x: 0.85, y: 5.45, w: 11.6, h: 1.0, fontFace: CORPO, fontSize: 15, color: TEXTO, margin: 0, isTextBox: true,
-    valign: "middle" });
+  ], { x: 3.2, y: 5.1, w: 9.3, h: 1.3, fontFace: FONTE, fontSize: 15, color: COR.texto, margin: 0, isTextBox: true,
+    valign: "middle", ...anim(1) });
 }
 
 // ------------------------------------------------------------------ 9. qualidade
@@ -346,8 +398,11 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
   ];
   probs.forEach(([t, c], i) => {
     const x = 0.6 + (i % 3) * 4.1;
-    const y = 1.5 + Math.floor(i / 3) * 2.6;
-    cartao(s, x, y, 3.9, 2.4, t, c, { tamTitulo: 15.5, tamCorpo: 14, altTitulo: 0.8, corpoY: 1.05 });
+    const y = 1.75 + Math.floor(i / 3) * 2.45;
+    cartao(s, x, y, 3.9, 2.2, { ordem: i + 1 });
+    selo(s, x + 0.25, y + 0.27, String(i + 1), { d: 0.48, tam: 14, ordem: i + 1 });
+    texto(s, t, x + 0.9, y + 0.22, 2.8, 0.85, { tam: 15, negrito: true, cor: COR.tinta, ordem: i + 1 });
+    texto(s, c, x + 0.3, y + 1.15, 3.35, 0.95, { tam: 14, ordem: i + 1 });
   });
 }
 
@@ -358,13 +413,21 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
     "desfecho e ocupação são fatos agregados do fato de matrícula; população no grão do IBGE. " +
     "Fila e população são estoques: somam no território, não no tempo. Taxas e alunos por turma são derivados não aditivos, " +
     "sempre recalculados a partir das somas.");
+  const corAditividade = (j, t) => (j !== 3 ? null : t.startsWith("semiaditivo") ? COR.ambarTexto : COR.cobalto);
   tabela(s, ["Tabela de fatos", "Grão", "Fatos", "Aditividade"], [
     ["Matrícula", "vínculo aluno-turma × ano", "quantidade (=1), dias de matrícula", "aditivo"],
     ["Fila", "distrito × mês × etapa", "matrículas, em processo, demanda e categorias", "semiaditivo (estoque)"],
     ["Desfecho", "escola × ano × série", "contagens por desfecho; taxas", "aditivo; taxas não aditivas"],
     ["Ocupação de Turma", "turma × ano", "turmas, matrículas, ativas em junho; alunos por turma", "aditivo; média não aditiva"],
     ["População", "setor censitário × faixa × Censo", "pessoas", "semiaditivo (estoque)"],
-  ], { tabela: { x: 0.6, y: 1.55, w: 12.1, colW: [2.3, 3.1, 4.0, 2.7], fontSize: 15, rowH: 0.72 } });
+  ], { primeiraEmNegrito: true, corDaColuna: corAditividade,
+    tabela: { x: 0.6, y: 1.7, w: 12.1, colW: [2.3, 3.1, 4.0, 2.7], fontSize: 15, rowH: 0.66 } });
+  [["aditivo", "soma em todas as dimensões", COR.cobalto], ["semiaditivo", "estoque: não soma no tempo", COR.ambarTexto],
+    ["não aditivo", "recalculado a partir das somas", COR.suave]].forEach(([rotulo, desc, cor], i) => {
+    const x = 0.6 + i * 4.1;
+    etiqueta(s, rotulo, x, 5.95, 1.55, { fundo: cor, ordem: i + 1 });
+    texto(s, desc, x + 1.7, 5.95, 2.3, 0.34, { tam: 12, cor: COR.suave, valign: "middle", ordem: i + 1 });
+  });
 }
 
 // ------------------------------------------------------------------ 11. estrela matrícula
@@ -373,7 +436,9 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
     "Fato no centro, dez dimensões. Dimensão Data com dois papéis, início e fim da matrícula, como a data de internação e de alta " +
     "do artigo da disciplina: as duas datas permitem contar matrículas ativas em um dia. O fato principal é a ocorrência do vínculo, contada por um campo artificial igual a 1, técnica de tabela de fatos sem fato; a única medida é dias de matrícula. " +
     "Três bugigangas. Duas degeneradas. Escola é mudança lenta tipo 2.");
-  figura(s, "estrela-matricula.png", 0.5, 1.3, 8.15, 5.6, "Esquema estrela Matrícula: tabela de fatos Matrícula no centro, ligada a dez dimensões");
+  figuraEmMoldura(s, "estrela-matricula.png", 0.6, 1.6, 8.2, 5.0,
+    "Esquema estrela Matrícula: tabela de fatos Matrícula no centro, ligada a dez dimensões", 1);
+  cartao(s, 9.05, 1.6, 3.65, 5.0, { fundo: COR.nevoa, semSombra: true, ordem: 2 });
   s.addText(itens([
     "Data com dois papéis: início e fim da matrícula.",
     "Ocorrência contada por campo artificial (= 1), como em fatos sem fato.",
@@ -381,10 +446,22 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
     "Degeneradas: id turma, código da matrícula.",
     "Escola: mudança lenta tipo 2.",
     "Hierarquias: dia ≤ mês ≤ trimestre ≤ semestre ≤ ano; série ≤ etapa ≤ nível; idade ≤ faixa IBGE.",
-  ], 14), { x: 8.95, y: 1.4, w: 3.85, h: 5.5, fontFace: CORPO, color: TEXTO, margin: 0, isTextBox: true, valign: "top" });
+  ], 14), { x: 9.25, y: 1.8, w: 3.3, h: 4.65, fontFace: FONTE, margin: 0, isTextBox: true, valign: "top", ...anim(2) });
 }
 
 // ================================================================== bloco 3: estrelas e constelação
+
+// slide de um esquema estrela largo: figura na largura do slide, leitura do esquema em duas colunas embaixo
+function estrela(titulo, arquivo, descricao, lista, notas) {
+  const s = novoSlide(titulo, 3, 1, notas);
+  figuraEmMoldura(s, arquivo, 0.6, 1.6, 12.1, 4.05, descricao, 1);
+  const meio = Math.ceil(lista.length / 2);
+  [lista.slice(0, meio), lista.slice(meio)].forEach((coluna, i) => {
+    s.addText(itens(coluna, 15), { x: 0.6 + i * 6.15, y: 5.85, w: 5.95, h: 1.05, fontFace: FONTE, margin: 0,
+      isTextBox: true, valign: "top", ...anim(2) });
+  });
+  return s;
+}
 
 // ------------------------------------------------------------------ 12. estrela fila
 estrela("Esquema estrela Fila", "estrela-fila.png",
@@ -443,10 +520,10 @@ estrela("Esquema estrela População", "estrela-populacao.png",
     "Cinco fatos, catorze dimensões. Território é compartilhado pelos cinco. Processo de projeto: matriz de barramento com fato e " +
     "dimensão, dimensões conformadas e, onde os grãos diferem, rollups encolhidos conformados (tracejado): Tempo e Ano Letivo de Data, " +
     "Etapa de Série, Faixa Etária de Idade, Território de Setor Censitário. O drill-across agrega cada fato até o grão comum e une pelos atributos conformados.");
-  figura(s, "constelacao.png", 0.55, 1.35, 12.2, 5.0, "Constelação de fatos: cinco tabelas de fatos e catorze dimensões compartilhadas");
-  s.addText("Processo de projeto: matriz de barramento (fato × dimensão), dimensões conformadas e, onde os grãos diferem, rollups encolhidos (tracejado).", {
-    x: 0.6, y: 6.5, w: 12.1, h: 0.4, fontFace: CORPO, fontSize: 13, italic: true, color: SUAVE, margin: 0, isTextBox: true,
-  });
+  figuraEmMoldura(s, "constelacao.png", 0.6, 1.6, 12.1, 4.8,
+    "Constelação de fatos: cinco tabelas de fatos e catorze dimensões compartilhadas", 1);
+  texto(s, "Processo de projeto: matriz de barramento (fato × dimensão), dimensões conformadas e, onde os grãos diferem, rollups encolhidos (tracejado).",
+    0.6, 6.5, 12.1, 0.4, { tam: 13, italico: true, cor: COR.suave, ordem: 2 });
 }
 
 // ================================================================== bloco 4: consultas, resultados e decisões
@@ -467,8 +544,12 @@ estrela("Esquema estrela População", "estrela-populacao.png",
     ["C7", "drill-across", "crianças de 0 a 4 anos: residentes, matriculadas e na fila", "População, Matrícula, Fila"],
     ["C8", "drill-down", "alunos por turma: município → DRE → distrito", "Ocupação de Turma"],
   ];
+  const corOperacao = (j, t) => (j !== 1 ? null : t === "drill-across" ? COR.ambarTexto : COR.cobalto);
   tabela(s, ["", "Operação", "Pergunta", "Fatos"], linhas,
-    { primeiraEmNegrito: true, tabela: { x: 0.6, y: 1.45, w: 12.1, colW: [0.7, 2.0, 6.0, 3.4], fontSize: 14, rowH: 0.56 } });
+    { primeiraEmNegrito: true, corDaColuna: corOperacao,
+      tabela: { x: 0.6, y: 1.6, w: 12.1, colW: [0.7, 2.0, 6.0, 3.4], fontSize: 14, rowH: 0.54 } });
+  texto(s, "Exigido: 2 roll-up ou drill-down, 1 slice and dice, 1 pivot, 1 drill-across. Feito: 3, 1, 1 e 3.",
+    0.6, 6.55, 12.1, 0.32, { tam: 13, negrito: true, cor: COR.tinta, ordem: 1 });
 }
 
 // ------------------------------------------------------------------ 18. resultados: fila e oferta
@@ -478,25 +559,26 @@ estrela("Esquema estrela População", "estrela-populacao.png",
     "fração da demanda fora da rede passou de 34% para 1%. A queda maior foi de 2017 a 2021. " +
     "Consulta 3: 85% das matrículas de creche estão na rede conveniada, quase todas em jornada integral, em 2019 e em 2024.");
   const anos = ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024"];
+  const eixos = { catAxisLabelColor: COR.suave, valAxisLabelColor: COR.suave, catAxisLabelFontFace: FONTE,
+    valAxisLabelFontFace: FONTE, catAxisLabelFontSize: 11, valAxisLabelFontSize: 10, dataLabelFontFace: FONTE,
+    dataLabelColor: COR.texto, titleColor: COR.tinta, titleFontFace: FONTE, titleFontSize: 15,
+    catGridLine: { style: "none" }, showLegend: false };
   s.addChart(pres.charts.BAR, [{ name: "Fila de creche em junho", labels: anos,
     values: [124741, 103496, 104268, 66714, 48910, 22732, 8767, 4761, 4913, 3633] }], {
-    x: 0.5, y: 1.35, w: 6.2, h: 4.9, barDir: "col", chartColors: [ESCURO], showTitle: true,
-    title: "Crianças na fila de creche em junho", titleFontSize: 15, titleColor: TEXTO, titleFontFace: CORPO,
-    showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 9, dataLabelFormatCode: "#,##0",
-    dataLabelColor: TEXTO, catAxisLabelColor: SUAVE, valAxisLabelColor: SUAVE, valAxisLabelFormatCode: "#,##0",
-    valGridLine: { color: "E3E8E6", size: 0.5 }, catGridLine: { style: "none" }, showLegend: false,
-    catAxisLabelFontSize: 11, valAxisLabelFontSize: 10,
+    x: 0.5, y: 1.55, w: 6.4, h: 5.0, barDir: "col", chartColors: [COR.cobalto], showTitle: true,
+    title: "Crianças na fila de creche em junho", showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 9,
+    dataLabelFormatCode: "#,##0", valAxisLabelFormatCode: "#,##0", valGridLine: { color: "E3E8F0", size: 0.5 }, ...eixos,
   });
   s.addChart(pres.charts.LINE, [{ name: "Fração fora da rede", labels: anos,
     values: [34.1, 27.1, 26.6, 17.5, 12.8, 6.2, 2.4, 1.3, 1.4, 1.1] }], {
-    x: 6.9, y: 1.35, w: 5.9, h: 3.3, chartColors: [DESTAQUE], lineSize: 3, lineDataSymbol: "circle",
-    lineDataSymbolSize: 8, showTitle: true, title: "Fração da demanda de creche fora da rede (%)", titleFontSize: 15,
-    titleColor: TEXTO, titleFontFace: CORPO, showValue: true, dataLabelPosition: "t", dataLabelFontSize: 9, dataLabelFormatCode: "0.0",
-    dataLabelColor: TEXTO, catAxisLabelColor: SUAVE, valAxisLabelColor: SUAVE, valGridLine: { color: "E3E8E6", size: 0.5 },
-    catGridLine: { style: "none" }, showLegend: false, catAxisLabelFontSize: 11, valAxisLabelFontSize: 10,
+    x: 7.0, y: 1.55, w: 5.8, h: 3.25, chartColors: [COR.ambar], lineSize: 3, lineDataSymbol: "circle",
+    lineDataSymbolSize: 8, showTitle: true, title: "Fração da demanda de creche fora da rede (%)", showValue: true,
+    dataLabelPosition: "t", dataLabelFontSize: 9, dataLabelFormatCode: "0.0", valGridLine: { color: "E3E8F0", size: 0.5 }, ...eixos,
   });
-  cartao(s, 6.9, 4.85, 5.9, 1.45, "85% da creche é conveniada", "2019 e 2024, quase toda em jornada integral (consulta 3).",
-    { fundo: AREIA, tamCorpo: 14 });
+  cartao(s, 7.05, 4.95, 5.65, 1.55, { fundo: COR.nevoa, semSombra: true, ordem: 1 });
+  texto(s, "85%", 7.3, 5.05, 1.7, 1.35, { tam: 40, negrito: true, cor: COR.cobalto, valign: "middle", ordem: 1 });
+  texto(s, "da creche é conveniada, quase toda em jornada integral, em 2019 e 2024 (consulta 3).", 9.05, 5.05, 3.5, 1.35,
+    { tam: 14, valign: "middle", ordem: 1 });
   fonte(s, "Fonte: SME-SP, Demanda Registrada e Matrículas e Microdados de Matrículas; consultas 3 e 5.");
 }
 
@@ -507,27 +589,26 @@ estrela("Esquema estrela População", "estrela-populacao.png",
     "ativas dessa idade, 86 por 100. A média esconde distâncias grandes: 25 distritos têm menos de 50 matrículas por 100 crianças " +
     "residentes e outros 25 passam de 100, porque a matrícula conta onde a escola fica e a população onde a criança mora. " +
     "Consulta 8: a creche funciona com perto de 11 crianças por turma em todas as DREs; no fundamental são de 28 a 32.");
-  cartao(s, 0.6, 1.45, 5.9, 2.35, "Consulta 7 · 31/07/2022", "");
-  s.addText("86 por 100 crianças", {
-    x: 0.85, y: 2.05, w: 5.4, h: 0.7, fontFace: TITULO, fontSize: 28, bold: true, color: DESTAQUE_TEXTO, margin: 0,
-    isTextBox: true,
-  });
-  s.addText("514.131 matrículas ativas de 0 a 4 anos na rede municipal para 598.406 crianças dessa idade residentes.", {
-    x: 0.85, y: 2.85, w: 5.4, h: 0.8, fontFace: CORPO, fontSize: 14, color: TEXTO, margin: 0, isTextBox: true, valign: "top",
-  });
-  cartao(s, 0.6, 4.0, 5.9, 2.5, "Por distrito, longe da média",
-    "25 distritos com menos de 50 matrículas por 100 crianças; outros 25 com mais de 100.\n\n" +
-    "A matrícula conta onde a escola fica; a população, onde a criança mora.", { tamCorpo: 15 });
+  cartao(s, 0.6, 1.6, 5.95, 2.6, { ordem: 1 });
+  texto(s, "CONSULTA 7 · 31/07/2022", 0.9, 1.82, 5.3, 0.3, { tam: 12, negrito: true, cor: COR.ambarTexto, espacamento: 1, ordem: 1 });
+  texto(s, "86", 0.9, 2.15, 1.6, 1.05, { tam: 60, negrito: true, cor: COR.cobalto, ordem: 1 });
+  texto(s, "matrículas por 100 crianças de 0 a 4 anos", 2.45, 2.35, 3.9, 0.75, { tam: 17, negrito: true, cor: COR.tinta, ordem: 1 });
+  texto(s, "514.131 matrículas ativas para 598.406 crianças residentes.", 0.9, 3.35, 5.4, 0.6, { tam: 14, cor: COR.suave, ordem: 1 });
+  cartao(s, 0.6, 4.4, 5.95, 2.15, { fundo: COR.nevoa, semSombra: true, ordem: 2 });
+  texto(s, "Por distrito, longe da média", 0.9, 4.58, 5.3, 0.4, { tam: 17, negrito: true, cor: COR.tinta, ordem: 2 });
+  texto(s, "25 distritos com menos de 50 matrículas por 100 crianças; outros 25 com mais de 100. " +
+    "A matrícula conta onde a escola fica; a população, onde a criança mora.", 0.9, 5.05, 5.4, 1.4, { tam: 14, ordem: 2 });
   s.addChart(pres.charts.BAR, [
     { name: "2019", labels: ["Creche", "Pré-escola", "Fund. iniciais", "Fund. finais"], values: [11.5, 30.7, 28.7, 29.4] },
     { name: "2024", labels: ["Creche", "Pré-escola", "Fund. iniciais", "Fund. finais"], values: [11.0, 26.9, 30.6, 31.6] },
   ], {
-    x: 6.9, y: 1.35, w: 5.9, h: 5.2, barDir: "col", barGrouping: "clustered", chartColors: [ESCURO, DESTAQUE],
-    showTitle: true, title: "Alunos por turma em 30 de junho (consulta 8)", titleFontSize: 15, titleColor: TEXTO,
-    titleFontFace: CORPO, showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 10, dataLabelFormatCode: "0.0",
-    dataLabelColor: TEXTO, catAxisLabelColor: SUAVE, valAxisLabelColor: SUAVE, valGridLine: { color: "E3E8E6", size: 0.5 },
-    catGridLine: { style: "none" }, showLegend: true, legendPos: "b", legendFontSize: 12, legendColor: TEXTO,
-    catAxisLabelFontSize: 12, valAxisLabelFontSize: 10, valAxisMinVal: 0,
+    x: 6.85, y: 1.55, w: 5.95, h: 5.05, barDir: "col", barGrouping: "clustered", chartColors: [COR.cobalto, COR.ambar],
+    showTitle: true, title: "Alunos por turma em 30 de junho (consulta 8)", titleFontSize: 15, titleColor: COR.tinta,
+    titleFontFace: FONTE, showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 10, dataLabelFormatCode: "0.0",
+    dataLabelColor: COR.texto, dataLabelFontFace: FONTE, catAxisLabelColor: COR.suave, valAxisLabelColor: COR.suave,
+    catAxisLabelFontFace: FONTE, valAxisLabelFontFace: FONTE, valGridLine: { color: "E3E8F0", size: 0.5 },
+    catGridLine: { style: "none" }, showLegend: true, legendPos: "b", legendFontSize: 12, legendColor: COR.texto,
+    legendFontFace: FONTE, catAxisLabelFontSize: 12, valAxisLabelFontSize: 10, valAxisMinVal: 0,
   });
   fonte(s, "Fonte: Censo 2022 (IBGE) e Microdados de Matrículas (SME-SP); consultas 7 e 8.");
 }
@@ -547,14 +628,11 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   ];
   decisoes.forEach(([n, t, c], i) => {
     const x = 0.6 + (i % 2) * 6.15;
-    const y = 1.5 + Math.floor(i / 2) * 1.75;
-    s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 5.95, h: 1.55, fill: { color: TINTA }, line: { color: TINTA },
-      rectRadius: 0.08 });
-    circulo(s, x + 0.25, y + 0.5, n);
-    s.addText(t, { x: x + 1.0, y: y + 0.18, w: 4.75, h: 0.45, fontFace: CORPO, fontSize: 17, bold: true, color: ESCURO,
-      margin: 0, isTextBox: true });
-    s.addText(c, { x: x + 1.0, y: y + 0.65, w: 4.75, h: 0.8, fontFace: CORPO, fontSize: 14, color: TEXTO, margin: 0,
-      isTextBox: true, valign: "top" });
+    const y = 1.65 + Math.floor(i / 2) * 1.68;
+    cartao(s, x, y, 5.95, 1.48, { ordem: i + 1 });
+    selo(s, x + 0.3, y + 0.44, n, { d: 0.6, ordem: i + 1 });
+    texto(s, t, x + 1.15, y + 0.2, 4.6, 0.42, { tam: 17, negrito: true, cor: COR.tinta, ordem: i + 1 });
+    texto(s, c, x + 1.15, y + 0.66, 4.6, 0.7, { tam: 14, ordem: i + 1 });
   });
 }
 
@@ -562,38 +640,101 @@ estrela("Esquema estrela População", "estrela-populacao.png",
 {
   const s = novoSlide("Obrigado. Perguntas?", 4, 0.5,
     "Encerramento. Lembrar que o relatório em PDF traz a descrição completa de cada atributo, com a coluna de origem e a integração, " +
-    "e que o repositório tem o pipeline completo, os testes e a documentação. Abrir para perguntas.", true);
+    "e que o repositório tem o pipeline completo, os testes e a documentação. Abrir para perguntas.", { master: "ESCURO" });
+  [["13,4 mi", "matrículas de 2015 a 2024"], ["551 mil", "turmas carregadas"], ["26.889", "setores censitários"]]
+    .forEach(([valor, rotulo], i) => {
+      const x = 0.6 + i * 4.1;
+      cartao(s, x, 1.75, 3.9, 1.5, { fundo: COR.branco, transparencia: 90, borda: "3A4D73", semSombra: true, ordem: i + 1 });
+      texto(s, valor, x + 0.3, 1.88, 3.3, 0.75, { tam: 34, negrito: true, cor: COR.ambar, ordem: i + 1 });
+      texto(s, rotulo, x + 0.3, 2.63, 3.3, 0.45, { tam: 14, cor: COR.claroNoEscuro, ordem: i + 1 });
+    });
   s.addText(itens([
     "Relatório: descrição do problema, povoamento atributo por atributo, cinco estrelas, constelação e oito consultas.",
     "Repositório: pipeline do portal ao DuckDB, 14 verificações de qualidade e testes automáticos, inclusive da modelagem.",
     "Carga real: 13,4 milhões de matrículas, 551 mil turmas e 26.889 setores censitários em 3,5 minutos, sem nenhuma FALHA nas verificações.",
-  ], 18), { x: 0.6, y: 1.7, w: 11.8, h: 3.3, fontFace: CORPO, color: BRANCO, margin: 0, isTextBox: true, valign: "top" });
-  s.addText("github.com/kevennlaranjeira/OLAP2026", { x: 0.6, y: 5.3, w: 11.8, h: 0.5, fontFace: CORPO, fontSize: 18,
-    bold: true, color: "F2C46B", margin: 0, isTextBox: true });
-  s.addText(INTEGRANTES.map(([n]) => n).join("  ·  "), { x: 0.6, y: 6.2, w: 11.8, h: 0.45, fontFace: CORPO,
-    fontSize: 14, color: "B9CFC9", margin: 0, isTextBox: true });
+  ], 16, COR.branco), { x: 0.6, y: 3.55, w: 12.0, h: 2.0, fontFace: FONTE, margin: 0, isTextBox: true, valign: "top", ...anim(4) });
+  texto(s, "github.com/kevennlaranjeira/OLAP2026", 0.6, 5.7, 11.8, 0.45, { tam: 18, negrito: true, cor: COR.ambar, ordem: 5 });
+  texto(s, INTEGRANTES.map(([n]) => n).join("  ·  "), 0.6, 6.3, 11.8, 0.4, { tam: 14, cor: COR.claroNoEscuro, ordem: 5 });
 }
 
 // ------------------------------------------------------------------ roteiro, a partir dos blocos montados
 for (let b = 1; b <= 4; b += 1) {
   const x = 0.6 + (b - 1) * 3.075;
   const lista = slidesDoBloco[b];
-  roteiro.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y: 1.5, w: 2.9, h: 4.95, fill: { color: TINTA },
-    line: { color: TINTA }, rectRadius: 0.08 });
-  circulo(roteiro, x + 0.25, 1.75, String(b));
-  roteiro.addText(BLOCO[b], { x: x + 0.25, y: 2.45, w: 2.45, h: 0.75, fontFace: CORPO, fontSize: 16, bold: true,
-    color: ESCURO, margin: 0, isTextBox: true, valign: "top" });
-  roteiro.addText(`slides ${lista[0]} a ${lista[lista.length - 1]}`, { x: x + 0.25, y: 3.2, w: 2.45, h: 0.35,
-    fontFace: CORPO, fontSize: 13, bold: true, color: DESTAQUE_TEXTO, margin: 0, isTextBox: true });
-  roteiro.addText(ASSUNTO_DO_BLOCO[b], { x: x + 0.25, y: 3.6, w: 2.45, h: 1.9, fontFace: CORPO, fontSize: 14,
-    color: TEXTO, margin: 0, isTextBox: true, valign: "top" });
-  roteiro.addText(`${virgula(minutosDoBloco[b])} min`, { x: x + 0.25, y: 5.6, w: 2.45, h: 0.6, fontFace: TITULO,
-    fontSize: 26, bold: true, color: ESCURO, margin: 0, isTextBox: true });
+  cartao(roteiro, x, 1.75, 2.9, 4.65, { ordem: b });
+  selo(roteiro, x + 0.25, 2.0, String(b), { d: 0.6, ordem: b });
+  texto(roteiro, BLOCO[b], x + 0.25, 2.75, 2.45, 0.75, { tam: 16, negrito: true, cor: COR.tinta, ordem: b });
+  texto(roteiro, `slides ${lista[0]} a ${lista[lista.length - 1]}`, x + 0.25, 3.5, 2.45, 0.32,
+    { tam: 13, negrito: true, cor: COR.cobalto, ordem: b });
+  texto(roteiro, ASSUNTO_DO_BLOCO[b], x + 0.25, 3.9, 2.45, 1.6, { tam: 14, ordem: b });
+  texto(roteiro, `${virgula(minutosDoBloco[b])} min`, x + 0.25, 5.55, 2.45, 0.65, { tam: 30, negrito: true, cor: COR.cobalto, ordem: b });
 }
 const total = Object.values(minutosDoBloco).reduce((a, b) => a + b, 0);
-roteiro.addText(`Total previsto: ${virgula(total)} minutos, sem contar as perguntas. Com outro limite de tempo, a divisão continua em quatro partes iguais.`, {
-  x: 0.6, y: 6.6, w: 11.5, h: 0.35, fontFace: CORPO, fontSize: 12, italic: true, color: SUAVE, margin: 0, isTextBox: true,
-});
+texto(roteiro, `Total previsto: ${virgula(total)} minutos, sem contar as perguntas. Com outro limite de tempo, a divisão continua em quatro partes iguais.`,
+  0.6, 6.55, 12.1, 0.32, { tam: 12, italico: true, cor: COR.suave, ordem: 5 });
+
+if (numero !== TOTAL_SLIDES) throw new Error(`a apresentação tem ${numero} slides, e o rodapé diz ${TOTAL_SLIDES}`);
+
+// ------------------------------------------------------------------ tema, transições e animações
+// O pptxgenjs não escreve as cores do tema nem animações: os dois entram no XML depois de gerado.
+const PALETA_TEMA = { dk2: COR.tinta, lt2: COR.nevoa, accent1: COR.cobalto, accent2: COR.ambar, accent3: COR.suave,
+  accent4: "8FA6CB", accent5: COR.ambarTexto, accent6: COR.borda };
+const PASSO_MS = 250;     // intervalo entre um grupo e o seguinte
+const DURACAO_MS = 400;   // duração de cada esmaecimento
+
+function tempos(alvos) {
+  const grupos = [...new Set(alvos.map((a) => a.ordem))].sort((a, b) => a - b);
+  let id = 3;
+  const efeitos = [];
+  grupos.forEach((g, i) => {
+    for (const a of alvos.filter((x) => x.ordem === g)) {
+      const [externo, efeito, visivel, fade] = [++id, ++id, ++id, ++id];
+      efeitos.push(
+        `<p:par><p:cTn id="${externo}" fill="hold"><p:stCondLst><p:cond delay="${i * PASSO_MS}"/></p:stCondLst><p:childTnLst>` +
+        `<p:par><p:cTn id="${efeito}" presetID="10" presetClass="entr" presetSubtype="0" fill="hold" grpId="0" nodeType="withEffect">` +
+        `<p:stCondLst><p:cond delay="0"/></p:stCondLst><p:childTnLst>` +
+        `<p:set><p:cBhvr><p:cTn id="${visivel}" dur="1" fill="hold"><p:stCondLst><p:cond delay="0"/></p:stCondLst></p:cTn>` +
+        `<p:tgtEl><p:spTgt spid="${a.id}"/></p:tgtEl><p:attrNameLst><p:attrName>style.visibility</p:attrName></p:attrNameLst>` +
+        `</p:cBhvr><p:to><p:strVal val="visible"/></p:to></p:set>` +
+        `<p:animEffect transition="in" filter="fade"><p:cBhvr><p:cTn id="${fade}" dur="${DURACAO_MS}"/>` +
+        `<p:tgtEl><p:spTgt spid="${a.id}"/></p:tgtEl></p:cBhvr></p:animEffect>` +
+        `</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn></p:par>`);
+    }
+  });
+  const construcao = alvos.filter((a) => a.tipo === "sp").map((a) => `<p:bldP spid="${a.id}" grpId="0" animBg="1"/>`).join("");
+  return `<p:timing><p:tnLst><p:par><p:cTn id="1" dur="indefinite" restart="never" nodeType="tmRoot"><p:childTnLst>` +
+    `<p:seq concurrent="1" nextAc="seek"><p:cTn id="2" dur="indefinite" nodeType="mainSeq"><p:childTnLst>` +
+    `<p:par><p:cTn id="3" fill="hold"><p:stCondLst><p:cond delay="indefinite"/><p:cond evt="onBegin" delay="0"><p:tn val="2"/></p:cond>` +
+    `</p:stCondLst><p:childTnLst>${efeitos.join("")}</p:childTnLst></p:cTn></p:par></p:childTnLst></p:cTn>` +
+    `<p:prevCondLst><p:cond evt="onPrev" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:prevCondLst>` +
+    `<p:nextCondLst><p:cond evt="onNext" delay="0"><p:tgtEl><p:sldTgt/></p:tgtEl></p:cond></p:nextCondLst></p:seq>` +
+    `</p:childTnLst></p:cTn></p:par></p:tnLst>${construcao ? `<p:bldLst>${construcao}</p:bldLst>` : ""}</p:timing>`;
+}
+
+async function finalizar(buffer) {
+  const JSZip = require(require.resolve("jszip", { paths: [path.dirname(require.resolve(MODULO_PPTX))] }));
+  const zip = await JSZip.loadAsync(buffer);
+  const tema = "ppt/theme/theme1.xml";
+  let xmlTema = await zip.file(tema).async("string");
+  for (const [nome, cor] of Object.entries(PALETA_TEMA)) {
+    xmlTema = xmlTema.replace(new RegExp(`<a:${nome}>\\s*<a:srgbClr val="[0-9A-Fa-f]{6}"\\s*/>\\s*</a:${nome}>`),
+      `<a:${nome}><a:srgbClr val="${cor}"/></a:${nome}>`);
+  }
+  zip.file(tema, xmlTema);
+  const slides = Object.keys(zip.files).filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n));
+  for (const nome of slides) {
+    let xml = await zip.file(nome).async("string");
+    const alvos = [...xml.matchAll(/<p:(sp|pic)>\s*<p:nv(?:Sp|Pic)Pr>\s*<p:cNvPr id="(\d+)" name="anim:(\d+):/g)]
+      .map((m) => ({ tipo: m[1], id: m[2], ordem: Number(m[3]) }));
+    const extra = `<p:transition spd="med"><p:fade/></p:transition>${alvos.length ? tempos(alvos) : ""}`;
+    if (!xml.includes("</p:clrMapOvr>")) throw new Error(`${nome}: sem clrMapOvr para inserir a transição`);
+    xml = xml.replace("</p:clrMapOvr>", `</p:clrMapOvr>${extra}`);
+    zip.file(nome, xml);
+  }
+  return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
+}
 
 const destino = process.argv[2] || path.join(AQUI, "apresentacao-projeto1.pptx");
-pres.writeFile({ fileName: destino }).then((f) => console.log(`gravado: ${f}`));
+pres.write({ outputType: "nodebuffer" })
+  .then(finalizar)
+  .then((buffer) => { fs.writeFileSync(destino, buffer); console.log(`gravado: ${destino}`); });
