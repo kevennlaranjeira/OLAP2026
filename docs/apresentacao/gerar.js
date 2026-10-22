@@ -81,7 +81,6 @@ pres.defineSlideMaster({ title: "CAPA", background: { color: COR.tinta } });
 let numero = 0;
 let objeto = 0;
 const slidesDoBloco = { 1: [], 2: [], 3: [], 4: [] };
-const minutosDoBloco = { 1: 0, 2: 0, 3: 0, 4: 0 };
 const virgula = (n) => String(n).replace(".", ",");
 const anim = (ordem) => ({ objectName: `anim:${ordem}:${(objeto += 1)}` });
 const sombra = () => ({ type: "outer", blur: 8, offset: 2, angle: 90, color: "1B2A4A", opacity: 0.14 });
@@ -90,7 +89,6 @@ function novoSlide(titulo, bloco, minutos, notas, opcoes = {}) {
   const s = pres.addSlide({ masterName: opcoes.master || "CLARO" });
   numero += 1;
   slidesDoBloco[bloco].push(numero);
-  minutosDoBloco[bloco] += minutos;
   const escuro = opcoes.master === "ESCURO";
   if (titulo) {
     s.addText(`BLOCO ${bloco} · ${TEMA_DO_BLOCO[bloco].toUpperCase()} · ${PRIMEIRO_NOME[bloco].toUpperCase()}`, {
@@ -218,7 +216,7 @@ function figuraEmMoldura(s, arquivo, x, y, w, h, descricao, ordem) {
 }
 
 // ------------------------------------------------------------------ 2. roteiro (preenchido no fim)
-const roteiro = novoSlide("Roteiro: quatro integrantes, tempos iguais", 1, 0.5,
+const roteiro = novoSlide("Roteiro: quatro integrantes, quatro blocos", 1, 0.5,
   "Mostrar a divisão: cada integrante apresenta um bloco, com o mesmo tempo previsto. " +
   "Os quatro blocos seguem a ordem pedida no enunciado: motivação; fontes; esquemas estrela e constelação; consultas e decisões.");
 
@@ -661,17 +659,13 @@ estrela("Esquema estrela População", "estrela-populacao.png",
 for (let b = 1; b <= 4; b += 1) {
   const x = 0.6 + (b - 1) * 3.075;
   const lista = slidesDoBloco[b];
-  cartao(roteiro, x, 1.75, 2.9, 4.65, { ordem: b });
+  cartao(roteiro, x, 1.75, 2.9, 4.8, { ordem: b });
   selo(roteiro, x + 0.25, 2.0, String(b), { d: 0.6, ordem: b });
   texto(roteiro, BLOCO[b], x + 0.25, 2.75, 2.45, 0.75, { tam: 16, negrito: true, cor: COR.tinta, ordem: b });
   texto(roteiro, `slides ${lista[0]} a ${lista[lista.length - 1]}`, x + 0.25, 3.5, 2.45, 0.32,
     { tam: 13, negrito: true, cor: COR.cobalto, ordem: b });
-  texto(roteiro, ASSUNTO_DO_BLOCO[b], x + 0.25, 3.9, 2.45, 1.6, { tam: 14, ordem: b });
-  texto(roteiro, `${virgula(minutosDoBloco[b])} min`, x + 0.25, 5.55, 2.45, 0.65, { tam: 30, negrito: true, cor: COR.cobalto, ordem: b });
+  texto(roteiro, ASSUNTO_DO_BLOCO[b], x + 0.25, 3.95, 2.45, 2.4, { tam: 16, ordem: b });
 }
-const total = Object.values(minutosDoBloco).reduce((a, b) => a + b, 0);
-texto(roteiro, `Total previsto: ${virgula(total)} minutos, sem contar as perguntas. Com outro limite de tempo, a divisão continua em quatro partes iguais.`,
-  0.6, 6.55, 12.1, 0.32, { tam: 12, italico: true, cor: COR.suave, ordem: 5 });
 
 if (numero !== TOTAL_SLIDES) throw new Error(`a apresentação tem ${numero} slides, e o rodapé diz ${TOTAL_SLIDES}`);
 

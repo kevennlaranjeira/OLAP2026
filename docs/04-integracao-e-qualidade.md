@@ -96,6 +96,8 @@ Valor não numérico numa variável do IBGE vira nulo e é contado; se a maior p
 | Ano de nascimento 1900 | idades de 115 a 124 anos | tratado como não informado |
 | Datas em cinco formatos | ISO, `D/M/AAAA H:M:S`, `DD/MM/AAAA HH:MM`, serial do Excel em metade de 2024 | leitura de todos os formatos; datas fora de um ano antes ou depois do ano letivo descartadas |
 | Datas ausentes em 2021 | 100% das linhas | membro "não informada" da dimensão Data |
+| Dias de matrícula negativos | 6.093 vínculos com a data de fim antes da de início, quase todos com situação `VINC INDEVIDO`, `CONCLUIDO` ou `DESISTENTE` | duração impossível fica nula, nunca zero; as datas são mantidas como publicadas |
+| Dias de matrícula vazios em 2022 | 511.887 linhas do arquivo de 2022 sem `QTD_DIAS_MAT` | medida nula, como em 2021 |
 | Código de matrícula destruído | 2023: 100 valores distintos em 1,16 milhão de linhas | `cd_matricula_origem` nulo nos anos de código corrompido; `id_turma` construído |
 | `TURMA_ESCOL` com o nome da turma | 2023 | filtro de escolarização pelo tipo do arquivo quando a coluna não é S/N |
 | Indicadores com valor `2` | 5 linhas em dez anos | tratado como não informado |
