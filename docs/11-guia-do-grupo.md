@@ -107,18 +107,17 @@ Os números de linha são aproximados e mudam conforme o texto cresce. Use `Ctrl
 
 | Parte do relatório | Procure por | Linha aproximada |
 |---|---|---|
-| curso e data da capa | `\newcommand{\curso}` e `\newcommand{\dataentrega}` | 25 |
-| capa (instituição, integrantes) | `\begin{titlepage}` | 59 |
-| 1.1 Tema geral | `\subsection{Tema geral}` | 97 |
-| 1.2 Assuntos de interesse | `\subsection{Assuntos de interesse` | 107 |
-| 1.3 Fontes de dados | `\subsection{Fontes de dados}` | 138 |
-| 1.4 Grão, dimensões e fatos | `\subsection{Grão, dimensões` | 157 |
-| 1.5 Dimensões e atributos (uma tabela por dimensão) | `\subsection{Dimensões e atributos}` | 177 |
-| 1.6 Fatos e aditividade | `\subsection{Fatos}` | 330 |
-| 1.7 Povoamento e integração | `\subsection{Povoamento e integração}` | 361 |
-| 2 Esquemas estrela e constelação | `\section{Esquemas}` | 431 |
-| 3 Consultas (C1 a C8) | `\section{Consultas}` | 572 |
-| Apêndice: dados reais | `\section{Viabilidade` | 650 |
+| capa (instituição, integrantes) | `\begin{titlepage}` | 55 |
+| 1.1 Tema geral | `\subsection{Tema geral}` | 91 |
+| 1.2 Assuntos de interesse | `\subsection{Assuntos de interesse` | 101 |
+| 1.3 Fontes de dados | `\subsection{Fontes de dados}` | 132 |
+| 1.4 Grão, dimensões e fatos | `\subsection{Grão, dimensões` | 151 |
+| 1.5 Dimensões e atributos (uma tabela por dimensão) | `\subsection{Dimensões e atributos}` | 171 |
+| 1.6 Fatos e aditividade | `\subsection{Fatos}` | 325 |
+| 1.7 Povoamento e integração | `\subsection{Povoamento e integração}` | 356 |
+| 2 Esquemas estrela e constelação | `\section{Esquemas}` | 426 |
+| 3 Consultas (C1 a C8) | `\section{Consultas}` | 567 |
+| Apêndice: dados reais | `\section{Viabilidade` | 663 |
 
 Os desenhos não estão no `.tex` principal: cada esquema é puxado de `esquemas/` com `\input{esquemas/estrela-fila}` e similares. Para mudar uma caixa ou uma ligação, edite o arquivo da pasta `esquemas/`. O estilo comum (fonte, bordas, espessura) está em `esquemas/estilo.tex`.
 
@@ -295,7 +294,7 @@ Reescrever um parágrafo do relatório não quebra teste. Os testes reclamam qua
 | um slide, um tempo ou um número de gráfico em uma das versões da apresentação | a outra versão (`gerar.js` ou `apresentacao-projeto1.html`) | `test_versao_html_tem_os_mesmos_slides_apresentadores_e_tempos` e `test_graficos_da_versao_html_usam_os_numeros_dos_slides` |
 | uma figura de `docs/modelagem/` | o `.pptx` (rodar o `gerar.js`) e o HTML (rodar o `embutir_figuras.py`) | `test_slides_usam_as_imagens_atuais_da_modelagem` e `test_versao_html_embute_as_imagens_atuais_da_modelagem` |
 
-Preencher o curso e a data na capa não quebra nada. Já deixar no texto um marcador de pendência (um nome entre colchetes no lugar de um integrante, uma anotação de tarefa em maiúsculas ou texto falso de preenchimento) faz o teste `test_nenhum_texto_pendente_esquecido` falhar, de propósito. A lista exata do que ele procura está no próprio teste, em `tests/test_coerencia.py`.
+Deixar no texto um marcador de pendência (um nome entre colchetes no lugar de um integrante, uma anotação de tarefa em maiúsculas ou texto falso de preenchimento) faz o teste `test_nenhum_texto_pendente_esquecido` falhar, de propósito. A lista exata do que ele procura está no próprio teste, em `tests/test_coerencia.py`.
 
 Quando um teste falha, a última linha da mensagem diz o arquivo e o que não bateu. Se a mudança foi intencional (por exemplo, o grupo decidiu mudar uma hierarquia), mude também os outros lugares da tabela acima. Se não sabe por que falhou, mande a mensagem no grupo.
 

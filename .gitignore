@@ -20,6 +20,7 @@ docs/relatorio/*.lot
 docs/relatorio/*.fls
 docs/relatorio/*.fdb_latexmk
 docs/relatorio/*.synctex.gz
+docs/relatorio/*.xdv
 
 # Sistema
 .DS_Store
