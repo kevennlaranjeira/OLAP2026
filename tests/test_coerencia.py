@@ -233,14 +233,14 @@ def test_nenhum_texto_pendente_esquecido(arquivo):
     assert not PENDENTES.findall(texto)
 
 
-def test_so_curso_e_data_ficam_para_o_grupo_preencher():
-    """Os únicos marcadores admitidos são os de curso e data, e só nas macros; preenchidos, eles somem."""
+def test_capa_completa_e_sem_marcador_para_preencher():
+    """Na etapa 1 o grupo optou por uma capa sem curso e sem data; nenhum marcador entre colchetes sobra no texto."""
     texto = ler(RELATORIO)
-    marcadores = set(re.findall(r"\[[A-ZÇÃÕÉÍ ]{6,}\]", texto))
-    assert marcadores <= {"[NOME DO CURSO]", "[DATA DE ENTREGA]"}
-    assert texto.count("[NOME DO CURSO]") <= 1 and texto.count("[DATA DE ENTREGA]") <= 1   # só nas macros
-    assert re.search(r"\\newcommand\{\\curso\}\{[^}]+\}", texto)
-    assert re.search(r"\\newcommand\{\\dataentrega\}\{[^}]+\}", texto)
+    assert not re.findall(r"\[[A-ZÇÃÕÉÍ ]{6,}\]", texto)
+    capa = re.search(r"\\begin\{titlepage\}(.*?)\\end\{titlepage\}", texto, re.S).group(1)
+    for trecho in ["Universidade de São Paulo", "SCC0245 Processamento Analítico de Dados",
+                   "Profa. Dra. Cristina Dutra de Aguiar", "Primeiro Trabalho Prático", "Grupo 7", "São Carlos"]:
+        assert trecho in capa, f"capa sem {trecho}"
 
 
 # ----------------------------------------------------------------------------- figuras

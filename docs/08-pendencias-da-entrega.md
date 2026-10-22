@@ -12,7 +12,7 @@ O que já está pronto e o que só o grupo pode fazer antes de entregar. O enunc
 | Pelo menos 1 constelação de fatos, com desenho e processo de projeto | relatório, seção 2.6, e matriz de barramento | pronto |
 | Pelo menos 2 fontes de dados | relatório, seção 1.3 (três fontes: duas da SME e o Censo 2022 do IBGE) | pronto |
 | Pelo menos 5 consultas: 2 roll-up ou drill-down, 1 slice and dice, 1 pivot, 1 drill-across | relatório, seção 3 (oito consultas: 3, 1, 1 e 3) | pronto |
-| Capa com instituição, curso, disciplina, professora, trabalho, integrantes com Nº USP e data | relatório, capa | **falta curso e data** |
+| Capa com instituição, curso, disciplina, professora, trabalho, integrantes com Nº USP e data | relatório, capa | pronto; na etapa 1 o grupo optou por deixar a capa sem curso e sem data |
 | Índice | relatório | pronto |
 | Grão, dimensões, fatos, atributos e relações, aditividade, fatos derivados | relatório, seções 1.4 a 1.6 | pronto |
 | Povoamento de cada atributo e de cada fato, com integração | relatório, seções 1.5 a 1.7 (coluna "Povoamento" em cada dimensão) | pronto |
@@ -24,18 +24,9 @@ Os números do relatório, da documentação e dos slides vêm da carga com os d
 
 ## O que só o grupo pode fazer
 
-1. **Preencher o curso e a data de entrega na capa.** No começo de [relatorio/relatorio-projeto1.tex](relatorio/relatorio-projeto1.tex) há duas linhas:
+1. **Conferir a notação dos esquemas com a das aulas.** A verificação completa da modelagem está em [09 Verificação da modelagem](09-verificacao-da-modelagem.md). Os desenhos seguem a notação do artigo da disciplina (caixa com o nome da tabela, PK e FK, fato no centro com borda grossa) e as hierarquias usam `≤`. O enunciado diz que a notação tem de ser a mesma da sala de aula. Se a das aulas for diferente, os desenhos estão em `docs/relatorio/esquemas/*.tex` e o estilo comum em `estilo.tex`.
 
-   ```latex
-   \newcommand{\curso}{[NOME DO CURSO]}
-   \newcommand{\dataentrega}{[DATA DE ENTREGA]}
-   ```
-
-   Troque o texto entre colchetes e compile de novo com XeLaTeX (`latexmk -xelatex relatorio-projeto1.tex` dentro de `docs/relatorio/`, ou `xelatex` duas vezes; no Overleaf, envie o `.tex` e a pasta `esquemas/` e escolha o compilador XeLaTeX). Se os integrantes forem de cursos diferentes, escreva os cursos separados por vírgula.
-
-2. **Conferir a notação dos esquemas com a das aulas.** A verificação completa da modelagem está em [09 Verificação da modelagem](09-verificacao-da-modelagem.md). Os desenhos seguem a notação do artigo da disciplina (caixa com o nome da tabela, PK e FK, fato no centro com borda grossa) e as hierarquias usam `≤`. O enunciado diz que a notação tem de ser a mesma da sala de aula. Se a das aulas for diferente, os desenhos estão em `docs/relatorio/esquemas/*.tex` e o estilo comum em `estilo.tex`.
-
-3. **Ensaiar a apresentação.** O slide 2 mostra o roteiro, e as notas de cada slide dizem quem apresenta, o tempo previsto e o que falar:
+2. **Ensaiar a apresentação.** O slide 2 mostra o roteiro, e as notas de cada slide dizem quem apresenta, o tempo previsto e o que falar:
 
    | Bloco | Integrante | Slides | Conteúdo | Tempo |
    |---|---|---|---|---|
@@ -46,7 +37,7 @@ Os números do relatório, da documentação e dos slides vêm da carga com os d
 
    O enunciado exige que todos apresentem e que o tempo de cada um seja homogêneo; um teste confere que os quatro blocos somam o mesmo tempo nas notas. Se a professora definir outro limite, mantenham a divisão em quatro partes iguais.
 
-4. **Entregar** o PDF [relatorio/relatorio-projeto1.pdf](relatorio/relatorio-projeto1.pdf) e a apresentação no local definido no critério de avaliação da disciplina.
+3. **Entregar** o PDF [relatorio/relatorio-projeto1.pdf](relatorio/relatorio-projeto1.pdf) e a apresentação no local definido no critério de avaliação da disciplina.
 
 ## Para o Projeto 2
 
