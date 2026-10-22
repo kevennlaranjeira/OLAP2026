@@ -171,7 +171,7 @@ npm install pptxgenjs
 node docs/apresentacao/gerar.js
 ```
 
-O texto de cada slide está no `gerar.js`, em blocos marcados com comentários como `// 7. fontes`. Em `novoSlide(titulo, bloco, minutos, notas)`, o terceiro argumento é o tempo previsto do slide e o quarto são as notas de fala. O `npm install` cria `node_modules/`, `package.json` e `package-lock.json` na pasta do projeto; os três já estão no `.gitignore` e não vão para o GitHub.
+O texto de cada slide está no `gerar.js`, em blocos marcados com comentários como `// 7. fontes`. Em `novoSlide(titulo, bloco, minutos, notas)`, o terceiro argumento é o tempo previsto do slide e o quarto são as notas de fala. Cores, rodapé com número da página, transições e animações também saem do script (ver [08 Pendências](08-pendencias-da-entrega.md#regenerar-a-apresentação)). O `npm install` cria `node_modules/`, `package.json` e `package-lock.json` na pasta do projeto; os três já estão no `.gitignore` e não vão para o GitHub.
 
 ### Direto no PowerPoint
 

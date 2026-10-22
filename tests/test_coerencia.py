@@ -125,6 +125,17 @@ def test_vinte_e_um_slides_em_quatro_blocos():
         assert f"(bloco {bloco} de 4)" in notas
 
 
+def test_slides_com_numero_de_pagina_transicao_e_animacao():
+    with zipfile.ZipFile(SLIDES) as z:
+        slides = [z.read(n).decode("utf-8") for n in z.namelist() if re.fullmatch(r"ppt/slides/slide\d+\.xml", n)]
+        layouts = " ".join(z.read(n).decode("utf-8") for n in z.namelist()
+                           if re.fullmatch(r"ppt/slideLayouts/slideLayout\d+\.xml", n))
+    assert 'type="sldNum"' in layouts, "layout sem o campo de número de página"
+    assert all("<p:transition" in s for s in slides), "slide sem transição"
+    animados = sum('presetClass="entr"' in s for s in slides)
+    assert animados >= 15, f"só {animados} slides com animação de entrada"
+
+
 def test_todos_apresentam_com_o_mesmo_tempo():
     """Enunciado: todos os integrantes apresentam e o tempo de cada um deve ser homogêneo."""
     tempos = {}
