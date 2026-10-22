@@ -55,7 +55,7 @@ npm install pptxgenjs
 node docs/apresentacao/gerar.js
 ```
 
-Se o pptxgenjs estiver instalado em outra pasta, a variável `PPTXGENJS` aponta para ela. O slide de roteiro é montado no fim do script a partir das notas, então mudar o tempo de um slide atualiza o roteiro sozinho. O arquivo `.pptx` também pode ser editado direto no PowerPoint ou no Google Slides.
+Se o pptxgenjs estiver instalado em outra pasta, a variável `PPTXGENJS` aponta para ela. O slide de roteiro é montado no fim do script a partir do bloco de cada slide, então mudar um slide de bloco atualiza o roteiro sozinho. O roteiro não mostra tempo; o tempo previsto de cada slide fica só nas notas. O arquivo `.pptx` também pode ser editado direto no PowerPoint ou no Google Slides.
 
 O visual também sai do script. As cores ficam no objeto `COR`, no começo do `gerar.js`, e entram no tema do arquivo; no PowerPoint elas aparecem na paleta de cores do tema. Cada slide traz a etiqueta do bloco e de quem apresenta acima do título, e o rodapé mostra o número da página ("7 / 21"). Todos os slides entram com transição de esmaecimento. Os cartões e números de destaque aparecem em sequência, sem clique, a cada 0,25 s. Para um elemento novo entrar animado, dê a ele a ordem de entrada com `ordem` (ou `anim(n)`), como fazem os cartões existentes.
 
