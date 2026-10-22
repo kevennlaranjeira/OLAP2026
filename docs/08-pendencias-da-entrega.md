@@ -26,7 +26,7 @@ Os números do relatório, da documentação e dos slides vêm da carga com os d
 
 1. **Conferir a notação dos esquemas com a das aulas.** A verificação completa da modelagem está em [09 Verificação da modelagem](09-verificacao-da-modelagem.md). Os desenhos seguem a notação do artigo da disciplina (caixa com o nome da tabela, PK e FK, fato no centro com borda grossa) e as hierarquias usam `≤`. O enunciado diz que a notação tem de ser a mesma da sala de aula. Se a das aulas for diferente, os desenhos estão em `docs/relatorio/esquemas/*.tex` e o estilo comum em `estilo.tex`.
 
-2. **Ensaiar a apresentação.** O slide 2 mostra o roteiro, e as notas de cada slide dizem quem apresenta, o tempo previsto e o que falar:
+2. **Ensaiar a apresentação.** As apresentações serão no dia 29 de outubro, e a de cada grupo deve durar 20 minutos. O slide 2 mostra o roteiro, e as notas de cada slide dizem quem apresenta, o tempo previsto e o que falar:
 
    | Bloco | Integrante | Slides | Conteúdo | Tempo |
    |---|---|---|---|---|
@@ -35,7 +35,7 @@ Os números do relatório, da documentação e dos slides vêm da carga com os d
    | 3 | Daniel Afonso Borges dos Santos | 12 a 16 | estrelas Fila, Desfecho, Ocupação de Turma e População, constelação | 5 min |
    | 4 | Luís Antônio Arruda Soares | 17 a 21 | consultas, resultados com os dados reais, decisões, encerramento | 5 min |
 
-   O enunciado exige que todos apresentem e que o tempo de cada um seja homogêneo; um teste confere que os quatro blocos somam o mesmo tempo nas notas. Se a professora definir outro limite, mantenham a divisão em quatro partes iguais.
+   O enunciado exige que todos apresentem e que o tempo de cada um seja homogêneo; um teste confere que os quatro blocos somam o mesmo tempo nas notas. Os quatro blocos de 5 minutos fecham os 20 minutos pedidos; as perguntas vêm durante a apresentação.
 
 3. **Entregar** o PDF [relatorio/relatorio-projeto1.pdf](relatorio/relatorio-projeto1.pdf) e a apresentação no local definido no critério de avaliação da disciplina.
 
