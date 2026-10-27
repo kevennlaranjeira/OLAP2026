@@ -158,7 +158,7 @@ Mande sempre o `.tex` e o `.pdf` juntos, no mesmo commit. O PDF é o arquivo de 
 
 ## 5. Editar a apresentação
 
-Os slides são gerados pelo script [`docs/apresentacao/gerar.js`](apresentacao/gerar.js). As figuras dos esquemas vêm de `docs/modelagem/`. Cada slide tem, nas notas, quem apresenta e o tempo previsto, e o slide 2 (roteiro) é montado a partir dessas notas.
+Os slides são gerados pelo script [`docs/apresentacao/gerar.js`](apresentacao/gerar.js). As figuras dos esquemas vêm de `docs/modelagem/`. Cada slide tem, nas notas, quem apresenta e o tempo previsto, e o slide 2 (roteiro) é montado a partir do bloco de cada slide. O tempo fica só nas notas, para o ensaio; nenhum slide mostra tempo.
 
 ### Pelo script (recomendado)
 

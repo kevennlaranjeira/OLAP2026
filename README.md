@@ -37,7 +37,7 @@ Chegou agora no grupo? Leia o [Guia do grupo](docs/11-guia-do-grupo.md): ele exp
 | Volume | 13,4 milhões de matrículas, 551 mil turmas, 44 meses de fila × 96 distritos × 8 etapas, 26.889 setores censitários com 11,4 milhões de moradores |
 | Modelo | constelação com 5 tabelas de fatos e 14 dimensões |
 | Banco | DuckDB, um arquivo de ~335 MB, carregado em ~3,5 minutos |
-| Testes | 497 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 51 a coerência entre código, documentos, slides e imagens, 14 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
+| Testes | 502 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 51 a coerência entre código, documentos, slides e imagens, 14 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
 | Consultas | dois drill-down, um roll-up, slice and dice, pivot e três drill-across |
 
 ## O que os dados mostram

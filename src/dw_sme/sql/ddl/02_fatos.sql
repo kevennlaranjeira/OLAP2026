@@ -29,7 +29,7 @@ CREATE TABLE dw.fato_matricula (
     id_turma             VARCHAR  NOT NULL,   -- dimensão degenerada (construída: ano, escola, turma, série, turno)
     cd_matricula_origem  VARCHAR,             -- dimensão degenerada (nula nos anos em que o código foi corrompido)
     qtd_matricula        SMALLINT NOT NULL,   -- aditivo; sempre 1
-    qtd_dias_matricula   INTEGER              -- aditivo; nulo em 2021, que não publicou datas
+    qtd_dias_matricula   INTEGER              -- aditivo; nulo em 2021 (sem datas), quando o campo vem vazio e quando a origem traz valor negativo
 );
 
 -- Fila por vaga. Grão: distrito x mês de referência x etapa.

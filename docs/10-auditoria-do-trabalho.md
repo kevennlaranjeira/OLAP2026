@@ -6,7 +6,7 @@ Revisão de ponta a ponta de tudo o que está no repositório: código, processo
 
 | Frente | Como | Resultado |
 |---|---|---|
-| Testes e lint | `pytest` (497 testes) e `ruff`, a cada push no GitHub, com Python 3.11 e 3.13 | todos passam; cobertura de 99% |
+| Testes e lint | `pytest` (502 testes) e `ruff`, a cada push no GitHub, com Python 3.11 e 3.13 | todos passam; cobertura de 99% |
 | Coerência entre documentos | [tests/test_coerencia.py](../tests/test_coerencia.py), 51 testes | contagens, consultas, integrantes, links, textos pendentes, hierarquias e números iguais em README, docs/, relatório e nas duas versões da apresentação (`.pptx` e HTML); os quatro blocos com o mesmo tempo |
 | Modelo dimensional | [tests/test_modelo.py](../tests/test_modelo.py), 22 testes, e as verificações Q13 e Q14 | ver [09](09-verificacao-da-modelagem.md) |
 | Funcionamento | [tests/test_funcionamento.py](../tests/test_funcionamento.py), 14 testes | recarga sem duplicar; `verificar` e `tudo` saem com 1 em FALHA; 72.900 matrículas sintéticas conservam as contagens entre os fatos; consultas iguais quando repetidas e quando o dado entra em outra ordem; caminho com apóstrofo; carga que falha no meio preserva o banco anterior |
@@ -47,6 +47,7 @@ Revisão de ponta a ponta de tudo o que está no repositório: código, processo
 | 21 | relatório, docs/01, docs/02 e slide das fontes | "44 planilhas" de fila; são 44 meses de referência em 33 arquivos, porque a série histórica traz 2015 a 2017 num arquivo só | texto corrigido nos quatro lugares |
 | 22 | relatório | citava o artigo da disciplina, a Lei do PNE e o INEP sem seção de referências, e não dava o endereço das fontes | seção Referências com 6 entradas e datas de acesso; os endereços foram conferidos |
 | 23 | relatório, apêndice | o resultado negativo da Consulta 6 e as limitações das fontes não estavam no relatório | um parágrafo para cada |
+| 24 | carga, dias de matrícula | a SME publica dias negativos em 6.093 vínculos com o fim antes do início, e a medida aditiva entrava negativa na soma | duração impossível fica nula; teste novo; banco recarregado, com as 8 consultas idênticas às anteriores |
 
 Cada correção de código tem um teste que pega a regressão.
 

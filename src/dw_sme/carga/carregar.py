@@ -57,6 +57,13 @@ def _registrar(con, nome: str, df: pd.DataFrame) -> None:
     con.unregister("_tmp")
 
 
+def sql_dias(coluna: str) -> str:
+    """Dias de matrícula como inteiro. A SME publica valor negativo quando a data de fim vem antes da de
+    início (6.093 vínculos na carga real); duração negativa é medida impossível e fica nula, nunca zero."""
+    valor = idade.sql_inteiro_br(coluna)
+    return f"(CASE WHEN {valor} < 0 THEN NULL ELSE {valor} END)"
+
+
 def _b(coluna: str) -> str:
     """Valor bruto com nulo trocado pelo marcador (chave de junção das tabelas de correspondência)."""
     return f"coalesce({coluna}, '{NULO}')"
@@ -199,7 +206,7 @@ def _preparar_matricula(con) -> tuple[int, int]:
             {sit_cod} || '|' || coalesce(msit.situacao, '') AS cod_situacao,
             upper(trim(s.nome_turma)) AS nome_turma,
             trim(s.cd_matricula_origem) AS cd_matricula,
-            {idade.sql_inteiro_br('s.qtd_dias')} AS qtd_dias,
+            {sql_dias('s.qtd_dias')} AS qtd_dias,
             s.dt_inicio IS NOT NULL AS tem_datas,
             {datas.sql_na_janela('s._dti', 's.ano_letivo')} AS data_inicio,
             {datas.sql_na_janela('s._dtf', 's.ano_letivo')} AS data_fim

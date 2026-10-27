@@ -258,3 +258,10 @@ def test_ano_com_idade_so_pelo_ano_de_nascimento_ganha_observacao(dados_sintetic
     obs = con.execute("SELECT observacao FROM dw.dim_ano_letivo WHERE ano = 2020").fetchone()[0]
     con.close()
     assert "100.0% das idades estimadas só pelo ano de nascimento" in obs
+
+
+@pytest.mark.parametrize("texto, esperado", [("200", 200), ("0", 0), ("1.234", 1234), ("-3", None), (None, None)])
+def test_dias_de_matricula_negativos_viram_nulo(texto, esperado):
+    """A SME publica dias negativos quando o fim vem antes do início; duração impossível fica nula."""
+    con = duckdb.connect()
+    assert con.execute(f"SELECT {carregar.sql_dias('CAST($1 AS VARCHAR)')}", [texto]).fetchall()[0][0] == esperado

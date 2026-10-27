@@ -329,7 +329,7 @@ desfecho & resumo exclusivo da situação final & descritivo & derivado com prio
 \bottomrule\endlastfoot
 \multicolumn{3}{l}{\textit{Tabela de fatos Matrícula}}\\
 quantidade de matrículas & aditivo & campo artificial sempre igual a 1, como a contagem de utilização do esquema de ocupação do artigo da disciplina~\cite{ciferri-saude}: o fato principal é a ocorrência do vínculo, técnica de tabela de fatos sem fato; a tabela não é estritamente sem fato porque tem uma medida, dias de matrícula \\
-dias de matrícula & aditivo & duração do vínculo; Microdados: \cod{QTD_DIAS_MAT} ou \cod{QTD_DIAS_MATR}; nulo em 2021, que não publicou datas \\
+dias de matrícula & aditivo & duração do vínculo; Microdados: \cod{QTD_DIAS_MAT} ou \cod{QTD_DIAS_MATR}; nulo em 2021, que não publicou datas, nos vínculos de 2022 sem o campo e nos 6.093 vínculos em que a SME publica valor negativo (fim antes do início) \\
 id turma, código matrícula & dimensões degeneradas & id turma construído com ano, escola, \cod{NOME_TURMA}, série e turno, porque \cod{CD_TURMA} está corrompido de 2022 em diante; código matrícula de \cod{CD_MAT}, nulo nos anos de código corrompido \\
 \midrule
 \multicolumn{3}{l}{\textit{Tabela de fatos Fila}}\\
