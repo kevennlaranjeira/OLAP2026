@@ -46,7 +46,7 @@ Chegou agora no grupo? Leia o [Guia do grupo](docs/11-guia-do-grupo.md): ele exp
 - No mesmo período as matrículas de creche passaram de 320 mil para 474 mil, e **85% delas estão na rede conveniada**, quase todas em jornada integral.
 - As duas bases da prefeitura concordam com diferença abaixo de 1% de 2015 a 2020, quando se contam as matrículas ativas em junho. De 2022 em diante o microdado publicado passa a ter códigos corrompidos e vínculos encerrados sem data de fim, e a concordância cai; o pipeline mede e registra isso em vez de esconder.
 - Na data do Censo 2022 moravam no município 598 mil crianças de 0 a 4 anos, e a rede municipal tinha 514 mil matrículas ativas dessa idade, **86 por 100 crianças**. A média esconde distâncias grandes: em 25 distritos são menos de 50 por 100, em outros 25 mais de 100, porque a matrícula conta onde a escola fica e a população onde a criança mora.
-- A creche funciona com perto de **11 crianças por turma** em todas as DREs; no fundamental são de 28 a 32 alunos por turma.
+- A creche funciona com perto de **11 crianças por turma** em todas as DREs; no fundamental, o município tem de 28,7 a 31,6 alunos por turma em 2019 e 2024.
 
 ## Como rodar
 

@@ -586,7 +586,7 @@ estrela("Esquema estrela População", "estrela-populacao.png",
     "Consulta 7, na data do Censo: 598.406 crianças de 0 a 4 anos moram no município e a rede municipal tinha 514.131 matrículas " +
     "ativas dessa idade, 86 por 100. A média esconde distâncias grandes: 25 distritos têm menos de 50 matrículas por 100 crianças " +
     "residentes e outros 25 passam de 100, porque a matrícula conta onde a escola fica e a população onde a criança mora. " +
-    "Consulta 8: a creche funciona com perto de 11 crianças por turma em todas as DREs; no fundamental são de 28 a 32.");
+    "Consulta 8: a creche funciona com perto de 11 crianças por turma em todas as DREs; no fundamental, o município tem de 28,7 a 31,6 alunos por turma em 2019 e 2024.");
   cartao(s, 0.6, 1.6, 5.95, 2.6, { ordem: 1 });
   texto(s, "CONSULTA 7 · 31/07/2022", 0.9, 1.82, 5.3, 0.3, { tam: 12, negrito: true, cor: COR.ambarTexto, espacamento: 1, ordem: 1 });
   texto(s, "86", 0.9, 2.15, 1.6, 1.05, { tam: 60, negrito: true, cor: COR.cobalto, ordem: 1 });
