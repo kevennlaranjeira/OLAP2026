@@ -37,7 +37,7 @@ Chegou agora no grupo? Leia o [Guia do grupo](docs/11-guia-do-grupo.md): ele exp
 | Volume | 13,4 milhões de matrículas, 551 mil turmas, 44 meses de fila × 96 distritos × 8 etapas, 26.889 setores censitários com 11,4 milhões de moradores |
 | Modelo | constelação com 5 tabelas de fatos e 14 dimensões |
 | Banco | DuckDB, um arquivo de ~335 MB, carregado em ~3,5 minutos |
-| Testes | 502 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 51 a coerência entre código, documentos, slides e imagens, 14 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
+| Testes | 504 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 53 a coerência entre código, documentos, slides e imagens, 14 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
 | Consultas | dois drill-down, um roll-up, slice and dice, pivot e três drill-across |
 
 ## O que os dados mostram
@@ -91,6 +91,7 @@ O GitHub Actions roda as duas a cada push, em Python 3.11 e 3.13, e falha se a c
 | [08 Pendências da entrega](docs/08-pendencias-da-entrega.md) | o que só o grupo pode fazer antes de entregar e a divisão da apresentação |
 | [09 Verificação da modelagem](docs/09-verificacao-da-modelagem.md) | como a modelagem foi conferida, o que foi corrigido e os pontos de atenção |
 | [10 Auditoria do trabalho](docs/10-auditoria-do-trabalho.md) | revisão de ponta a ponta: código, processo, documentos, slides e imagens |
+| [12 Ensaio da apresentação](docs/12-ensaio-da-apresentacao.md) | a ideia em um minuto, a mensagem de cada slide, as perguntas prováveis e o checklist do dia 29/10 |
 
 ## Estrutura
 
@@ -100,7 +101,7 @@ docs/
   apresentacao/    slides (.pptx e .html) e o script que gera o .pptx (gerar.js)
   modelagem/       os esquemas em PNG e PDF
   relatorios/      relatório de qualidade da última carga com os dados reais
-  01 a 11 (.md)    documentação técnica e guia do grupo
+  01 a 12 (.md)    documentação técnica, guia do grupo e ensaio
 src/dw_sme/
   extracao/        cliente do portal CKAN e do diretório do IBGE, manifesto de downloads, pacotes .zip/.rar
   transformacao/   regras de normalização, parser da fila, etapas, idade, datas, escolas, população

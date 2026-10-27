@@ -35,7 +35,7 @@ Os números do relatório, da documentação e dos slides vêm da carga com os d
    | 3 | Daniel Afonso Borges dos Santos | 12 a 16 | estrelas Fila, Desfecho, Ocupação de Turma e População, constelação | 5 min |
    | 4 | Luís Antônio Arruda Soares | 17 a 21 | consultas, resultados com os dados reais, decisões, encerramento | 5 min |
 
-   O enunciado exige que todos apresentem e que o tempo de cada um seja homogêneo; um teste confere que os quatro blocos somam o mesmo tempo nas notas. Os quatro blocos de 5 minutos fecham os 20 minutos pedidos; as perguntas vêm durante a apresentação.
+   O enunciado exige que todos apresentem e que o tempo de cada um seja homogêneo; um teste confere que os quatro blocos somam o mesmo tempo nas notas. Os quatro blocos de 5 minutos fecham os 20 minutos pedidos; as perguntas vêm durante a apresentação. A mensagem de cada slide, as perguntas prováveis e o checklist do dia estão em [12 Ensaio da apresentação](12-ensaio-da-apresentacao.md).
 
 3. **Entregar** o PDF [relatorio/relatorio-projeto1.pdf](relatorio/relatorio-projeto1.pdf) e a apresentação no local definido no critério de avaliação da disciplina.
 
