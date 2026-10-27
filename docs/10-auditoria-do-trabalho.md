@@ -53,6 +53,6 @@ Cada correção de código tem um teste que pega a regressão.
 
 ## O que ainda falta para nós
 
-Está em [08 Pendências da entrega](08-pendencias-da-entrega.md): conferir a notação dos esquemas com a das aulas e ensaiar a apresentação. A capa do relatório já tem a data de entrega, 29 de outubro de 2026; falta colocar o nome do curso.
+Está em [08 Pendências da entrega](08-pendencias-da-entrega.md): conferir a notação dos esquemas com a das aulas e ensaiar a apresentação. A capa do relatório está completa, com os nossos cursos e a data de entrega, 29 de outubro de 2026.
 
 O relatório de qualidade publicado em [relatorios/qualidade.md](relatorios/qualidade.md) é o da carga com os dados reais, com as catorze verificações.
