@@ -125,7 +125,7 @@ O artigo da disciplina cita os dois problemas como o centro do trabalho de integ
 
 | Código | Verificação | Situação esperada |
 |---|---|---|
-| Q01 | Integridade referencial das 18 chaves estrangeiras | OK (falha impede o uso) |
+| Q01 | Integridade referencial das 27 chaves estrangeiras dos cinco fatos | OK (falha impede o uso) |
 | Q02 | Versões da dimensão Escola sem sobreposição e com uma versão atual | OK |
 | Q03 | Soma do fato de desfecho igual à do fato de matrícula | OK |
 | Q04 | Cada mês de fila com 96 distritos e 8 etapas | OK |
@@ -136,8 +136,8 @@ O artigo da disciplina cita os dois problemas como o centro do trabalho de integ
 | Q09 | Fração de matrículas em membros "não informado" | OK |
 | Q10 | Anos letivos com limitação registrada | ALERTA (2020 a 2024) |
 | Q11 | Fato de turma conserva as matrículas e tem uma linha por turma; fração de matrículas em turma sem nome | OK (FALHA se não conservar) |
-| Q12 | População carregada, setores sem distrito correspondente na SME, valores não publicados | ALERTA enquanto a população não for carregada |
+| Q12 | População carregada, setores sem distrito correspondente na SME, valores não publicados | ALERTA pelos valores que o IBGE suprime (6.543 na carga real) ou quando a população não é carregada |
 | Q13 | Cada hierarquia `A ≤ B` vale como dependência funcional (todo membro de A pertence a um único B) | OK (FALHA se não valer) |
 | Q14 | Conformidade: os rollups encolhidos têm os mesmos valores das dimensões de que derivam | OK (FALHA se não valer; ALERTA para distrito do IBGE sem correspondente) |
 
-Q01 passa a conferir 27 chaves estrangeiras (18 dos três fatos originais, 5 do fato de turma e 4 do fato de população). `dw-sme verificar` sai com código 1 se qualquer verificação ficar em FALHA.
+As 27 chaves estrangeiras de Q01 são 11 do fato de matrícula, 3 do fato de fila, 4 do fato de desfecho, 5 do fato de turma e 4 do fato de população. `dw-sme verificar` sai com código 1 se qualquer verificação ficar em FALHA.

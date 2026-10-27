@@ -84,9 +84,9 @@ Cada decisão traz o contexto, a alternativa descartada e o argumento. D19 a D23
 
 ## D16. Fato de matrícula sem restrição FOREIGN KEY declarada
 
-**Medição.** Com as 11 restrições, o banco ocupava 2,08 GB e a carga levava 342 s; sem elas, 289 MB e 189 s, com o mesmo resultado nas 10 verificações.
+**Medição.** Com as 11 restrições, o banco ocupava 2,08 GB e a carga levava 342 s; sem elas, 289 MB e 189 s, com o mesmo resultado em todas as verificações existentes na época da medição.
 
-**Argumento.** É prática comum em data warehouse desligar a restrição nos fatos grandes e garantir a integridade pela carga. Aqui toda chave vem de junção interna com a dimensão, e a verificação Q01 confere as 18 relações depois de cada carga. Os fatos pequenos mantêm as restrições declaradas.
+**Argumento.** É prática comum em data warehouse desligar a restrição nos fatos grandes e garantir a integridade pela carga. Aqui toda chave vem de junção interna com a dimensão, e a verificação Q01 confere as 27 chaves estrangeiras dos cinco fatos depois de cada carga. Os fatos pequenos mantêm as restrições declaradas.
 
 ## D17. Staging em arquivo separado
 
