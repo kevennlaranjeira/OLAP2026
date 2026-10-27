@@ -45,7 +45,7 @@ OLAP2026/
       apresentacao-projeto1.html a mesma apresentação, para abrir no navegador
       embutir_figuras.py         atualiza as figuras guardadas dentro do HTML
     modelagem/                   os mesmos esquemas em PNG e num PDF separado
-    01 a 11 *.md                 documentação técnica (fontes, fluxo, modelo, consultas, decisões...)
+    01 a 12 *.md                 documentação técnica (fontes, fluxo, modelo, consultas, decisões...)
     relatorios/qualidade.md      resultado das 14 verificações na última carga real
   src/dw_sme/                    código do pipeline (Python)
     sql/ddl/                     criação das tabelas do data warehouse
@@ -259,7 +259,7 @@ Os testes não precisam de internet nem dos dados reais, e levam cerca de 1 minu
 .venv/Scripts/python -m pytest
 ```
 
-O resultado esperado termina com algo como `502 passed` (o número cresce quando entram testes novos). Qualquer `failed` ou `error` indica um problema.
+O resultado esperado termina com algo como `504 passed` (o número cresce quando entram testes novos). Qualquer `failed` ou `error` indica um problema.
 
 Para rodar só uma parte:
 

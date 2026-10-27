@@ -6,8 +6,8 @@ Revisão de ponta a ponta de tudo o que está no repositório: código, processo
 
 | Frente | Como | Resultado |
 |---|---|---|
-| Testes e lint | `pytest` (502 testes) e `ruff`, a cada push no GitHub, com Python 3.11 e 3.13 | todos passam; cobertura de 99% |
-| Coerência entre documentos | [tests/test_coerencia.py](../tests/test_coerencia.py), 51 testes | contagens, consultas, integrantes, links, textos pendentes, hierarquias e números iguais em README, docs/, relatório e nas duas versões da apresentação (`.pptx` e HTML); os quatro blocos com o mesmo tempo |
+| Testes e lint | `pytest` (504 testes) e `ruff`, a cada push no GitHub, com Python 3.11 e 3.13 | todos passam; cobertura de 99% |
+| Coerência entre documentos | [tests/test_coerencia.py](../tests/test_coerencia.py), 53 testes | contagens, consultas, integrantes, links, textos pendentes, hierarquias e números iguais em README, docs/, relatório e nas duas versões da apresentação (`.pptx` e HTML); os quatro blocos com o mesmo tempo |
 | Modelo dimensional | [tests/test_modelo.py](../tests/test_modelo.py), 22 testes, e as verificações Q13 e Q14 | ver [09](09-verificacao-da-modelagem.md) |
 | Funcionamento | [tests/test_funcionamento.py](../tests/test_funcionamento.py), 14 testes | recarga sem duplicar; `verificar` e `tudo` saem com 1 em FALHA; 72.900 matrículas sintéticas conservam as contagens entre os fatos; consultas iguais quando repetidas e quando o dado entra em outra ordem; caminho com apóstrofo; carga que falha no meio preserva o banco anterior |
 | Checagem de tipos | `pyright` | nenhum erro de tipo real; os avisos restantes vêm dos stubs do pandas e do DuckDB (ver [07](07-como-executar.md)) |
@@ -53,6 +53,6 @@ Cada correção de código tem um teste que pega a regressão.
 
 ## O que continua dependendo do grupo
 
-Está em [08 Pendências da entrega](08-pendencias-da-entrega.md): conferir a notação dos esquemas com a das aulas e ensaiar a apresentação. Na etapa 1, a capa do relatório fica sem curso e sem data, por decisão do grupo.
+Está em [08 Pendências da entrega](08-pendencias-da-entrega.md): conferir a notação dos esquemas com a das aulas e ensaiar a apresentação. A capa do relatório tem a data de entrega, 29 de outubro de 2026, e ainda não tem o nome do curso.
 
 O relatório de qualidade publicado em [relatorios/qualidade.md](relatorios/qualidade.md) é o da carga com os dados reais, com as catorze verificações.

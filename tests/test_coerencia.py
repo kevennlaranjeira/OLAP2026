@@ -234,12 +234,13 @@ def test_nenhum_texto_pendente_esquecido(arquivo):
 
 
 def test_capa_completa_e_sem_marcador_para_preencher():
-    """Na etapa 1 o grupo optou por uma capa sem curso e sem data; nenhum marcador entre colchetes sobra no texto."""
+    """A capa tem os itens do enunciado que o grupo definiu, com a data de entrega; nenhum marcador entre colchetes sobra."""
     texto = ler(RELATORIO)
     assert not re.findall(r"\[[A-ZÇÃÕÉÍ ]{6,}\]", texto)
     capa = re.search(r"\\begin\{titlepage\}(.*?)\\end\{titlepage\}", texto, re.S).group(1)
     for trecho in ["Universidade de São Paulo", "SCC0245 Processamento Analítico de Dados",
-                   "Profa. Dra. Cristina Dutra de Aguiar", "Primeiro Trabalho Prático", "Grupo 7", "São Carlos"]:
+                   "Profa. Dra. Cristina Dutra de Aguiar", "Primeiro Trabalho Prático", "Grupo 7",
+                   "São Carlos, 29 de outubro de 2026"]:
         assert trecho in capa, f"capa sem {trecho}"
 
 
