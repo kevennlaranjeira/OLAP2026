@@ -259,7 +259,7 @@ Os testes não precisam de internet nem dos dados reais, e levam cerca de 1 minu
 .venv/Scripts/python -m pytest
 ```
 
-O resultado esperado termina com algo como `487 passed` (o número cresce quando entram testes novos). Qualquer `failed` ou `error` indica um problema.
+O resultado esperado termina com algo como `502 passed` (o número cresce quando entram testes novos). Qualquer `failed` ou `error` indica um problema.
 
 Para rodar só uma parte:
 
