@@ -1,13 +1,13 @@
 # Pendências da entrega do Projeto 1
 
-O que já está pronto e o que só o grupo pode fazer antes de entregar. O enunciado pede dois materiais: o documento em PDF e a apresentação.
+Nossa lista do que já está pronto e do que ainda falta antes de entregar. O enunciado pede dois materiais: o documento em PDF e a apresentação.
 
 ## Situação dos itens do enunciado
 
 | Item do enunciado | Onde está | Situação |
 |---|---|---|
 | Tema geral | relatório, seção 1.1 | pronto |
-| Pelo menos 3 assuntos de interesse | relatório, seção 1.2 (os cinco da planilha do grupo, com a motivação de cada um) | pronto |
+| Pelo menos 3 assuntos de interesse | relatório, seção 1.2 (os cinco da nossa planilha, com a motivação de cada um) | pronto |
 | Pelo menos 2 esquemas estrela | relatório, seções 2.1 a 2.5 (cinco estrelas) | pronto |
 | Pelo menos 1 constelação de fatos, com desenho e processo de projeto | relatório, seção 2.6, e matriz de barramento | pronto |
 | Pelo menos 2 fontes de dados | relatório, seção 1.3 (três fontes: duas da SME e o Censo 2022 do IBGE) | pronto |
@@ -22,7 +22,7 @@ O que já está pronto e o que só o grupo pode fazer antes de entregar. O enunc
 
 Os números do relatório, da documentação e dos slides vêm da carga com os dados reais: SME de 2015 a 2024 e Censo 2022, com as oito consultas medidas.
 
-## O que só o grupo pode fazer
+## O que ainda falta a gente fazer
 
 1. **Conferir a notação dos esquemas com a das aulas.** A verificação completa da modelagem está em [09 Verificação da modelagem](09-verificacao-da-modelagem.md). Os desenhos seguem a notação do artigo da disciplina (caixa com o nome da tabela, PK e FK, fato no centro com borda grossa) e as hierarquias usam `≤`. O enunciado diz que a notação tem de ser a mesma da sala de aula. Se a das aulas for diferente, os desenhos estão em `docs/relatorio/esquemas/*.tex` e o estilo comum em `estilo.tex`.
 
@@ -41,7 +41,7 @@ Os números do relatório, da documentação e dos slides vêm da carga com os d
 
 ## Para o Projeto 2
 
-O enunciado do Projeto 1 diz que as correções apontadas na primeira parte devem ser feitas pelo grupo e que o documento corrigido do Projeto 1 é entregue junto com o da segunda parte. Guardem o retorno da professora.
+O enunciado do Projeto 1 diz que as correções apontadas na primeira parte devem ser feitas por nós e que o documento corrigido do Projeto 1 é entregue junto com o da segunda parte. Vamos guardar o retorno da professora.
 
 ## Regenerar a apresentação
 

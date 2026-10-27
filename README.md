@@ -2,7 +2,7 @@
 
 [![testes](https://github.com/kevennlaranjeira/OLAP2026/actions/workflows/testes.yml/badge.svg)](https://github.com/kevennlaranjeira/OLAP2026/actions/workflows/testes.yml)
 
-Data warehouse sobre a rede municipal de educação de São Paulo, construído para os trabalhos práticos da disciplina **SCC0245 Processamento Analítico de Dados** (ICMC-USP, profa. Cristina Dutra de Aguiar).
+Nosso data warehouse sobre a rede municipal de educação de São Paulo, feito para os trabalhos práticos da disciplina **SCC0245 Processamento Analítico de Dados** (ICMC-USP, profa. Cristina Dutra de Aguiar).
 
 A pergunta que organiza o modelo: **onde existe fila por vaga, onde existe oferta, e o que acontece com quem consegue a vaga**. Ela só é respondível porque a Secretaria Municipal de Educação publica, ao mesmo tempo, o microdado de cada matrícula e a fila de espera por distrito. O Censo 2022 do IBGE acrescenta quantas crianças moram em cada lugar.
 
@@ -88,7 +88,7 @@ O GitHub Actions roda as duas a cada push, em Python 3.11 e 3.13, e falha se a c
 | [05 Consultas](docs/05-consultas.md) | as oito consultas analíticas, com pergunta, justificativa e resultado |
 | [06 Decisões](docs/06-decisoes.md) | 23 decisões de projeto, com alternativa descartada e argumento |
 | [07 Como executar](docs/07-como-executar.md) | instalação, comandos, testes e problemas comuns |
-| [08 Pendências da entrega](docs/08-pendencias-da-entrega.md) | o que só o grupo pode fazer antes de entregar e a divisão da apresentação |
+| [08 Pendências da entrega](docs/08-pendencias-da-entrega.md) | o que ainda falta a gente fazer antes de entregar e quem apresenta cada parte |
 | [09 Verificação da modelagem](docs/09-verificacao-da-modelagem.md) | como a modelagem foi conferida, o que foi corrigido e os pontos de atenção |
 | [10 Auditoria do trabalho](docs/10-auditoria-do-trabalho.md) | revisão de ponta a ponta: código, processo, documentos, slides e imagens |
 | [12 Ensaio da apresentação](docs/12-ensaio-da-apresentacao.md) | a ideia em um minuto, a mensagem de cada slide, as perguntas prováveis e o checklist do dia 29/10 |

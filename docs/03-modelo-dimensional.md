@@ -1,6 +1,6 @@
 # Modelo dimensional
 
-O data warehouse responde a uma pergunta: **onde existe fila por vaga na rede municipal de educação de São Paulo, onde existe oferta, e o que acontece com quem consegue a vaga**. Cinco processos de negócio sustentam essa pergunta, cada um com sua tabela de fatos, e cobrem os assuntos de interesse registrados pelo grupo (matrículas; fila; capacidade e ocupação das turmas; população em idade escolar; oferta escolar por setor). As cinco tabelas compartilham dimensões e formam uma constelação.
+Nosso data warehouse responde a uma pergunta: **onde existe fila por vaga na rede municipal de educação de São Paulo, onde existe oferta, e o que acontece com quem consegue a vaga**. Cinco processos de negócio sustentam essa pergunta, cada um com sua tabela de fatos, e cobrem os assuntos de interesse que registramos na nossa planilha (matrículas; fila; capacidade e ocupação das turmas; população em idade escolar; oferta escolar por setor). As cinco tabelas compartilham dimensões e formam uma constelação.
 
 O DDL completo está em [`src/dw_sme/sql/ddl/`](../src/dw_sme/sql/ddl/).
 
@@ -16,7 +16,7 @@ O DDL completo está em [`src/dw_sme/sql/ddl/`](../src/dw_sme/sql/ddl/).
 
 O grão foi declarado antes das dimensões em cada caso. O fato de matrícula usa o grão mais fino que a fonte permite; o de fila usa o grão em que a prefeitura publica; o de desfecho é um fato agregado, porque as taxas de rendimento só fazem sentido sobre um conjunto de alunos; o de turma também é agregado, porque a ocupação é uma propriedade da turma e não do aluno; o de população usa o grão em que o IBGE publica.
 
-| Assunto de interesse (planilha do grupo) | Onde está no modelo |
+| Assunto de interesse (nossa planilha) | Onde está no modelo |
 |---|---|
 | Matrículas | `fato_matricula` |
 | Fila (demanda registrada) | `fato_fila` |

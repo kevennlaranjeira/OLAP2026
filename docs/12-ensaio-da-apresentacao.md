@@ -1,6 +1,6 @@
 # Ensaio da apresentação
 
-A apresentação é no dia 29 de outubro e deve durar 20 minutos: quatro blocos de 5 minutos, um por integrante. Este documento serve para alinhar o grupo antes do dia: a ideia do trabalho em um minuto, como conduzir a reunião de ensaio, o que dizer em cada slide e as perguntas que a professora pode fazer. A divisão dos blocos e o que ainda falta para a entrega estão em [08 Pendências da entrega](08-pendencias-da-entrega.md).
+A apresentação é no dia 29 de outubro e deve durar 20 minutos: quatro blocos de 5 minutos, um por integrante. Aqui juntamos o que precisamos alinhar antes do dia: a ideia do trabalho em um minuto, como conduzir a reunião de ensaio, o que dizer em cada slide e as perguntas que a professora pode fazer. A divisão dos blocos e o que ainda falta para a entrega estão em [08 Pendências da entrega](08-pendencias-da-entrega.md).
 
 ## A ideia em um minuto
 

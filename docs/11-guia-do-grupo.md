@@ -1,6 +1,6 @@
 # Guia do grupo: acessar, usar, modificar e testar o projeto
 
-Este guia é para quem entrou agora no trabalho e quer ler o relatório, sugerir mudanças, mexer no código ou rodar os testes. Dá para seguir do começo ao fim ou pular direto para a parte que interessa. As partes 1 a 4 não exigem instalar nada.
+Fizemos este guia para quem entrou agora no trabalho e quer ler o relatório, sugerir mudanças, mexer no código ou rodar os testes. Dá para seguir do começo ao fim ou pular direto para a parte que interessa. As partes 1 a 4 não exigem instalar nada.
 
 | Quero... | Vá para |
 |---|---|
@@ -181,7 +181,7 @@ Também funciona, com duas ressalvas:
 - se alguém rodar o `gerar.js` depois, as edições feitas à mão se perdem, porque o script gera o arquivo do zero;
 - os testes conferem que existem 21 slides, que toda nota começa com `Apresenta: <nome> (bloco N de 4). Tempo previsto: X min.` e que os quatro blocos somam o mesmo tempo. Mantenha esse formato nas notas.
 
-Combine com o grupo qual dos dois caminhos usar até a entrega.
+A gente precisa combinar qual dos dois caminhos vai usar até a entrega.
 
 ### Versão em HTML
 
@@ -296,7 +296,7 @@ Reescrever um parágrafo do relatório não quebra teste. Os testes reclamam qua
 
 Deixar no texto um marcador de pendência (um nome entre colchetes no lugar de um integrante, uma anotação de tarefa em maiúsculas ou texto falso de preenchimento) faz o teste `test_nenhum_texto_pendente_esquecido` falhar, de propósito. A lista exata do que ele procura está no próprio teste, em `tests/test_coerencia.py`.
 
-Quando um teste falha, a última linha da mensagem diz o arquivo e o que não bateu. Se a mudança foi intencional (por exemplo, o grupo decidiu mudar uma hierarquia), mude também os outros lugares da tabela acima. Se não sabe por que falhou, mande a mensagem no grupo.
+Quando um teste falha, a última linha da mensagem diz o arquivo e o que não bateu. Se a mudança foi intencional (por exemplo, decidimos mudar uma hierarquia), mude também os outros lugares da tabela acima. Se não sabe por que falhou, mande a mensagem no grupo.
 
 ## 8. Rodar o pipeline com os dados reais
 
@@ -332,7 +332,7 @@ ALERTA não é erro: indica um defeito conhecido das fontes, medido e documentad
 
 ## 9. Fluxo de trabalho em equipe
 
-A `main` é a versão que vai para a entrega. A sugestão é que ninguém envie direto para ela: cada mudança vai numa branch e entra por pull request, para o GitHub rodar os testes e outra pessoa do grupo olhar antes.
+A `main` é a versão que vai para a entrega. A ideia é que ninguém mande direto para ela: cada mudança vai numa branch e entra por pull request, para o GitHub rodar os testes e mais alguém de nós olhar antes.
 
 ### 1. Atualize a sua cópia
 
@@ -392,7 +392,7 @@ Na página do pull request aparece a verificação **testes** (e, se o relatóri
 
 ### 7. Junte na `main`
 
-Com o ✓ verde e alguém do grupo de acordo, clique em **Merge pull request**. Depois, **Delete branch**.
+Com o ✓ verde e mais alguém de nós de acordo, clique em **Merge pull request**. Depois, **Delete branch**.
 
 No GitHub Desktop os passos são os mesmos: **Current branch > New branch**, depois **Commit to ...**, **Push origin** e **Create Pull Request**.
 
