@@ -12,7 +12,7 @@ O que já está pronto e o que só o grupo pode fazer antes de entregar. O enunc
 | Pelo menos 1 constelação de fatos, com desenho e processo de projeto | relatório, seção 2.6, e matriz de barramento | pronto |
 | Pelo menos 2 fontes de dados | relatório, seção 1.3 (três fontes: duas da SME e o Censo 2022 do IBGE) | pronto |
 | Pelo menos 5 consultas: 2 roll-up ou drill-down, 1 slice and dice, 1 pivot, 1 drill-across | relatório, seção 3 (oito consultas: 3, 1, 1 e 3) | pronto |
-| Capa com instituição, curso, disciplina, professora, trabalho, integrantes com Nº USP e data | relatório, capa | pronto; na etapa 1 o grupo optou por deixar a capa sem curso e sem data |
+| Capa com instituição, curso, disciplina, professora, trabalho, integrantes com Nº USP e data | relatório, capa | data de entrega na capa (29 de outubro de 2026); **falta o nome do curso** |
 | Índice | relatório | pronto |
 | Grão, dimensões, fatos, atributos e relações, aditividade, fatos derivados | relatório, seções 1.4 a 1.6 | pronto |
 | Povoamento de cada atributo e de cada fato, com integração | relatório, seções 1.5 a 1.7 (coluna "Povoamento" em cada dimensão) | pronto |

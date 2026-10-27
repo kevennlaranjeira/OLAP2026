@@ -53,6 +53,6 @@ Cada correção de código tem um teste que pega a regressão.
 
 ## O que continua dependendo do grupo
 
-Está em [08 Pendências da entrega](08-pendencias-da-entrega.md): conferir a notação dos esquemas com a das aulas e ensaiar a apresentação. Na etapa 1, a capa do relatório fica sem curso e sem data, por decisão do grupo.
+Está em [08 Pendências da entrega](08-pendencias-da-entrega.md): conferir a notação dos esquemas com a das aulas e ensaiar a apresentação. A capa do relatório tem a data de entrega, 29 de outubro de 2026, e ainda não tem o nome do curso.
 
 O relatório de qualidade publicado em [relatorios/qualidade.md](relatorios/qualidade.md) é o da carga com os dados reais, com as catorze verificações.
