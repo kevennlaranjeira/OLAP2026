@@ -1,6 +1,6 @@
 # Decisões de projeto
 
-Cada decisão traz o contexto, a alternativa descartada e o argumento. D19 a D23 acompanham a inclusão do fato de turma e da população do Censo 2022. As que dependem de medição citam o número.
+Anotamos cada decisão com o contexto, a alternativa que descartamos e o argumento. D19 a D23 vieram quando incluímos o fato de turma e a população do Censo 2022. As que dependem de medição citam o número que medimos.
 
 ## D01. Tema: oferta, fila e desfecho na rede municipal de São Paulo
 
@@ -12,7 +12,7 @@ Cada decisão traz o contexto, a alternativa descartada e o argumento. D19 a D23
 
 ## D02. Duas bases da SME como núcleo, o Censo 2022 como terceira
 
-**Decisão.** Microdados de Matrículas e Demanda Registrada e Matrículas, ambas da SME-SP, sustentam matrícula, fila, desfecho e ocupação. O Censo 2022 do IBGE entra como terceira fonte, para a população em idade escolar, como registrado na planilha do grupo.
+**Decisão.** Microdados de Matrículas e Demanda Registrada e Matrículas, ambas da SME-SP, sustentam matrícula, fila, desfecho e ocupação. O Censo 2022 do IBGE entra como terceira fonte, para a população em idade escolar, como registramos na nossa planilha.
 
 **Alternativa descartada.** Trocar a fila pelo Censo, para ter instituições diferentes nas duas fontes obrigatórias.
 
@@ -22,7 +22,7 @@ Cada decisão traz o contexto, a alternativa descartada e o argumento. D19 a D23
 
 **Alternativas.** PostgreSQL (instalado na máquina), ou os dois.
 
-**Argumento.** Arquivo único, sem servidor e sem senha: qualquer integrante do grupo roda o projeto só com Python. Tem `ROLLUP`, `CUBE`, `GROUPING SETS` e `PIVOT` nativos. Carrega os 13,4 milhões de linhas em cerca de 3 minutos num notebook.
+**Argumento.** Arquivo único, sem servidor e sem senha: qualquer um de nós roda o projeto só com Python. Tem `ROLLUP`, `CUBE`, `GROUPING SETS` e `PIVOT` nativos. Carrega os 13,4 milhões de linhas em cerca de 3 minutos num notebook.
 
 ## D04. Grão do fato de matrícula: vínculo aluno-turma
 
@@ -100,7 +100,7 @@ Cada decisão traz o contexto, a alternativa descartada e o argumento. D19 a D23
 
 ## D19. Ocupação medida, capacidade não inventada
 
-**Contexto.** A planilha do grupo registra "capacidade e ocupação das turmas". Nenhuma das fontes publica o número de vagas de cada turma.
+**Contexto.** Nossa planilha registra "capacidade e ocupação das turmas". Nenhuma das fontes publica o número de vagas de cada turma.
 
 **Decisão.** Fato de turma com a ocupação efetiva: alunos ativos em 30/06 e turmas com ao menos um aluno ativo. A média de alunos por turma é derivada e não aditiva. A matrícula em processo da planilha de fila (vaga oferecida aguardando documentação) é a informação publicada mais próxima de capacidade ociosa e fica no fato de fila.
 

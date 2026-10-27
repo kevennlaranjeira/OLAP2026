@@ -1,6 +1,6 @@
 # Fontes de dados
 
-O modelo usa três fontes, as mesmas registradas na planilha do grupo. As duas principais vêm do [Portal de Dados Abertos da Prefeitura de São Paulo](https://dados.prefeitura.sp.gov.br/organization/educacao1), publicadas pela Secretaria Municipal de Educação (SME) sob licença Creative Commons. O enunciado permite que as fontes venham da mesma plataforma; aqui elas têm grãos, formatos e vocabulários diferentes, e a integração entre elas é trabalho de verdade. A terceira é o Censo Demográfico 2022 do IBGE, que traz a população residente por idade, ou seja, a demanda potencial que nenhuma das bases da prefeitura mede.
+Usamos três fontes, as mesmas que registramos na nossa planilha. As duas principais vêm do [Portal de Dados Abertos da Prefeitura de São Paulo](https://dados.prefeitura.sp.gov.br/organization/educacao1), publicadas pela Secretaria Municipal de Educação (SME) sob licença Creative Commons. O enunciado permite que as fontes venham da mesma plataforma; aqui elas têm grãos, formatos e vocabulários diferentes, e integrar uma com a outra deu trabalho de verdade. A terceira é o Censo Demográfico 2022 do IBGE, que traz a população residente por idade, ou seja, a demanda potencial que nenhuma das bases da prefeitura mede.
 
 | | Fonte | Instituição | Assunto de interesse que sustenta |
 |---|---|---|---|

@@ -1,6 +1,6 @@
 # Auditoria do trabalho
 
-Revisão de ponta a ponta de tudo o que está no repositório: código, processo, documentação, relatório, apresentação e imagens. A verificação específica do modelo dimensional está em [09 Verificação da modelagem](09-verificacao-da-modelagem.md).
+Nossas anotações da revisão de ponta a ponta do repositório: código, processo, documentação, relatório, apresentação e imagens. A verificação específica do modelo dimensional está em [09 Verificação da modelagem](09-verificacao-da-modelagem.md).
 
 ## O que é conferido e como
 
@@ -51,8 +51,8 @@ Revisão de ponta a ponta de tudo o que está no repositório: código, processo
 
 Cada correção de código tem um teste que pega a regressão.
 
-## O que continua dependendo do grupo
+## O que ainda falta para nós
 
-Está em [08 Pendências da entrega](08-pendencias-da-entrega.md): conferir a notação dos esquemas com a das aulas e ensaiar a apresentação. A capa do relatório tem a data de entrega, 29 de outubro de 2026, e ainda não tem o nome do curso.
+Está em [08 Pendências da entrega](08-pendencias-da-entrega.md): conferir a notação dos esquemas com a das aulas e ensaiar a apresentação. A capa do relatório já tem a data de entrega, 29 de outubro de 2026; falta colocar o nome do curso.
 
 O relatório de qualidade publicado em [relatorios/qualidade.md](relatorios/qualidade.md) é o da carga com os dados reais, com as catorze verificações.

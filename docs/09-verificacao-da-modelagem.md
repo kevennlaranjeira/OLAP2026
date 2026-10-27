@@ -1,6 +1,6 @@
 # Verificação da modelagem
 
-Revisão completa do modelo dimensional: os desenhos, o banco (DDL), o relatório, a documentação e os dados precisam contar a mesma história. Parte é automática e roda a cada push no CI; parte é revisão conceitual.
+Aqui anotamos como conferimos o modelo dimensional: os desenhos, o banco (DDL), o relatório, a documentação e os dados precisam contar a mesma história. Parte da conferência é automática e roda a cada push no CI; parte fizemos lendo o modelo com os conceitos da disciplina.
 
 As imagens dos esquemas estão em [modelagem/](modelagem/): [modelagem.pdf](modelagem/modelagem.pdf) traz a constelação, as cinco estrelas e a matriz de barramento, uma por página, e há um PNG de cada esquema.
 

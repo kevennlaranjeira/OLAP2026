@@ -1,6 +1,6 @@
 # Integração e qualidade
 
-Cada problema abaixo foi encontrado nos dados reais, medido e tratado por uma regra testada. A coluna "Evidência" traz o número que justificou a decisão. O relatório gerado pela última carga está em [relatorios/qualidade.md](relatorios/qualidade.md).
+Cada problema abaixo apareceu nos dados reais; medimos o tamanho dele e tratamos com uma regra que tem teste. A coluna "Evidência" traz o número que nos fez decidir. O relatório gerado pela última carga está em [relatorios/qualidade.md](relatorios/qualidade.md).
 
 ## Integração entre as bases da SME
 
