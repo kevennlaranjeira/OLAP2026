@@ -1,18 +1,19 @@
 # Ensaio da apresentação
 
-A apresentação é no dia 29 de outubro. A professora pediu 20 minutos; combinamos 6,5 minutos para o bloco 1, que abre a história, e 5 para cada um dos outros, 21,5 no total. Aqui juntamos o que precisamos alinhar antes do dia: a ideia do trabalho em um minuto, como conduzir a reunião de ensaio, o que dizer em cada slide e as perguntas que a professora pode fazer. A divisão dos blocos e o que ainda falta para a entrega estão em [08 Pendências da entrega](08-pendencias-da-entrega.md).
+A apresentação é no dia 29 de outubro. A professora pediu 20 minutos; combinamos 7 minutos para o bloco 1, que abre a apresentação e vende a proposta, e 5 para cada um dos outros, 22 no total. Aqui juntamos o que precisamos alinhar antes do dia: a ideia do trabalho em um minuto, como conduzir a reunião de ensaio, o que dizer em cada slide e as perguntas que a professora pode fazer. A divisão dos blocos e o que ainda falta para a entrega estão em [08 Pendências da entrega](08-pendencias-da-entrega.md).
 
 ## A ideia em um minuto
 
 A prefeitura de São Paulo publica quem espera vaga na educação infantil, por distrito, e cada matrícula da rede municipal. Separadas, essas bases não dizem onde abrir vagas. O data warehouse junta fila, matrícula, ocupação das turmas, desfecho da matrícula e a população do Censo 2022 numa constelação de cinco fatos e catorze dimensões, e responde perguntas de gestor com oito consultas OLAP sobre os dados reais de 2015 a 2024.
 
-A apresentação conta isso como uma história. A Ana, persona hipotética, tem 1 ano, mora no Tremembé e está na fila de creche; a mãe precisa voltar a trabalhar. O bloco 1 mostra o caso dela, as 3.633 crianças que ainda esperavam vaga em 2024, a proposta e o ciclo do dado à vaga, e imagina a prefeitura adotando o data warehouse; cada bloco seguinte é um passo (os dados, o modelo, as respostas), e no fim a consulta aponta o Tremembé e a Ana consegue a vaga. A história é hipotética; os números são reais.
+A apresentação vende isso como uma proposta. Começa pelos números: a fila de creche caiu 97% de 2015 a 2024, mas 3.633 crianças ainda esperavam, e a plateia ouve a pergunta "e se fosse o seu filho?". Depois vêm o problema (quase sete em cada dez esperam uma unidade específica, então falta vaga no lugar certo), os dados de hoje, que se repetem e não conversam, e o que o data warehouse melhora: consultas em 0,42 s, catorze verificações a cada carga e uma linguagem só. Cada bloco seguinte é um passo da proposta, e o fim volta à pergunta do começo.
 
 | Número | O que mostra |
 |---|---|
 | -97% | fila de creche em junho, de 124.741 crianças (2015) para 3.633 (2024) |
-| 153 | crianças na fila de creche do Tremembé, o distrito da Ana, em junho de 2024: a segunda maior fila da cidade |
 | 2.502 de 3.633 | crianças da fila de creche de junho de 2024 que esperavam uma unidade específica; as outras 1.131 aceitavam qualquer unidade |
+| 38.869 | matrículas de creche que, em junho de 2022, pareciam ativas no microdado sem ser: transferências sem data de fim |
+| 0,42 s | tempo das oito consultas, somadas, sobre a carga real |
 | 85% | da creche é rede conveniada, quase toda em jornada integral |
 | 86 por 100 | matrículas por 100 crianças de 0 a 4 anos; 25 distritos abaixo de 50 e 25 acima de 100 |
 | 13,4 milhões | matrículas carregadas, com 551 mil turmas e 26.889 setores censitários |
@@ -25,53 +26,57 @@ Uns 40 minutos, com todos de computador aberto na [versão em HTML](apresentacao
 
 | Tempo | O que fazer |
 |---|---|
-| 5 min | Contar a ideia em um minuto e mostrar os slides 2 a 9, que vão da Ana aos passos da proposta. |
+| 5 min | Contar a ideia em um minuto e mostrar os slides 2 a 11, da queda da fila aos passos da proposta. |
 | 10 min | Mostrar o projeto funcionando: rodar os testes, abrir o relatório e um CSV de consulta. |
 | 15 min | Cada integrante percorre o próprio bloco com as notas abertas (tecla N) e diz em voz alta a mensagem de cada slide. |
-| 10 min | Ensaio corrido, cronometrando 6,5 minutos para o Kevenn e 5 para cada um dos outros, e uma rodada das perguntas prováveis. |
+| 10 min | Ensaio corrido, cronometrando 7 minutos para o Kevenn e 5 para cada um dos outros, e uma rodada das perguntas prováveis. |
 
-No fim dos slides 9, 14 e 19, quem está falando passa a palavra.
+No fim dos slides 11, 16 e 21, quem está falando passa a palavra.
 
 ## A mensagem de cada slide
 
 | Slide | Título | Diga isto |
 |---|---|---|
 | 1 | Capa | Abrir com a pergunta: quantas crianças esperavam vaga em creche em 2015? Foram 124.741. Depois, grupo e tema. |
-| 2 | A Ana | A Ana tem 1 ano e mora no Tremembé; a mãe precisa voltar a trabalhar e espera a creche do bairro, e cada mês na fila é um mês a menos de creche. |
-| 3 | E se fosse o seu filho? | 3.633 crianças ainda esperavam vaga em junho de 2024, 2.502 delas por uma unidade específica. Perguntar à plateia: e se fosse o seu filho? |
-| 4 | O problema | A fila caiu de 124.741 para 3.633, mas está espalhada pelos 96 distritos: a pergunta agora é onde abrir vagas. |
-| 5 | Nossa solução | Hoje são três bases que não conversam; o data warehouse junta fila, matrícula, ocupação e população num lugar só. |
-| 6 | Do dado à vaga | Medir, localizar, decidir e acompanhar: um ciclo que procura vaga no lugar certo. |
-| 7 | Por que São Paulo | Fila e matrícula publicadas em dado aberto; o modelo vale para São Carlos assim que a fila for publicada. |
-| 8 | Cinco assuntos | Cada assunto é uma peça do caso da Ana; quatro viram tabelas de fatos e a oferta por setor sai das dimensões. |
-| 9 | Imagine | A prefeitura adota a proposta: o passo 1 é do Thiago, o passo 2 do Daniel e o passo 3 do Luís. Passar a palavra. |
-| 10 | Três fontes | Passo 1: a fila do Tremembé, as matrículas e o Censo; 13,4 milhões de matrículas, 44 meses de fila e 26.889 setores. |
-| 11 | Integração | O mesmo dado em formas diferentes: TREMEMBE e Tremembé viram a mesma linha; a reconciliação fica abaixo de 1%. |
-| 12 | Problemas nos dados | Código da escola recuperado em 94,8% a 98,6% das matrículas; medida não publicada fica nula, nunca zero. |
-| 13 | Grão e aditividade | A Ana é uma das 153 crianças da linha Tremembé, junho de 2024, creche; fila e população são estoques. |
-| 14 | Estrela Matrícula | Data com dois papéis, campo artificial igual a 1, bugigangas, degeneradas e Escola tipo 2. Passar ao Daniel. |
-| 15 | Estrela Fila | Passo 2: a fila do Tremembé fica aqui; distrito × mês × etapa, com duas hierarquias de tempo. |
-| 16 | Estrela Desfecho | O que vem depois do acesso; taxas recalculadas pelas contagens, nunca média de taxas. |
-| 17 | Estrela Ocupação de Turma | Ninguém publica a capacidade, então medimos a ocupação; no Tremembé, 10,7 crianças por turma de creche em 2024. |
-| 18 | Estrela População | As 11.498 crianças do Tremembé saem da soma dos setores censitários; Faixa Etária é o rollup encolhido de Idade. |
-| 19 | Constelação | Território está nos cinco fatos e liga o caso da Ana de ponta a ponta. Passar ao Luís. |
-| 20 | Oito consultas | Passo 3: três roll-up ou drill-down, uma slice and dice, uma pivot e três drill-across, cada uma com o resultado real. |
-| 21 | Fila e oferta | Queda de 97% na fila; fração fora da rede de 34% para 1%; 85% da creche conveniada. |
-| 22 | População e ocupação | 86 matrículas por 100 crianças, com distritos muito longe da média; o Tremembé tem 71,6. |
-| 23 | Decisões | Por que confiar nos números: rollups encolhidos e nulo não é zero. |
-| 24 | A decisão | Pelo tamanho, a escolha seria o Grajaú; com as bases cruzadas, a próxima vaga vai para o Tremembé. |
-| 25 | Fim da história | Cenário hipotético: a prefeitura abre turmas no Tremembé, a Ana consegue a vaga e a mãe volta a trabalhar. |
-| 26 | Encerramento | A proposta está pronta: relatório, repositório e carga real sem nenhuma FALHA. Abrir para perguntas. |
+| 2 | A queda da fila | Em dez anos, a fila de creche de junho caiu 97%, de 124.741 para 3.633, e a demanda fora da rede foi de 34% para 1%. |
+| 3 | E se fosse o seu filho? | 3.633 crianças ainda esperavam em 2024, nos 96 distritos. Perguntar à plateia: seu filho fora da creche, o seu trabalho, a sua casa. |
+| 4 | O problema | Quem aceita qualquer unidade não espera mais de 30 dias; 2.502 das 3.633 esperam uma unidade específica. A pergunta é onde abrir vaga. |
+| 5 | Dados que se repetem | Matrícula em dobro (38.869 a mais em 2022), um código para muitas escolas, totais que não fecham e zero que não é zero. |
+| 6 | Nossa solução | Hoje são três bases que não conversam; o data warehouse junta fila, matrícula, ocupação e população num lugar só. |
+| 7 | Mais confiáveis e mais rápidas | 0,42 s para as oito consultas, 3,5 min de carga, 14 verificações sem FALHA, bases da SME com menos de 1% de diferença. |
+| 8 | Do dado à vaga | Medir, localizar, decidir e acompanhar: um ciclo que procura vaga no lugar certo. |
+| 9 | Por que São Paulo | Fila e matrícula publicadas em dado aberto; o modelo vale para São Carlos assim que a fila for publicada. |
+| 10 | Cinco assuntos | Cada assunto responde a uma parte da decisão de onde abrir vagas; quatro viram tabelas de fatos. |
+| 11 | Imagine | A prefeitura adota a proposta: o passo 1 é do Thiago, o passo 2 do Daniel e o passo 3 do Luís. Passar a palavra. |
+| 12 | Três fontes | Passo 1: a fila de cada distrito, as matrículas e o Censo; 13,4 milhões de matrículas, 44 meses de fila e 26.889 setores. |
+| 13 | Integração | O mesmo dado em formas diferentes: TREMEMBE e Tremembé viram a mesma linha; a reconciliação fica abaixo de 1%. |
+| 14 | Problemas nos dados | Código da escola recuperado em 94,8% a 98,6% das matrículas; medida não publicada fica nula, nunca zero. |
+| 15 | Grão e aditividade | Uma criança não é uma linha da fila: ela entra numa contagem por distrito, mês e etapa; fila e população são estoques. |
+| 16 | Estrela Matrícula | Data com dois papéis, campo artificial igual a 1, bugigangas, degeneradas e Escola tipo 2. Passar ao Daniel. |
+| 17 | Estrela Fila | Passo 2: distrito × mês × etapa, com duas hierarquias de tempo. |
+| 18 | Estrela Desfecho | O que vem depois do acesso; taxas recalculadas pelas contagens, nunca média de taxas. |
+| 19 | Estrela Ocupação de Turma | Ninguém publica a capacidade, então medimos a ocupação; no Tremembé, 10,7 crianças por turma de creche em 2024. |
+| 20 | Estrela População | Setores censitários somados por distrito; Faixa Etária é o rollup encolhido de Idade. |
+| 21 | Constelação | Território está nos cinco fatos e liga fila, matrícula, ocupação, desfecho e população. Passar ao Luís. |
+| 22 | Oito consultas | Passo 3: três roll-up ou drill-down, uma slice and dice, uma pivot e três drill-across, cada uma com o resultado real. |
+| 23 | Fila e oferta | Queda de 97% na fila; fração fora da rede de 34% para 1%; 85% da creche conveniada. |
+| 24 | População e ocupação | 86 matrículas por 100 crianças, com distritos muito longe da média; o Tremembé tem 71,6. |
+| 25 | Decisões | Por que confiar nos números: rollups encolhidos e nulo não é zero. |
+| 26 | Um exemplo | Pelo tamanho, a escolha seria o Grajaú; com as bases cruzadas, a próxima vaga vai para o Tremembé. |
+| 27 | De volta à pergunta | Cenário hipotético: a prefeitura abre vagas onde a fila resiste e a família volta a trabalhar; o que a proposta entrega. |
+| 28 | Encerramento | A proposta está pronta: relatório, repositório e carga real sem nenhuma FALHA. Abrir para perguntas. |
 
 ## Perguntas prováveis
 
 Durante a apresentação há perguntas sobre o trabalho. Entre parênteses, quem responde primeiro. As decisões completas, com a alternativa descartada, estão em [06 Decisões](06-decisoes.md).
 
-**A Ana existe?** (Kevenn) Não. É uma persona hipotética, criada para mostrar o problema pelo lado de uma família. Os números do Grajaú e do Tremembé são reais e saem das consultas 5 e 7 sobre a carga.
+**O que é a fila com opção por unidade específica?** (Kevenn) É a criança cuja família escolheu esperar vaga numa unidade específica. A planilha da SME separa esse grupo de quem aceita qualquer unidade: em junho de 2024 eram 2.502 das 3.633 crianças na fila de creche, e nenhuma das que aceitavam qualquer unidade esperava havia mais de 30 dias. Por isso a pergunta é onde abrir vaga.
 
-**O que é a fila com opção por unidade específica?** (Kevenn) É a criança cuja família escolheu esperar vaga numa unidade específica, como a mãe da Ana. A planilha da SME separa esse grupo de quem aceita qualquer unidade: em junho de 2024 eram 2.502 das 3.633 crianças na fila de creche, e nenhuma das que aceitavam qualquer unidade esperava havia mais de 30 dias. Por isso a pergunta é onde abrir vaga.
+**De onde vêm as 38.869 matrículas a mais?** (Kevenn ou Thiago) Em junho de 2022, o microdado tinha 378.954 matrículas de creche ativas, mas 340.085 alunos distintos: transferências e remanejamentos saem sem data de fim e parecem ativos. Por isso a consulta 5 usa a matrícula da própria planilha da fila e mostra a do microdado ao lado, com a diferença à vista.
 
-**Por que o Tremembé?** (Kevenn ou Luís) Porque é onde o cruzamento aponta: em junho de 2024 o Tremembé tinha a segunda maior fila de creche da cidade (153), 2,5% da demanda de creche fora da rede, mais que o dobro da cidade, e 71,6 matrículas por 100 crianças de 0 a 4 anos, abaixo da média de 86. A consulta 7 traz os 96 distritos.
+**Os 0,42 segundo valem para qualquer computador?** (Kevenn) Medimos no notebook do Kevenn, com o banco da carga real: as oito consultas somam 0,42 s (melhor de três execuções). Em outra máquina o valor muda, mas continua em fração de segundo para este volume.
+
+**Por que o Tremembé?** (Luís) É um exemplo do que o cruzamento mostra: em junho de 2024 o Tremembé tinha a segunda maior fila de creche da cidade (153) e 71,6 matrículas por 100 crianças de 0 a 4 anos, abaixo da média de 86, enquanto o Grajaú, o distrito com mais crianças, tinha 88 na fila. A consulta 7 traz os 96 distritos.
 
 **A prefeitura usa o data warehouse?** (Luís) Não. O fim da história é um cenário hipotético: mostra o que a prefeitura poderia decidir com ele. Os números do cenário saem da nossa carga com os dados reais.
 
@@ -109,6 +114,6 @@ Para a apresentação basta abrir [apresentacao-projeto1.html](apresentacao/apre
 
 - Abrir o HTML no computador da sala antes da aula e testar setas, F e N.
 - Levar o `.pptx` e o PDF do relatório num pendrive, para o caso de não haver internet. Sem internet, o HTML abre com a fonte Arial e continua legível.
-- Combinar quem controla os slides e o sinal de passagem de bloco no fim dos slides 9, 14 e 19.
+- Combinar quem controla os slides e o sinal de passagem de bloco no fim dos slides 11, 16 e 21.
 - Cada integrante sabe responder as perguntas do próprio bloco.
 - Entregar o PDF do relatório no local definido no critério de avaliação da disciplina.
