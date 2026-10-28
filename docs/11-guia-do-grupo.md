@@ -41,7 +41,7 @@ OLAP2026/
       esquemas/*.tex             desenhos das estrelas e da constelação (TikZ)
     apresentacao/
       gerar.js                   script que gera os slides
-      apresentacao-projeto1.pptx slides gerados (24 slides)
+      apresentacao-projeto1.pptx slides gerados (25 slides)
       apresentacao-projeto1.html a mesma apresentação, para abrir no navegador
       apresentacao-projeto1.pdf  a mesma apresentação em PDF, que o GitHub mostra sem baixar
       embutir_figuras.py         atualiza as figuras guardadas dentro do HTML
@@ -159,7 +159,7 @@ Mande sempre o `.tex` e o `.pdf` juntos, no mesmo commit. O PDF é o arquivo de 
 
 ## 5. Editar a apresentação
 
-Os slides são gerados pelo script [`docs/apresentacao/gerar.js`](apresentacao/gerar.js). As figuras dos esquemas vêm de `docs/modelagem/`. Cada slide tem, nas notas, quem apresenta e o tempo previsto, e o slide 9 (roteiro) é montado a partir do bloco de cada slide. O tempo fica só nas notas, para o ensaio; nenhum slide mostra tempo.
+Os slides são gerados pelo script [`docs/apresentacao/gerar.js`](apresentacao/gerar.js). As figuras dos esquemas vêm de `docs/modelagem/`. Cada slide tem, nas notas, quem apresenta e o tempo previsto, e o slide 8 (os passos da proposta, que fazem de roteiro) é montado a partir do bloco de cada slide. O tempo fica só nas notas, para o ensaio; nenhum slide mostra tempo.
 
 ### Pelo script (recomendado)
 
@@ -180,13 +180,13 @@ O texto de cada slide está no `gerar.js`, em blocos marcados com comentários c
 Também funciona, com duas ressalvas:
 
 - se alguém rodar o `gerar.js` depois, as edições feitas à mão se perdem, porque o script gera o arquivo do zero;
-- os testes conferem que existem 24 slides, que toda nota começa com `Apresenta: <nome> (bloco N de 4). Tempo previsto: X min.` e que os quatro blocos somam o mesmo tempo. Mantenha esse formato nas notas.
+- os testes conferem que existem 25 slides, que toda nota começa com `Apresenta: <nome> (bloco N de 4). Tempo previsto: X min.` e que os quatro blocos somam o mesmo tempo. Mantenha esse formato nas notas.
 
 A gente precisa combinar qual dos dois caminhos vai usar até a entrega.
 
 ### Versão em HTML
 
-O arquivo [`docs/apresentacao/apresentacao-projeto1.html`](apresentacao/apresentacao-projeto1.html) traz os mesmos 24 slides, com as mesmas notas e os mesmos tempos. Ele abre com dois cliques em qualquer navegador e funciona sozinho, porque as figuras dos esquemas estão guardadas dentro dele. Só a fonte vem da internet; sem conexão, o texto aparece em Arial.
+O arquivo [`docs/apresentacao/apresentacao-projeto1.html`](apresentacao/apresentacao-projeto1.html) traz os mesmos 25 slides, com as mesmas notas e os mesmos tempos. Ele abre com dois cliques em qualquer navegador e funciona sozinho, porque as figuras dos esquemas estão guardadas dentro dele. Só a fonte vem da internet; sem conexão, o texto aparece em Arial.
 
 | Tecla | O que faz |
 |---|---|
@@ -196,7 +196,7 @@ O arquivo [`docs/apresentacao/apresentacao-projeto1.html`](apresentacao/apresent
 | N | mostra ou esconde as notas de quem apresenta |
 | Home e End | primeiro e último slide |
 
-O endereço termina com o número do slide (`#21`), e dá para abrir direto nele. Os cartões entram em sequência, e os gráficos dos slides 21 e 22 se desenham quando o slide aparece, com os números da carga real.
+O endereço termina com o número do slide (`#20`), e dá para abrir direto nele. Os cartões entram em sequência, e os gráficos dos slides 20 e 21 se desenham quando o slide aparece, com os números da carga real.
 
 Para gerar um PDF, abra o arquivo com `?imprimir` no fim do endereço (`apresentacao-projeto1.html?imprimir`), aperte Ctrl+P e escolha "Salvar como PDF". Sai uma página por slide, com os gráficos já desenhados. O [`apresentacao-projeto1.pdf`](apresentacao/apresentacao-projeto1.pdf) do repositório foi gerado assim e serve para ver os slides no próprio GitHub, sem baixar nada. Quem mudar os slides gera o PDF de novo e salva por cima dele; um teste confere que ele tem uma página por slide.
 
@@ -285,7 +285,7 @@ Reescrever um parágrafo do relatório não quebra teste. Os testes reclamam qua
 | Se você mudar... | Também precisa mudar | Teste que acusa |
 |---|---|---|
 | nome ou Nº USP de um integrante | README, `relatorio-projeto1.tex`, `gerar.js` e `apresentacao-projeto1.html` | `test_integrantes_e_numeros_usp_iguais_em_todo_lugar` |
-| o tipo de uma consulta (ex.: drill-down) | o arquivo SQL, `docs/05-consultas.md`, o título `\subsection{Consulta N: tipo}`, a tabela de consultas do `gerar.js` e o slide 20 do HTML | `test_consultas_iguais_na_documentacao_no_relatorio_e_nos_slides` |
+| o tipo de uma consulta (ex.: drill-down) | o arquivo SQL, `docs/05-consultas.md`, o título `\subsection{Consulta N: tipo}`, a tabela de consultas do `gerar.js` e o slide 19 do HTML | `test_consultas_iguais_na_documentacao_no_relatorio_e_nos_slides` |
 | uma hierarquia (`\hier{...}`) | o DDL em `src/dw_sme/sql/ddl/` e `docs/03-modelo-dimensional.md` | `test_hierarquias_iguais_no_relatorio_no_ddl_e_na_documentacao` |
 | uma caixa ou ligação de um esquema | o DDL (as caixas mostram as colunas das tabelas) | `test_caixas_do_desenho_batem_com_o_ddl` e vizinhos em `test_modelo.py` |
 | a matriz de barramento | o DDL e `docs/modelagem/modelagem.tex` | `test_matriz_de_barramento_bate_com_o_ddl` |

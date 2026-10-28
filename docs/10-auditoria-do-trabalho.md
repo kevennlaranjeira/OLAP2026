@@ -18,7 +18,7 @@ Nossas anotações da revisão de ponta a ponta do repositório: código, proces
 | Saídas das consultas | leitura dos 8 CSV e do relatório de qualidade | totais com "(TODAS)", anos sem separador de milhar, contagens como inteiro |
 | Imagens dos esquemas | `figuras.tex` compilado de novo e cada página comparada com o PNG do repositório; hash das imagens dentro do `.pptx` e do HTML | os 6 PNG idênticos pixel a pixel; as duas apresentações usam os PNG atuais, conferido a cada push |
 | PDFs | relatório e PDF de modelagem compilados com XeLaTeX; o fluxo `relatorio.yml` do GitHub compila o relatório a cada mudança em `docs/relatorio/` e deixa o PDF para baixar | compilam sem erro; nenhuma caixa vazando a margem |
-| Revisão visual | 24 slides em cada versão da apresentação, 27 páginas do relatório e 7 do PDF de modelagem renderizados | sem texto cortado ou sobreposto |
+| Revisão visual | 25 slides em cada versão da apresentação, 27 páginas do relatório e 7 do PDF de modelagem renderizados | sem texto cortado ou sobreposto |
 
 ## Erros encontrados e corrigidos
 
