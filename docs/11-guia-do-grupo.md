@@ -43,6 +43,7 @@ OLAP2026/
       gerar.js                   script que gera os slides
       apresentacao-projeto1.pptx slides gerados (24 slides)
       apresentacao-projeto1.html a mesma apresentação, para abrir no navegador
+      apresentacao-projeto1.pdf  a mesma apresentação em PDF, que o GitHub mostra sem baixar
       embutir_figuras.py         atualiza as figuras guardadas dentro do HTML
     modelagem/                   os mesmos esquemas em PNG e num PDF separado
     01 a 12 *.md                 documentação técnica (fontes, fluxo, modelo, consultas, decisões...)
@@ -158,7 +159,7 @@ Mande sempre o `.tex` e o `.pdf` juntos, no mesmo commit. O PDF é o arquivo de 
 
 ## 5. Editar a apresentação
 
-Os slides são gerados pelo script [`docs/apresentacao/gerar.js`](apresentacao/gerar.js). As figuras dos esquemas vêm de `docs/modelagem/`. Cada slide tem, nas notas, quem apresenta e o tempo previsto, e o slide 2 (roteiro) é montado a partir do bloco de cada slide. O tempo fica só nas notas, para o ensaio; nenhum slide mostra tempo.
+Os slides são gerados pelo script [`docs/apresentacao/gerar.js`](apresentacao/gerar.js). As figuras dos esquemas vêm de `docs/modelagem/`. Cada slide tem, nas notas, quem apresenta e o tempo previsto, e o slide 9 (roteiro) é montado a partir do bloco de cada slide. O tempo fica só nas notas, para o ensaio; nenhum slide mostra tempo.
 
 ### Pelo script (recomendado)
 
@@ -195,9 +196,9 @@ O arquivo [`docs/apresentacao/apresentacao-projeto1.html`](apresentacao/apresent
 | N | mostra ou esconde as notas de quem apresenta |
 | Home e End | primeiro e último slide |
 
-O endereço termina com o número do slide (`#18`), e dá para abrir direto nele. Os cartões entram em sequência, e os gráficos dos slides 18 e 19 se desenham quando o slide aparece, com os números da carga real.
+O endereço termina com o número do slide (`#21`), e dá para abrir direto nele. Os cartões entram em sequência, e os gráficos dos slides 21 e 22 se desenham quando o slide aparece, com os números da carga real.
 
-Para gerar um PDF, abra o arquivo com `?imprimir` no fim do endereço (`apresentacao-projeto1.html?imprimir`), aperte Ctrl+P e escolha "Salvar como PDF". Sai uma página por slide, com os gráficos já desenhados.
+Para gerar um PDF, abra o arquivo com `?imprimir` no fim do endereço (`apresentacao-projeto1.html?imprimir`), aperte Ctrl+P e escolha "Salvar como PDF". Sai uma página por slide, com os gráficos já desenhados. O [`apresentacao-projeto1.pdf`](apresentacao/apresentacao-projeto1.pdf) do repositório foi gerado assim e serve para ver os slides no próprio GitHub, sem baixar nada. Quem mudar os slides gera o PDF de novo e salva por cima dele; um teste confere que ele tem uma página por slide.
 
 O texto de cada slide fica no próprio HTML, dentro das tags `<section>`, e qualquer editor de texto abre o arquivo. As duas versões são independentes: mudar um número no HTML não muda o `.pptx`, e o contrário também vale. Os testes conferem que as duas têm os mesmos slides, apresentadores, tempos e números nos gráficos. Se as figuras de `docs/modelagem/` mudarem, atualize as que estão dentro do HTML com:
 
@@ -259,7 +260,7 @@ Os testes não precisam de internet nem dos dados reais, e levam cerca de 1 minu
 .venv/Scripts/python -m pytest
 ```
 
-O resultado esperado termina com algo como `504 passed` (o número cresce quando entram testes novos). Qualquer `failed` ou `error` indica um problema.
+O resultado esperado termina com algo como `505 passed` (o número cresce quando entram testes novos). Qualquer `failed` ou `error` indica um problema.
 
 Para rodar só uma parte:
 
@@ -290,6 +291,7 @@ Reescrever um parágrafo do relatório não quebra teste. Os testes reclamam qua
 | a matriz de barramento | o DDL e `docs/modelagem/modelagem.tex` | `test_matriz_de_barramento_bate_com_o_ddl` |
 | uma contagem citada em vários lugares (5 fatos, 14 dimensões, 14 verificações, 23 decisões) | README, `docs/` e relatório, que citam o mesmo número | `test_cinco_fatos_quatorze_dimensoes_vinte_e_sete_chaves_em_todo_lugar`, `test_quatorze_verificacoes_documentadas`, `test_decisoes_numeradas_em_sequencia` |
 | um link entre documentos | o arquivo para o qual ele aponta | `test_links_internos_apontam_para_arquivos_que_existem` |
+| a quantidade de slides | `gerar.js`, o HTML e o PDF, gerado de novo a partir do HTML | `test_pdf_da_apresentacao_tem_uma_pagina_por_slide` |
 | o número de slides ou o tempo de um slide | `docs/08-pendencias-da-entrega.md` e os tempos dos outros blocos | `test_vinte_e_um_slides_em_quatro_blocos` e `test_todos_apresentam_com_o_mesmo_tempo` |
 | um slide, um tempo ou um número de gráfico em uma das versões da apresentação | a outra versão (`gerar.js` ou `apresentacao-projeto1.html`) | `test_versao_html_tem_os_mesmos_slides_apresentadores_e_tempos` e `test_graficos_da_versao_html_usam_os_numeros_dos_slides` |
 | uma figura de `docs/modelagem/` | o `.pptx` (rodar o `gerar.js`) e o HTML (rodar o `embutir_figuras.py`) | `test_slides_usam_as_imagens_atuais_da_modelagem` e `test_versao_html_embute_as_imagens_atuais_da_modelagem` |

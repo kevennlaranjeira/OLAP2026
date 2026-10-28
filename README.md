@@ -17,7 +17,7 @@ Chegou agora no grupo? Leia o [Guia do grupo](docs/11-guia-do-grupo.md): ele exp
 | o relatório para ler (PDF de entrega) | [docs/relatorio/relatorio-projeto1.pdf](docs/relatorio/relatorio-projeto1.pdf) |
 | o texto-fonte do relatório, para editar (LaTeX) | [docs/relatorio/relatorio-projeto1.tex](docs/relatorio/relatorio-projeto1.tex) |
 | os desenhos dos esquemas estrela e da constelação | fonte em [docs/relatorio/esquemas/](docs/relatorio/esquemas/) (um `.tex` por desenho); imagens PNG e PDF em [docs/modelagem/](docs/modelagem/) |
-| a apresentação | [docs/apresentacao/apresentacao-projeto1.pptx](docs/apresentacao/apresentacao-projeto1.pptx), gerada por [docs/apresentacao/gerar.js](docs/apresentacao/gerar.js), e a mesma em HTML, [docs/apresentacao/apresentacao-projeto1.html](docs/apresentacao/apresentacao-projeto1.html), que abre no navegador |
+| a apresentação | [docs/apresentacao/apresentacao-projeto1.pptx](docs/apresentacao/apresentacao-projeto1.pptx), gerada por [docs/apresentacao/gerar.js](docs/apresentacao/gerar.js), e a mesma em HTML, [docs/apresentacao/apresentacao-projeto1.html](docs/apresentacao/apresentacao-projeto1.html), que abre no navegador, e em PDF, [docs/apresentacao/apresentacao-projeto1.pdf](docs/apresentacao/apresentacao-projeto1.pdf), que dá para ver no próprio GitHub |
 | o que falta para a entrega e quem apresenta cada parte | [docs/08-pendencias-da-entrega.md](docs/08-pendencias-da-entrega.md) |
 | as consultas OLAP em SQL | [src/dw_sme/sql/consultas/](src/dw_sme/sql/consultas/), uma por arquivo; explicadas em [docs/05-consultas.md](docs/05-consultas.md) |
 | a criação das tabelas do data warehouse | [src/dw_sme/sql/ddl/](src/dw_sme/sql/ddl/) |
@@ -37,7 +37,7 @@ Chegou agora no grupo? Leia o [Guia do grupo](docs/11-guia-do-grupo.md): ele exp
 | Volume | 13,4 milhões de matrículas, 551 mil turmas, 44 meses de fila × 96 distritos × 8 etapas, 26.889 setores censitários com 11,4 milhões de moradores |
 | Modelo | constelação com 5 tabelas de fatos e 14 dimensões |
 | Banco | DuckDB, um arquivo de ~335 MB, carregado em ~3,5 minutos |
-| Testes | 504 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 53 a coerência entre código, documentos, slides e imagens, 14 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
+| Testes | 505 testes unitários, de integração e de funcionamento (22 conferem a modelagem, 54 a coerência entre código, documentos, slides e imagens, 14 o uso pela linha de comando e em volume), cobertura de 99%, sem depender de internet nem dos dados reais |
 | Consultas | dois drill-down, um roll-up, slice and dice, pivot e três drill-across |
 
 ## O que os dados mostram
@@ -98,7 +98,7 @@ O GitHub Actions roda as duas a cada push, em Python 3.11 e 3.13, e falha se a c
 ```
 docs/
   relatorio/       relatório do Projeto 1: texto-fonte (.tex), desenhos (esquemas/) e PDF
-  apresentacao/    slides (.pptx e .html) e o script que gera o .pptx (gerar.js)
+  apresentacao/    slides (.pptx, .html e .pdf) e o script que gera o .pptx (gerar.js)
   modelagem/       os esquemas em PNG e PDF
   relatorios/      relatório de qualidade da última carga com os dados reais
   01 a 12 (.md)    documentação técnica, guia do grupo e ensaio

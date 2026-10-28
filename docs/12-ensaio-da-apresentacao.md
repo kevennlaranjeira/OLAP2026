@@ -20,7 +20,7 @@ Uma frase para abrir a conversa: o modelo diz onde falta vaga, se a vaga que exi
 
 ## Reunião de ensaio
 
-Uns 40 minutos, com todos de computador aberto na [versão em HTML](apresentacao/apresentacao-projeto1.html).
+Uns 40 minutos, com todos de computador aberto na [versão em HTML](apresentacao/apresentacao-projeto1.html) ou no [PDF](apresentacao/apresentacao-projeto1.pdf), que abre no próprio GitHub.
 
 | Tempo | O que fazer |
 |---|---|
