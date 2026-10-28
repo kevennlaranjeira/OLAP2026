@@ -18,7 +18,7 @@ Nossa lista do que já está pronto e do que ainda falta antes de entregar. O en
 | Povoamento de cada atributo e de cada fato, com integração | relatório, seções 1.5 a 1.7 (coluna "Povoamento" em cada dimensão) | pronto |
 | Hierarquias com o operador de ordenação parcial e função de agregação de cada fato | relatório, seção 2 | pronto |
 | Chave artificial, bugiganga, dimensão degenerada, campo artificial de fatos sem fato | relatório, seções 2.6 e 1.5 | pronto |
-| Apresentação com motivação do tema e dos assuntos, fontes, estrelas, constelação, consultas e decisões; todos apresentam, com tempo homogêneo | [apresentacao/apresentacao-projeto1.pptx](apresentacao/apresentacao-projeto1.pptx), 25 slides em quatro blocos de 5 minutos; a mesma apresentação em [HTML](apresentacao/apresentacao-projeto1.html), para o navegador, e em [PDF](apresentacao/apresentacao-projeto1.pdf), para ver no GitHub | pronta; falta ensaiar |
+| Apresentação com motivação do tema e dos assuntos, fontes, estrelas, constelação, consultas e decisões; todos apresentam, com tempo homogêneo | [apresentacao/apresentacao-projeto1.pptx](apresentacao/apresentacao-projeto1.pptx), 26 slides em quatro blocos, 6,5 minutos para o bloco 1 e 5 para cada um dos outros; a mesma apresentação em [HTML](apresentacao/apresentacao-projeto1.html), para o navegador, e em [PDF](apresentacao/apresentacao-projeto1.pdf), para ver no GitHub | pronta; falta ensaiar |
 
 Os números do relatório, da documentação e dos slides vêm da carga com os dados reais: SME de 2015 a 2024 e Censo 2022, com as oito consultas medidas.
 
@@ -26,16 +26,16 @@ Os números do relatório, da documentação e dos slides vêm da carga com os d
 
 1. **Conferir a notação dos esquemas com a das aulas.** A verificação completa da modelagem está em [09 Verificação da modelagem](09-verificacao-da-modelagem.md). Os desenhos seguem a notação do artigo da disciplina (caixa com o nome da tabela, PK e FK, fato no centro com borda grossa) e as hierarquias usam `≤`. O enunciado diz que a notação tem de ser a mesma da sala de aula. Se a das aulas for diferente, os desenhos estão em `docs/relatorio/esquemas/*.tex` e o estilo comum em `estilo.tex`.
 
-2. **Ensaiar a apresentação.** As apresentações serão no dia 29 de outubro, e a de cada grupo deve durar 20 minutos. O slide 8 fecha o bloco 1 com os passos da proposta, que são o roteiro, e as notas de cada slide dizem quem apresenta, o tempo previsto e o que falar:
+2. **Ensaiar a apresentação.** As apresentações serão no dia 29 de outubro, e a professora pediu 20 minutos por grupo. O slide 9 fecha o bloco 1 com os passos da proposta, que são o roteiro, e as notas de cada slide dizem quem apresenta, o tempo previsto e o que falar:
 
    | Bloco | Integrante | Slides | Conteúdo | Tempo |
    |---|---|---|---|---|
-   | 1 | Kevenn Laranjeira de Oliveira | 1 a 8 | abertura com uma pergunta, a Ana (persona hipotética no Tremembé), o problema, a nossa solução, as perguntas do gestor, por que São Paulo, os cinco assuntos e os passos da proposta | 5 min |
-   | 2 | Thiago Rodrigues Gouveia da Silva | 9 a 13 | passo 1, os dados: fontes, integração, problemas nos dados, grão e aditividade, estrela Matrícula | 5 min |
-   | 3 | Daniel Afonso Borges dos Santos | 14 a 18 | passo 2, o modelo: estrelas Fila, Desfecho, Ocupação de Turma e População, constelação | 5 min |
-   | 4 | Luís Antônio Arruda Soares | 19 a 25 | passo 3, as respostas: consultas, resultados com os dados reais, decisões, a decisão pelo Tremembé, o fim da história da Ana e o encerramento | 5 min |
+   | 1 | Kevenn Laranjeira de Oliveira | 1 a 9 | abertura com uma pergunta, a Ana (1 ano, persona hipotética no Tremembé) e a mãe, o impacto (e se fosse o seu filho?), o problema, a nossa solução, o ciclo do dado à vaga, por que São Paulo, os cinco assuntos e os passos da proposta | 6,5 min |
+   | 2 | Thiago Rodrigues Gouveia da Silva | 10 a 14 | passo 1, os dados: fontes, integração, problemas nos dados, grão e aditividade, estrela Matrícula | 5 min |
+   | 3 | Daniel Afonso Borges dos Santos | 15 a 19 | passo 2, o modelo: estrelas Fila, Desfecho, Ocupação de Turma e População, constelação | 5 min |
+   | 4 | Luís Antônio Arruda Soares | 20 a 26 | passo 3, as respostas: consultas, resultados com os dados reais, decisões, a decisão pelo Tremembé, o fim da história da Ana e o encerramento | 5 min |
 
-   O enunciado exige que todos apresentem e que o tempo de cada um seja homogêneo; um teste confere que os quatro blocos somam o mesmo tempo nas notas. Os quatro blocos de 5 minutos fecham os 20 minutos pedidos; as perguntas vêm durante a apresentação. A mensagem de cada slide, as perguntas prováveis e o checklist do dia estão em [12 Ensaio da apresentação](12-ensaio-da-apresentacao.md).
+   O enunciado pede que todos apresentem, com tempo homogêneo. Os blocos 2, 3 e 4 têm 5 minutos; o bloco 1 ficou com 6,5 minutos, por decisão nossa, porque abre a história e vende a proposta, e a apresentação passa a ter 21,5 minutos. Se a professora segurar os 20 minutos, o Kevenn encurta os slides 3 e 6. Um teste confere o tempo de cada bloco nas notas. As perguntas vêm durante a apresentação. A mensagem de cada slide, as perguntas prováveis e o checklist do dia estão em [12 Ensaio da apresentação](12-ensaio-da-apresentacao.md).
 
 3. **Entregar** o PDF [relatorio/relatorio-projeto1.pdf](relatorio/relatorio-projeto1.pdf) e a apresentação no local definido no critério de avaliação da disciplina.
 
