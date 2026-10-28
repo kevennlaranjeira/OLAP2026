@@ -16,7 +16,7 @@ const pptxgen = require(MODULO_PPTX);
 
 const AQUI = __dirname;
 const FIG = (nome) => path.join(AQUI, "..", "modelagem", nome);
-const TOTAL_SLIDES = 24;
+const TOTAL_SLIDES = 25;
 
 const COR = {
   tinta: "1B2A4A",        // azul-ardósia profundo, cor dominante
@@ -45,12 +45,13 @@ const BLOCO = {
   4: "Luís Antônio Arruda Soares",
 };
 const PRIMEIRO_NOME = { 1: "Kevenn", 2: "Thiago", 3: "Daniel", 4: "Luís" };
-const TEMA_DO_BLOCO = { 1: "Motivação", 2: "Fontes e integração", 3: "Esquemas", 4: "Consultas e decisões" };
+const TEMA_DO_BLOCO = { 1: "O problema e a proposta", 2: "Passo 1: os dados", 3: "Passo 2: o modelo",
+  4: "Passo 3: as respostas" };
 const ASSUNTO_DO_BLOCO = {
-  1: "Motivação: a Ana, o problema, a nossa solução, as perguntas do gestor, São Paulo e os cinco assuntos.",
-  2: "Fontes de dados, integração, problemas nos dados, grão e aditividade e a estrela Matrícula.",
-  3: "Estrelas Fila, Desfecho, Ocupação de Turma e População; constelação de fatos.",
-  4: "Consultas OLAP, resultados com os dados reais e decisões de projeto.",
+  1: "Persona, problema, proposta, perguntas, São Paulo e os cinco assuntos.",
+  2: "Fontes, integração, problemas nos dados, grão e a estrela Matrícula.",
+  3: "Estrelas Fila, Desfecho, Ocupação de Turma e População; constelação.",
+  4: "Consultas, resultados, decisões e a vaga da Ana.",
 };
 
 const pres = new pptxgen();
@@ -183,15 +184,17 @@ function figuraEmMoldura(s, arquivo, x, y, w, h, descricao, ordem) {
     altText: descricao, ...anim(ordem) });
 }
 
-// ================================================================== bloco 1: motivação
-// O bloco segue a ordem de uma proposta: uma persona hipotética, o problema na cidade, a nossa solução,
-// o que ela responde, a resposta para a persona com os dados reais, a escolha de São Paulo e os assuntos.
+// ================================================================== bloco 1: o problema e a proposta
+// A apresentação conta uma história. A Ana (persona hipotética) tem o filho na fila de creche do Tremembé; o bloco 1
+// mostra o problema e a proposta, e o último slide imagina a prefeitura adotando o data warehouse: cada bloco seguinte
+// é um passo (os dados, o modelo, as respostas), e o bloco 4 termina com a Ana conseguindo a vaga.
 
 // ------------------------------------------------------------------ 1. capa
 {
-  const s = novoSlide(null, 1, 0.25,
-    "Abertura curta: o grupo, a disciplina e o tema, política pública municipal de educação. " +
-    "Não parar na capa; a história começa no próximo slide.", { master: "CAPA" });
+  const s = novoSlide(null, 1, 0.5,
+    "Abrir com uma pergunta, antes de nos apresentarmos: quantas crianças esperavam vaga em creche em São Paulo em junho " +
+    "de 2015? Foram 124.741. Depois, em uma frase: somos o Grupo 7 de SCC0245, e o tema é política pública municipal " +
+    "de educação. A resposta para essa fila começa com uma pessoa, no próximo slide.", { master: "CAPA" });
   texto(s, "SCC0245 · PROCESSAMENTO ANALÍTICO DE DADOS · PRIMEIRO TRABALHO PRÁTICO", 0.8, 0.75, 11.5, 0.35,
     { tam: 13, negrito: true, cor: COR.ambar, espacamento: 1 });
   texto(s, "Rede Municipal Paulistana: oferta escolar e demanda não atendida", 0.8, 1.25, 8.0, 1.95,
@@ -218,44 +221,45 @@ function figuraEmMoldura(s, arquivo, x, y, w, h, descricao, ordem) {
 
 // ------------------------------------------------------------------ 2. persona
 {
-  const s = novoSlide("A Ana precisa de uma vaga em creche", 1, 0.75,
-    "A Ana é uma persona hipotética, inventada para dar rosto ao problema; os números do Grajaú são reais e saem da nossa carga. " +
-    "Ela mora no Grajaú, tem um filho de 1 ano e precisa de creche perto de casa para voltar a trabalhar. " +
-    "O Grajaú é o distrito com mais crianças de 0 a 4 anos, 24.398 no Censo 2022, e em junho de 2015 tinha a maior fila " +
-    "de creche da cidade: 8.018 crianças. Em junho de 2024 eram 88. A fila dela quase acabou, e a pergunta passa a ser " +
-    "para onde vai a próxima vaga.");
+  const s = novoSlide("A fila caiu 97%. O filho da Ana continua nela.", 1, 0.75,
+    "A Ana é uma persona hipotética, criada para dar rosto ao problema; os números do distrito dela são reais e saem da " +
+    "nossa carga. Ela mora no Tremembé, na zona norte, tem um filho de 1 ano e precisa de creche perto de casa para voltar " +
+    "a trabalhar. A fila de creche da cidade caiu 97% em dez anos, mas em junho de 2024 o filho da Ana ainda era uma das " +
+    "153 crianças na fila do Tremembé, a segunda maior da cidade. No distrito, 2,5% da demanda de creche estava fora da " +
+    "rede, mais que o dobro da média da cidade. A pergunta que vamos responder é o que a prefeitura precisa saber para " +
+    "resolver o caso dela.");
   cartao(s, 0.6, 1.75, 5.95, 4.75, { ordem: 1 });
   etiqueta(s, "PERSONA HIPOTÉTICA", 0.9, 2.0, 2.35, { fundo: COR.suave, ordem: 1 });
   selo(s, 0.9, 2.58, "A", { d: 0.85, tam: 28, ordem: 1 });
   texto(s, "Ana", 1.95, 2.55, 4.3, 0.5, { tam: 28, negrito: true, cor: COR.tinta, ordem: 1 });
-  texto(s, "mora no Grajaú, DRE Capela do Socorro", 1.95, 3.05, 4.4, 0.35, { tam: 14, cor: COR.suave, ordem: 1 });
+  texto(s, "mora no Tremembé, DRE Jaçanã/Tremembé", 1.95, 3.05, 4.4, 0.35, { tam: 14, cor: COR.suave, ordem: 1 });
   s.addText(itens([
     "Tem um filho de 1 ano e precisa de creche perto de casa para voltar a trabalhar.",
     "Inscreveu o filho na fila da prefeitura e espera a vaga.",
   ], 16), { x: 0.9, y: 3.7, w: 5.4, h: 1.45, fontFace: FONTE, margin: 0, isTextBox: true, valign: "top", ...anim(2) });
-  texto(s, "Se a inscrição fosse em junho de 2015, o filho dela seria uma das 8.018 crianças na fila do Grajaú.",
+  texto(s, "Em junho de 2024, o filho dela era uma das 153 crianças na fila de creche do Tremembé.",
     0.9, 5.3, 5.4, 0.95, { tam: 15, italico: true, cor: COR.tinta, ordem: 3 });
   cartao(s, 6.75, 1.75, 5.95, 4.75, { fundo: COR.nevoa, semSombra: true, ordem: 4 });
-  texto(s, "O GRAJAÚ NOS NOSSOS DADOS", 7.1, 1.98, 5.3, 0.3, { tam: 12, negrito: true, cor: COR.suave, espacamento: 1, ordem: 4 });
-  [["24.398", "crianças de 0 a 4 anos, o maior número entre os 96 distritos (Censo 2022)", COR.tinta],
-    ["8.018", "na fila de creche em junho de 2015, a maior fila da cidade", COR.tinta],
-    ["88", "na fila de creche em junho de 2024", COR.cobalto]].forEach(([valor, rotulo, cor], i) => {
+  texto(s, "O TREMEMBÉ NOS NOSSOS DADOS", 7.1, 1.98, 5.3, 0.3, { tam: 12, negrito: true, cor: COR.suave, espacamento: 1, ordem: 4 });
+  [["153", "na fila de creche em junho de 2024, a segunda maior da cidade", COR.cobalto],
+    ["2,5%", "da demanda de creche fora da rede, mais que o dobro da cidade (1,1%)", COR.tinta],
+    ["11.498", "crianças de 0 a 4 anos moram no distrito (Censo 2022)", COR.tinta]].forEach(([valor, rotulo, cor], i) => {
     const y = 2.5 + i * 1.3;
     texto(s, valor, 7.1, y, 2.4, 0.8, { tam: 40, negrito: true, cor, valign: "middle", ordem: 5 + i });
     texto(s, rotulo, 9.55, y, 2.95, 0.8, { tam: 14, valign: "middle", ordem: 5 + i });
   });
-  etiqueta(s, "-99%", 8.0, 5.29, 1.0, { fundo: COR.ambar, cor: COR.tinta, tam: 14, h: 0.42, ordem: 8 });
-  fonte(s, "Persona hipotética. Números reais do Grajaú: Censo 2022 (IBGE) e fila de creche (SME-SP), consultas 5 e 7.");
+  fonte(s, "Persona hipotética. Números reais do Tremembé: Censo 2022 (IBGE) e fila de creche (SME-SP), consultas 5 e 7.");
 }
 
 // ------------------------------------------------------------------ 3. problema
 {
   const s = novoSlide("O problema: saber onde abrir a próxima vaga", 1, 0.75,
-    "Do caso da Ana para a cidade. A falta de vaga em creche foi por anos o principal problema de acesso da educação infantil " +
-    "paulistana, e o PNE (Lei 13.005/2014), Meta 1, pede creche para pelo menos metade das crianças de até 3 anos e pré-escola universal. " +
-    "A fila de creche em junho caiu de 124.741 crianças em 2015 para 3.633 em 2024, e a parte da demanda fora da rede passou de 34% para 1%. " +
-    "Mesmo assim, em 2024 havia fila nos 96 distritos, e no Censo 2022 a oferta ia de menos de 50 a mais de 100 matrículas " +
-    "por 100 crianças de 0 a 4 anos, conforme o distrito. A pergunta do gestor deixou de ser quantas vagas abrir e virou onde abrir.");
+    "O caso da Ana mostra o problema de hoje. A falta de vaga em creche foi por anos o principal problema de acesso da " +
+    "educação infantil paulistana, e o PNE (Lei 13.005/2014), Meta 1, pede creche para pelo menos metade das crianças de " +
+    "até 3 anos e pré-escola universal. A fila de creche em junho caiu de 124.741 crianças em 2015 para 3.633 em 2024, e a " +
+    "parte da demanda fora da rede passou de 34% para 1%. Mas a fila não acabou: em 2024 ela ainda existia nos 96 distritos, " +
+    "e no Censo 2022 a oferta ia de menos de 50 a mais de 100 matrículas por 100 crianças de 0 a 4 anos. A pergunta deixou " +
+    "de ser quantas vagas abrir e virou onde abrir, e o Tremembé da Ana é um desses lugares.");
   s.addText(itens([
     "A falta de vaga em creche foi por anos o principal problema de acesso da educação infantil em São Paulo.",
     "PNE (Lei 13.005/2014), Meta 1: creche para ao menos metade das crianças de até 3 anos; pré-escola universal.",
@@ -276,12 +280,13 @@ function figuraEmMoldura(s, arquivo, x, y, w, h, descricao, ordem) {
 // ------------------------------------------------------------------ 4. solução
 {
   const s = novoSlide("Nossa solução: as três bases num data warehouse", 1, 0.75,
-    "Para saber onde, o gestor precisa cruzar quatro coisas: quem está na fila, quem já tem vaga, se as turmas estão cheias e " +
-    "quantas crianças moram em cada lugar. Hoje cada uma está numa base: a fila em planilhas por distrito, publicadas em sete formatos; " +
-    "a matrícula num microdado de 13,4 milhões de linhas, com o código da escola corrompido de 2022 a 2024; a população no Censo do IBGE, " +
-    "por setor censitário e em faixas de cinco anos. Nem o nome do distrito é escrito igual. Nossa solução junta as três num data " +
-    "warehouse: um comando baixa, limpa, carrega e confere tudo, cinco fatos e catorze dimensões se cruzam por distrito, etapa e data, " +
-    "e catorze verificações rodam a cada carga. Quem usa é a Secretaria Municipal de Educação e as 13 Diretorias Regionais.");
+    "Para achar o Tremembé entre 96 distritos, o gestor precisa cruzar quatro coisas: quem está na fila, quem já tem vaga, " +
+    "se as turmas estão cheias e quantas crianças moram em cada lugar. Hoje cada uma está numa base: a fila em planilhas por " +
+    "distrito, publicadas em sete formatos; a matrícula num microdado de 13,4 milhões de linhas, com o código da escola " +
+    "corrompido de 2022 a 2024; a população no Censo do IBGE, por setor censitário e em faixas de cinco anos. Nem o nome do " +
+    "distrito é escrito igual. Nossa solução junta as três num data warehouse: um comando baixa, limpa, carrega e confere " +
+    "tudo, cinco fatos e catorze dimensões se cruzam por distrito, etapa e data, e catorze verificações rodam a cada carga. " +
+    "Quem usa é a Secretaria Municipal de Educação e as 13 Diretorias Regionais.");
   const lados = [
     [0.6, "HOJE", COR.suave, "Três bases que não conversam", [
       "Fila: planilha por distrito, publicada em sete formatos diferentes.",
@@ -318,7 +323,7 @@ function figuraEmMoldura(s, arquivo, x, y, w, h, descricao, ordem) {
 // ------------------------------------------------------------------ 5. perguntas do gestor
 {
   const s = novoSlide("Perguntas que o data warehouse responde", 1, 0.5,
-    "Com as bases juntas, o gestor responde quatro perguntas, cada uma apoiada pelas consultas que o Luís mostra no bloco 4. " +
+    "Com as bases juntas, o gestor responde quatro perguntas, cada uma apoiada pelas consultas que o Luís mostra no passo 3. " +
     "A primeira, onde abrir vagas, é a pergunta da Ana. A capacidade das turmas não é publicada, então medimos a ocupação.");
   const perguntas = [
     ["Onde abrir vagas?", "Fila por distrito e DRE, fila contra matrícula e contra a população de 0 a 4 anos.", ["C1", "C5", "C7"]],
@@ -337,54 +342,14 @@ function figuraEmMoldura(s, arquivo, x, y, w, h, descricao, ordem) {
   });
 }
 
-// ------------------------------------------------------------------ 6. de volta à persona
-{
-  const s = novoSlide("De volta à Ana: onde abrir a próxima vaga", 1, 0.75,
-    "De volta à Ana, agora com o data warehouse. No Grajaú, a fila de creche de junho caiu de 8.018 para 88 crianças entre " +
-    "2015 e 2024, e havia 82,7 matrículas de crianças de 0 a 4 anos para cada 100 crianças dessa idade morando no distrito. " +
-    "No Tremembé, a fila de 2024 era de 153 crianças, a segunda maior da cidade, e a oferta era de 71,6 por 100, abaixo da " +
-    "média do município, de 86. Olhando só o tamanho, o Grajaú pareceria a escolha óbvia; com as bases cruzadas, o Tremembé " +
-    "aparece como candidato à próxima vaga. Se perguntarem: a matrícula conta onde a escola fica e a população onde a criança " +
-    "mora, então a razão é oferta por criança residente, não taxa de atendimento.");
-  const distritos = [
-    [0.6, "GRAJAÚ · DISTRITO DA ANA", COR.cobalto, COR.branco, [
-      ["24.398", "crianças de 0 a 4 anos (Censo 2022)"],
-      ["82,7", "matrículas por 100 crianças (2022)"],
-      ["88", "na fila de creche em junho de 2024; eram 8.018 em 2015"],
-    ]],
-    [6.75, "TREMEMBÉ", COR.ambar, COR.tinta, [
-      ["11.498", "crianças de 0 a 4 anos (Censo 2022)"],
-      ["71,6", "matrículas por 100 crianças, abaixo da média de 86"],
-      ["153", "na fila de creche em junho de 2024, a segunda maior da cidade"],
-    ]],
-  ];
-  distritos.forEach(([x, rotulo, fundo, cor, linhas], i) => {
-    cartao(s, x, 1.7, 5.95, 3.7, { ordem: i + 1 });
-    etiqueta(s, rotulo, x + 0.3, 1.95, i === 0 ? 3.0 : 1.45, { fundo, cor, ordem: i + 1 });
-    linhas.forEach(([valor, rotuloLinha], j) => {
-      const y = 2.5 + j * 0.92;
-      texto(s, valor, x + 0.3, y, 2.0, 0.75, { tam: 34, negrito: true, cor: i === 0 ? COR.cobalto : COR.tinta,
-        valign: "middle", ordem: i + 1 });
-      texto(s, rotuloLinha, x + 2.35, y, 3.35, 0.75, { tam: 14, valign: "middle", ordem: i + 1 });
-    });
-  });
-  cartao(s, 0.6, 5.6, 12.1, 0.95, { fundo: COR.nevoa, semSombra: true, ordem: 3 });
-  selo(s, 0.85, 5.8, "!", { d: 0.56, tam: 18, ordem: 3 });
-  s.addText([
-    { text: "O que o cruzamento mostra: ", options: { bold: true, color: COR.tinta } },
-    { text: "a próxima vaga pesa mais no Tremembé, onde a fila resiste e a oferta por criança fica abaixo da média." },
-  ], { x: 1.65, y: 5.65, w: 10.9, h: 0.85, fontFace: FONTE, fontSize: 15, color: COR.texto, margin: 0, isTextBox: true,
-    valign: "middle", ...anim(3) });
-  fonte(s, "Fonte: consultas 5 e 7; a matrícula conta onde fica a escola, e a população, onde mora a criança.");
-}
-
-// ------------------------------------------------------------------ 7. por que São Paulo
+// ------------------------------------------------------------------ 6. por que São Paulo
 {
   const s = novoSlide("Por que São Paulo, e não São Carlos", 1, 0.5,
     "O enunciado temático prioriza São Carlos, e nossa primeira proposta foi lá. Sem dado aberto de vaga nem de fila, a demanda " +
     "não atendida teria de ser estimada, e o enunciado pede dados reais. São Paulo publica o microdado de cada matrícula e a fila " +
-    "por distrito. O modelo vale para São Carlos: matrícula, turma e desfecho vêm do registro que todo sistema de gestão escolar " +
-    "mantém, e o Censo 2022 tem população por setor para todos os municípios.");
+    "por distrito, e é isso que permite contar a história da Ana com números de verdade. O modelo vale para São Carlos: matrícula, " +
+    "turma e desfecho vêm do registro que todo sistema de gestão escolar mantém, e o Censo 2022 tem população por setor para " +
+    "todos os municípios.");
   cartao(s, 0.6, 1.75, 5.95, 3.15, { ordem: 1 });
   etiqueta(s, "PRIMEIRA PROPOSTA", 0.9, 2.0, 2.2, { fundo: COR.suave, ordem: 1 });
   texto(s, "São Carlos", 0.9, 2.5, 5.3, 0.55, { tam: 24, negrito: true, cor: COR.tinta, ordem: 1 });
@@ -405,12 +370,13 @@ function figuraEmMoldura(s, arquivo, x, y, w, h, descricao, ordem) {
     valign: "middle", ...anim(3) });
 }
 
-// ------------------------------------------------------------------ 8. assuntos de interesse
+// ------------------------------------------------------------------ 7. assuntos de interesse
 {
   const s = novoSlide("Cinco assuntos de interesse e por que importam", 1, 0.5,
-    "Os cinco assuntos são os que registramos na nossa planilha, e cada um responde a uma parte da decisão de onde abrir vagas. " +
-    "Quatro viram tabelas de fatos; a oferta por setor sai das dimensões Escola, Território e Setor Censitário. " +
-    "O quinto processo, desfecho da matrícula, acompanha o que acontece depois do acesso.");
+    "Os cinco assuntos são os que registramos na nossa planilha, e cada um é uma peça do caso da Ana: a fila em que o filho " +
+    "dela está, as matrículas das creches do bairro, se as turmas estão cheias, quantas crianças moram no Tremembé e onde a " +
+    "rede oferece vaga. Quatro viram tabelas de fatos; a oferta por setor sai das dimensões Escola, Território e Setor " +
+    "Censitário. O quinto processo, desfecho da matrícula, acompanha o que acontece depois do acesso.");
   const linhas = [
     ["Matrículas", "oferta efetivamente usada, com o perfil de cada aluno", "fato Matrícula"],
     ["Fila (demanda registrada)", "quem pediu vaga e não foi atendido", "fato Fila"],
@@ -437,16 +403,21 @@ function figuraEmMoldura(s, arquivo, x, y, w, h, descricao, ordem) {
     valign: "middle", ...anim(6) });
 }
 
-// ------------------------------------------------------------------ 9. roteiro (preenchido no fim), ponte para o bloco 2
-const roteiro = novoSlide("Roteiro: quatro integrantes, quatro blocos", 1, 0.25,
-  "Fechar o bloco mostrando o caminho até a solução: o Thiago mostra de onde vêm os dados e como foram integrados, " +
-  "o Daniel mostra os esquemas e o Luís mostra as consultas e os resultados. Passar a palavra ao Thiago.");
+// ------------------------------------------------------------------ 8. os passos da proposta (roteiro, preenchido no fim)
+const roteiro = novoSlide("Imagine que a prefeitura adote a nossa proposta", 1, 0.75,
+  "Agora a proposta vira história. Imagine que a prefeitura adote o nosso data warehouse. São três passos, e cada um de nós " +
+  "apresenta um: no passo 1, o Thiago mostra como os dados da fila, das matrículas e do Censo entram, limpos e integrados; " +
+  "no passo 2, o Daniel mostra como o modelo organiza esses dados em estrelas e numa constelação; no passo 3, o Luís mostra " +
+  "as consultas que respondem onde abrir vagas, e é com ele que a história da Ana termina. A história é um cenário " +
+  "hipotético, mas cada número dela vem da nossa carga com os dados reais. Passar a palavra ao Thiago.");
 
-// ================================================================== bloco 2: fontes, integração e grão
+// ================================================================== bloco 2: passo 1, os dados
 
-// ------------------------------------------------------------------ 10. fontes
+// ------------------------------------------------------------------ 9. fontes
 {
   const s = novoSlide("Três fontes de dados reais e oficiais", 2, 1,
+    "Passo 1: os dados entram. Para o caso da Ana, a fila do Tremembé vem da planilha de demanda, as matrículas das " +
+    "creches do bairro vêm do microdado e as crianças do distrito vêm do Censo. " +
     "Duas fontes da SME no Portal de Dados Abertos da Prefeitura, com grão, formato e vocabulário diferentes, e o Censo 2022 do IBGE. " +
     "A fila tem sete formatos entre 2006 e 2026, e o significado das colunas numeradas muda com o formato. " +
     "O Censo traz a demanda potencial: quantas crianças moram em cada setor. Na carga real entraram 26.889 setores do município, " +
@@ -470,14 +441,15 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, quatro blocos", 1, 0.25,
   });
 }
 
-// ------------------------------------------------------------------ 11. integração
+// ------------------------------------------------------------------ 10. integração
 {
   const s = novoSlide("Integração: o mesmo dado em formas diferentes", 2, 1,
     "Exemplos de integração exigidos no enunciado. Distrito: maiúsculas sem acento na SME, com acento no IBGE; a regra de " +
     "normalização é a mesma. Idade: simples no microdado, grupos de cinco anos no IBGE; a dimensão Idade carrega a faixa do IBGE. " +
     "CD_SETOR é um homônimo: na SME é setor administrativo de 4 dígitos, no IBGE setor censitário de 15. " +
     "A prova de que a integração entre as bases da SME está certa: contando no microdado as matrículas ativas em junho, " +
-    "a diferença para a planilha fica abaixo de 1% de 2015 a 2020.");
+    "a diferença para a planilha fica abaixo de 1% de 2015 a 2020. No caso da Ana, o distrito vem como TREMEMBE na SME e " +
+    "Tremembé no IBGE; depois da normalização, os dois viram a mesma linha da dimensão Território.");
   tabela(s, ["Dado", "SME", "IBGE", "No data warehouse"], [
     ["Distrito", "AGUA RASA", "Água Rasa + código de 9 dígitos", "nome normalizado, chave da dimensão Território"],
     ["Idade", "idade simples em 31/03", "grupo de 0 a 4, 5 a 9, ...", "faixa IBGE na dimensão Idade"],
@@ -493,13 +465,13 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, quatro blocos", 1, 0.25,
     valign: "middle", ...anim(1) });
 }
 
-// ------------------------------------------------------------------ 12. qualidade
+// ------------------------------------------------------------------ 11. qualidade
 {
   const s = novoSlide("Problemas reais nos dados e como foram tratados", 2, 1,
     "Cada problema foi medido nos dados reais e tratado por uma regra testada. O mais grave: de 2022 a 2024 o código da escola " +
     "chega corrompido; recuperamos o código real pelo nome, tipo e distrito para 94,8% a 98,6% das matrículas. " +
     "Princípio: medida não publicada fica nula, nunca zero. O pipeline roda catorze verificações automáticas depois de cada carga; " +
-    "na carga real nenhuma deu FALHA.");
+    "na carga real nenhuma deu FALHA. É por esse cuidado que a fila do Tremembé chega ao modelo com o sentido certo.");
   const probs = [
     ["Código da escola corrompido (2022-2024)", "recuperado pelo nome, tipo e distrito em 94,8% a 98,6% das matrículas"],
     ["Sete formatos da planilha de fila", "colunas lidas do cabeçalho; significado de (1), (2), (3) lido do rodapé"],
@@ -518,13 +490,15 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, quatro blocos", 1, 0.25,
   });
 }
 
-// ------------------------------------------------------------------ 13. grão e aditividade
+// ------------------------------------------------------------------ 12. grão e aditividade
 {
   const s = novoSlide("Grão e aditividade dos fatos", 2, 1,
     "Grão declarado antes das dimensões. Matrícula no grão mais fino que a fonte permite; fila no grão em que a prefeitura publica; " +
     "desfecho e ocupação são fatos agregados do fato de matrícula; população no grão do IBGE. " +
     "Fila e população são estoques: somam no território, não no tempo. Taxas e alunos por turma são derivados não aditivos, " +
-    "sempre recalculados a partir das somas.");
+    "sempre recalculados a partir das somas. O filho da Ana não é uma linha da fila: ela é publicada por distrito, mês e " +
+    "etapa, então ele é uma das 153 crianças da linha Tremembé, junho de 2024, creche. Quando conseguir a vaga, ele passa a " +
+    "ser uma linha do fato Matrícula.");
   const corAditividade = (j, t) => (j !== 3 ? null : t.startsWith("semiaditivo") ? COR.ambarTexto : COR.cobalto);
   tabela(s, ["Tabela de fatos", "Grão", "Fatos", "Aditividade"], [
     ["Matrícula", "vínculo aluno-turma × ano", "quantidade (=1), dias de matrícula", "aditivo"],
@@ -542,12 +516,13 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, quatro blocos", 1, 0.25,
   });
 }
 
-// ------------------------------------------------------------------ 14. estrela matrícula
+// ------------------------------------------------------------------ 13. estrela matrícula
 {
   const s = novoSlide("Esquema estrela Matrícula", 2, 1,
     "Fato no centro, dez dimensões. Dimensão Data com dois papéis, início e fim da matrícula, como a data de internação e de alta " +
     "do artigo da disciplina: as duas datas permitem contar matrículas ativas em um dia. O fato principal é a ocorrência do vínculo, contada por um campo artificial igual a 1, técnica de tabela de fatos sem fato; a única medida é dias de matrícula. " +
-    "Três bugigangas. Duas degeneradas. Escola é mudança lenta tipo 2.");
+    "Três bugigangas. Duas degeneradas. Escola é mudança lenta tipo 2. Fechar o passo 1 e passar a palavra ao Daniel: os " +
+    "dados estão limpos e integrados, e o passo 2 é o modelo.");
   figuraEmMoldura(s, "estrela-matricula.png", 0.6, 1.6, 8.2, 5.0,
     "Esquema estrela Matrícula: tabela de fatos Matrícula no centro, ligada a dez dimensões", 1);
   cartao(s, 9.05, 1.6, 3.65, 5.0, { fundo: COR.nevoa, semSombra: true, ordem: 2 });
@@ -561,7 +536,7 @@ const roteiro = novoSlide("Roteiro: quatro integrantes, quatro blocos", 1, 0.25,
   ], 14), { x: 9.25, y: 1.8, w: 3.3, h: 4.65, fontFace: FONTE, margin: 0, isTextBox: true, valign: "top", ...anim(2) });
 }
 
-// ================================================================== bloco 3: estrelas e constelação
+// ================================================================== bloco 3: passo 2, o modelo
 
 // slide de um esquema estrela largo: figura na largura do slide, leitura do esquema em duas colunas embaixo
 function estrela(titulo, arquivo, descricao, lista, notas) {
@@ -575,7 +550,7 @@ function estrela(titulo, arquivo, descricao, lista, notas) {
   return s;
 }
 
-// ------------------------------------------------------------------ 15. estrela fila
+// ------------------------------------------------------------------ 14. estrela fila
 estrela("Esquema estrela Fila", "estrela-fila.png",
   "Esquema estrela Fila: tabela de fatos Fila ligada às dimensões Tempo, Território e Etapa", [
     "Grão: distrito × mês × etapa.",
@@ -584,11 +559,13 @@ estrela("Esquema estrela Fila", "estrela-fila.png",
     "Território: distrito ≤ DRE ≤ município ≤ UF.",
     "Formato da planilha: dimensão degenerada.",
   ],
+  "Passo 2: o modelo organiza os dados. A fila em que o filho da Ana está fica nesta estrela: distrito Tremembé, junho " +
+  "de 2024, etapa creche, 153 crianças. " +
   "Fila: medidas nulas onde a prefeitura não publicou a quebra; formato da planilha como dimensão degenerada. " +
   "Tempo tem duas hierarquias porque a fila foi trimestral até 2022 e bimestral depois. " +
   "A fila é estoque: soma entre distritos e etapas, mas no tempo se escolhe um mês, nunca se soma.");
 
-// ------------------------------------------------------------------ 16. estrela desfecho
+// ------------------------------------------------------------------ 15. estrela desfecho
 estrela("Esquema estrela Desfecho", "estrela-desfecho.png",
   "Esquema estrela Desfecho: tabela de fatos Desfecho ligada a Ano Letivo, Escola, Território e Série", [
     "Grão: escola × ano letivo × série.",
@@ -599,9 +576,10 @@ estrela("Esquema estrela Desfecho", "estrela-desfecho.png",
   ],
   "Desfecho: fato agregado do fato de matrícula, porque taxa de rendimento só faz sentido sobre um conjunto de alunos. " +
   "As contagens somam; as taxas são recalculadas pelas contagens em qualquer nível, nunca como média de taxas. " +
-  "Na educação infantil não há aprovação, então a taxa fica nula.");
+  "Na educação infantil não há aprovação, então a taxa fica nula. Esta estrela olha o que vem depois do acesso: quando a " +
+  "Ana conseguir a vaga, o filho dela passa a contar aqui.");
 
-// ------------------------------------------------------------------ 17. estrela ocupação de turma
+// ------------------------------------------------------------------ 16. estrela ocupação de turma
 estrela("Esquema estrela Ocupação de Turma", "estrela-turma.png",
   "Esquema estrela Ocupação de Turma: tabela de fatos ligada a Ano Letivo, Escola, Território, Série e Turno", [
     "Grão: turma × ano letivo.",
@@ -611,9 +589,10 @@ estrela("Esquema estrela Ocupação de Turma", "estrela-turma.png",
     "id turma: dimensão degenerada.",
   ],
   "Ocupação de turma: agregado do fato de matrícula pelo id da turma. A capacidade não é publicada, então medimos " +
-  "os alunos ativos em 30 de junho por turma em funcionamento. A média é sempre soma de alunos dividida por soma de turmas.");
+  "os alunos ativos em 30 de junho por turma em funcionamento. A média é sempre soma de alunos dividida por soma de turmas. " +
+  "No Tremembé, as 578 turmas de creche tinham em média 10,7 crianças em junho de 2024, perto da média da cidade, de 11,0.");
 
-// ------------------------------------------------------------------ 18. estrela população
+// ------------------------------------------------------------------ 17. estrela população
 estrela("Esquema estrela População", "estrela-populacao.png",
   "Esquema estrela População: tabela de fatos População ligada a Tempo, Setor Censitário, Território e Faixa Etária", [
     "Grão: setor censitário × faixa etária × data do Censo.",
@@ -624,28 +603,33 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   ],
   "População: Censo 2022 no grão de setor censitário, a menor unidade territorial do modelo. " +
   "Na carga real são 26.889 setores, todos ligados a um distrito da SME, e 11,4 milhões de moradores. " +
-  "Faixa Etária é o rollup encolhido de Idade que conforma com a matrícula.");
+  "Faixa Etária é o rollup encolhido de Idade que conforma com a matrícula. As 11.498 crianças de 0 a 4 anos do Tremembé " +
+  "são a soma dos setores censitários do distrito.");
 
-// ------------------------------------------------------------------ 19. constelação
+// ------------------------------------------------------------------ 18. constelação
 {
   const s = novoSlide("Constelação de fatos", 3, 1,
     "Cinco fatos, catorze dimensões. Território é compartilhado pelos cinco. Processo de projeto: matriz de barramento com fato e " +
     "dimensão, dimensões conformadas e, onde os grãos diferem, rollups encolhidos conformados (tracejado): Tempo e Ano Letivo de Data, " +
-    "Etapa de Série, Faixa Etária de Idade, Território de Setor Censitário. O drill-across agrega cada fato até o grão comum e une pelos atributos conformados.");
+    "Etapa de Série, Faixa Etária de Idade, Território de Setor Censitário. O drill-across agrega cada fato até o grão comum e une pelos atributos conformados. " +
+    "Território está nos cinco fatos, e é por ele que o Tremembé da Ana liga fila, matrícula, ocupação, desfecho e " +
+    "população. Passar a palavra ao Luís: com o modelo pronto, o passo 3 são as respostas.");
   figuraEmMoldura(s, "constelacao.png", 0.6, 1.6, 12.1, 4.8,
     "Constelação de fatos: cinco tabelas de fatos e catorze dimensões compartilhadas", 1);
   texto(s, "Processo de projeto: matriz de barramento (fato × dimensão), dimensões conformadas e, onde os grãos diferem, rollups encolhidos (tracejado).",
     0.6, 6.5, 12.1, 0.4, { tam: 13, italico: true, cor: COR.suave, ordem: 2 });
 }
 
-// ================================================================== bloco 4: consultas, resultados e decisões
+// ================================================================== bloco 4: passo 3, as respostas
 
-// ------------------------------------------------------------------ 20. consultas
+// ------------------------------------------------------------------ 19. consultas
 {
-  const s = novoSlide("Oito consultas OLAP", 4, 1.5,
+  const s = novoSlide("Oito consultas OLAP", 4, 1,
+    "Passo 3: as perguntas do gestor viram consultas. " +
     "O enunciado pede ao menos duas de roll-up ou drill-down, uma slice and dice, uma pivot e uma drill-across. " +
     "Temos três, uma, uma e três. Cada consulta responde a uma pergunta do gestor e cita os fatos que usa. " +
-    "C7 é a que liga fila, matrícula e população; C8 é a da ocupação das turmas.");
+    "C7 é a que liga fila, matrícula e população; C8 é a da ocupação das turmas. Para o caso da Ana, as que pesam são a C1, " +
+    "que desce do município até o distrito, a C5 e a C7, que cruzam fila, matrícula e população, e a C8, da ocupação.");
   const linhas = [
     ["C1", "drill-down", "fila de creche: município → DRE → distrito", "Fila"],
     ["C2", "roll-up", "matrículas: etapa → nível → total, ano a ano", "Matrícula"],
@@ -664,12 +648,13 @@ estrela("Esquema estrela População", "estrela-populacao.png",
     0.6, 6.55, 12.1, 0.32, { tam: 13, negrito: true, cor: COR.tinta, ordem: 1 });
 }
 
-// ------------------------------------------------------------------ 21. resultados: fila e oferta
+// ------------------------------------------------------------------ 20. resultados: fila e oferta
 {
-  const s = novoSlide("Resultados: fila e oferta de creche", 4, 1,
+  const s = novoSlide("Resultados: fila e oferta de creche", 4, 0.75,
     "Consulta 5 na carga com os dados reais de 2015 a 2024. A fila de creche em junho caiu 97% em dez anos e a " +
     "fração da demanda fora da rede passou de 34% para 1%. A queda maior foi de 2017 a 2021. " +
-    "Consulta 3: 85% das matrículas de creche estão na rede conveniada, quase todas em jornada integral, em 2019 e em 2024.");
+    "Consulta 3: 85% das matrículas de creche estão na rede conveniada, quase todas em jornada integral, em 2019 e em 2024. " +
+    "A cidade melhorou muito; o que falta é achar onde a fila resiste.");
   const anos = ["2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024"];
   const eixos = { catAxisLabelColor: COR.suave, valAxisLabelColor: COR.suave, catAxisLabelFontFace: FONTE,
     valAxisLabelFontFace: FONTE, catAxisLabelFontSize: 11, valAxisLabelFontSize: 10, dataLabelFontFace: FONTE,
@@ -694,13 +679,13 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   fonte(s, "Fonte: SME-SP, Demanda Registrada e Matrículas e Microdados de Matrículas; consultas 3 e 5.");
 }
 
-// ------------------------------------------------------------------ 22. resultados: população e ocupação
+// ------------------------------------------------------------------ 21. resultados: população e ocupação
 {
-  const s = novoSlide("Resultados: população e ocupação das turmas", 4, 1,
+  const s = novoSlide("Resultados: população e ocupação das turmas", 4, 0.75,
     "Consulta 7, na data do Censo: 598.406 crianças de 0 a 4 anos moram no município e a rede municipal tinha 514.131 matrículas " +
     "ativas dessa idade, 86 por 100. A média esconde distâncias grandes: 25 distritos têm menos de 50 matrículas por 100 crianças " +
     "residentes e outros 25 passam de 100, porque a matrícula conta onde a escola fica e a população onde a criança mora. " +
-    "Consulta 8: a creche funciona com perto de 11 crianças por turma em todas as DREs; no fundamental, o município tem de 28,7 a 31,6 alunos por turma em 2019 e 2024.");
+    "Consulta 8: a creche funciona com perto de 11 crianças por turma em todas as DREs; no fundamental, o município tem de 28,7 a 31,6 alunos por turma em 2019 e 2024. O Tremembé da Ana está no grupo abaixo da média, com 71,6.");
   cartao(s, 0.6, 1.6, 5.95, 2.6, { ordem: 1 });
   texto(s, "CONSULTA 7 · 31/07/2022", 0.9, 1.82, 5.3, 0.3, { tam: 12, negrito: true, cor: COR.ambarTexto, espacamento: 1, ordem: 1 });
   texto(s, "86", 0.9, 2.15, 1.6, 1.05, { tam: 60, negrito: true, cor: COR.cobalto, ordem: 1 });
@@ -725,10 +710,10 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   fonte(s, "Fonte: Censo 2022 (IBGE) e Microdados de Matrículas (SME-SP); consultas 7 e 8.");
 }
 
-// ------------------------------------------------------------------ 23. decisões
+// ------------------------------------------------------------------ 22. decisões
 {
-  const s = novoSlide("Decisões de projeto em destaque", 4, 1,
-    "Seis das 23 decisões documentadas no repositório. Cada uma tem a alternativa descartada e o argumento. " +
+  const s = novoSlide("Decisões de projeto em destaque", 4, 0.5,
+    "Antes da decisão final, por que confiar nesses números. Seis das 23 decisões documentadas no repositório. Cada uma tem a alternativa descartada e o argumento. " +
     "Destacar as duas que mais aparecem em perguntas: por que rollups encolhidos em vez de um grão único, e por que nulo e não zero.");
   const decisoes = [
     ["1", "Grão mais fino na matrícula", "vínculo aluno-turma: preserva perfil e desfecho de cada aluno"],
@@ -748,11 +733,86 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   });
 }
 
-// ------------------------------------------------------------------ 24. encerramento
+// ------------------------------------------------------------------ 23. a decisão: Grajaú contra Tremembé
+{
+  const s = novoSlide("A decisão: a próxima vaga vai para o Tremembé", 4, 0.75,
+    "De volta à Ana. Olhando só o tamanho, o gestor escolheria o Grajaú: é o distrito com mais crianças de 0 a 4 anos, " +
+    "24.398, e tinha a maior fila de creche da cidade em 2015, 8.018 crianças. Mas a fila do Grajaú caiu para 88 em 2024, e a " +
+    "oferta lá é de 82,7 matrículas por 100 crianças. No Tremembé, a fila de 2024 era de 153 crianças, a segunda maior da " +
+    "cidade, e a oferta era de 71,6 por 100, abaixo da média do município, de 86. Com as bases cruzadas, a próxima vaga vai " +
+    "para o Tremembé. Se perguntarem: a matrícula conta onde a escola fica e a população onde a criança mora, então a razão " +
+    "é oferta por criança residente, não taxa de atendimento.");
+  const distritos = [
+    [0.6, "GRAJAÚ · O MAIOR DISTRITO", COR.cobalto, COR.branco, COR.cobalto, [
+      ["24.398", "crianças de 0 a 4 anos (Censo 2022)"],
+      ["82,7", "matrículas por 100 crianças (2022)"],
+      ["88", "na fila de creche em junho de 2024; eram 8.018 em 2015"],
+    ]],
+    [6.75, "TREMEMBÉ · DISTRITO DA ANA", COR.ambar, COR.tinta, COR.tinta, [
+      ["11.498", "crianças de 0 a 4 anos (Censo 2022)"],
+      ["71,6", "matrículas por 100 crianças, abaixo da média de 86"],
+      ["153", "na fila de creche em junho de 2024, a segunda maior da cidade"],
+    ]],
+  ];
+  distritos.forEach(([x, rotulo, fundo, cor, corValor, linhas], i) => {
+    cartao(s, x, 1.7, 5.95, 3.7, { borda: i === 0 ? COR.borda : COR.ambar, ordem: i + 1 });
+    etiqueta(s, rotulo, x + 0.3, 1.95, 3.05, { fundo, cor, ordem: i + 1 });
+    linhas.forEach(([valor, rotuloLinha], j) => {
+      const y = 2.5 + j * 0.92;
+      texto(s, valor, x + 0.3, y, 2.0, 0.75, { tam: 34, negrito: true, cor: corValor, valign: "middle", ordem: i + 1 });
+      texto(s, rotuloLinha, x + 2.35, y, 3.35, 0.75, { tam: 14, valign: "middle", ordem: i + 1 });
+    });
+  });
+  cartao(s, 0.6, 5.6, 12.1, 0.95, { fundo: COR.nevoa, semSombra: true, ordem: 3 });
+  selo(s, 0.85, 5.8, "!", { d: 0.56, tam: 18, ordem: 3 });
+  s.addText([
+    { text: "O que o cruzamento mostra: ", options: { bold: true, color: COR.tinta } },
+    { text: "pelo tamanho, a escolha seria o Grajaú; com fila, oferta e população lado a lado, a próxima vaga pesa mais no Tremembé." },
+  ], { x: 1.65, y: 5.65, w: 10.9, h: 0.85, fontFace: FONTE, fontSize: 15, color: COR.texto, margin: 0, isTextBox: true,
+    valign: "middle", ...anim(3) });
+  fonte(s, "Fonte: consultas 5 e 7; a matrícula conta onde fica a escola, e a população, onde mora a criança.");
+}
+
+// ------------------------------------------------------------------ 24. fim da história
+{
+  const s = novoSlide("Fim da história: a Ana consegue a vaga", 4, 0.75,
+    "Fim da história. Com o data warehouse, a prefeitura vê o Tremembé, abre turmas de creche no distrito, e o filho da Ana " +
+    "sai da fila e vira uma linha do fato Matrícula. A Ana volta a trabalhar. O que fez a diferença foi juntar números que já " +
+    "existiam: uma consulta no lugar de três bases, catorze verificações a cada carga, dez anos de histórico e atualização " +
+    "com um comando. É um cenário hipotético; a prefeitura não usa o nosso data warehouse, mas tudo o que ele mostra no caso " +
+    "da Ana sai dos dados reais, e a mesma consulta serve para a próxima Ana, em qualquer distrito.");
+  cartao(s, 0.6, 1.7, 5.3, 3.85, { fundo: COR.tinta, borda: COR.tinta, ordem: 1 });
+  etiqueta(s, "CENÁRIO HIPOTÉTICO", 0.9, 1.95, 2.45, { fundo: COR.ambar, cor: COR.tinta, ordem: 1 });
+  ["A prefeitura abre turmas de creche no Tremembé.",
+    "O filho da Ana sai da fila e vira uma linha do fato Matrícula.",
+    "A Ana volta a trabalhar."].forEach((t, i) => {
+    const y = 2.6 + i * 0.95;
+    selo(s, 0.9, y + 0.1, String(i + 1), { d: 0.5, tam: 14, ordem: 2 + i });
+    texto(s, t, 1.6, y, 4.05, 0.75, { tam: 16, cor: COR.branco, valign: "middle", ordem: 2 + i });
+  });
+  cartao(s, 6.15, 1.7, 6.55, 3.85, { ordem: 5 });
+  texto(s, "O QUE O DATA WAREHOUSE TROUXE", 6.45, 1.92, 5.9, 0.3, { tam: 12, negrito: true, cor: COR.suave, espacamento: 1, ordem: 5 });
+  [["Uma consulta no lugar de três bases", "fila, matrícula, ocupação e população lado a lado, por distrito"],
+    ["Números confiáveis", "14 verificações a cada carga e as bases da SME reconciliadas entre si"],
+    ["Dez anos de histórico", "onde a fila caiu e onde ela resiste"],
+    ["Atualização com um comando", "quando a prefeitura publica dados novos"]].forEach(([t, c], i) => {
+    const y = 2.35 + i * 0.78;
+    texto(s, t, 6.45, y, 5.95, 0.35, { tam: 15, negrito: true, cor: COR.tinta, ordem: 6 + i });
+    texto(s, c, 6.45, y + 0.33, 5.95, 0.35, { tam: 13, ordem: 6 + i });
+  });
+  cartao(s, 0.6, 5.75, 12.1, 0.8, { fundo: COR.nevoa, semSombra: true, ordem: 10 });
+  selo(s, 0.85, 5.88, "✓", { d: 0.54, tam: 16, ordem: 10 });
+  texto(s, "A mesma consulta serve para a próxima Ana, em qualquer um dos 96 distritos.", 1.6, 5.75, 10.9, 0.8,
+    { tam: 15, negrito: true, cor: COR.tinta, valign: "middle", ordem: 10 });
+  fonte(s, "Cenário hipotético. Números reais das consultas 5, 7 e 8 sobre a carga com os dados reais.");
+}
+
+// ------------------------------------------------------------------ 25. encerramento
 {
   const s = novoSlide("Obrigado. Perguntas?", 4, 0.5,
-    "Encerramento. Lembrar que o relatório em PDF traz a descrição completa de cada atributo, com a coluna de origem e a integração, " +
-    "e que o repositório tem o pipeline completo, os testes e a documentação. Abrir para perguntas.", { master: "ESCURO" });
+    "Encerramento. A Ana é hipotética, mas a proposta está pronta: o repositório tem o pipeline completo, os testes e a " +
+    "documentação, e o relatório em PDF traz a descrição de cada atributo, com a coluna de origem e a integração. " +
+    "Abrir para perguntas.", { master: "ESCURO" });
   [["13,4 mi", "matrículas de 2015 a 2024"], ["551 mil", "turmas carregadas"], ["26.889", "setores censitários"]]
     .forEach(([valor, rotulo], i) => {
       const x = 0.6 + i * 4.1;
@@ -769,17 +829,26 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   texto(s, INTEGRANTES.map(([n]) => n).join("  ·  "), 0.6, 6.3, 11.8, 0.4, { tam: 14, cor: COR.claroNoEscuro, ordem: 5 });
 }
 
-// ------------------------------------------------------------------ roteiro, a partir dos blocos montados
+// ------------------------------------------------------------------ passos da proposta (roteiro), a partir dos blocos montados
 for (let b = 1; b <= 4; b += 1) {
-  const x = 0.6 + (b - 1) * 3.075;
+  const x = 0.6 + (b - 1) * 3.08;
   const lista = slidesDoBloco[b];
-  cartao(roteiro, x, 1.75, 2.9, 4.8, { ordem: b });
-  selo(roteiro, x + 0.25, 2.0, String(b), { d: 0.6, ordem: b });
-  texto(roteiro, BLOCO[b], x + 0.25, 2.75, 2.45, 0.75, { tam: 16, negrito: true, cor: COR.tinta, ordem: b });
-  texto(roteiro, `slides ${lista[0]} a ${lista[lista.length - 1]}`, x + 0.25, 3.5, 2.45, 0.32,
-    { tam: 13, negrito: true, cor: COR.cobalto, ordem: b });
-  texto(roteiro, ASSUNTO_DO_BLOCO[b], x + 0.25, 3.95, 2.45, 2.4, { tam: 16, ordem: b });
+  cartao(roteiro, x, 1.75, 2.78, 3.8, { ordem: b });
+  selo(roteiro, x + 0.25, 1.98, String(b), { d: 0.55, ordem: b });
+  texto(roteiro, BLOCO[b], x + 0.25, 2.65, 2.35, 0.6, { tam: 15, negrito: true, cor: COR.tinta, ordem: b });
+  texto(roteiro, `slides ${lista[0]} a ${lista[lista.length - 1]}`, x + 0.25, 3.27, 2.35, 0.3,
+    { tam: 12, negrito: true, cor: COR.cobalto, ordem: b });
+  texto(roteiro, TEMA_DO_BLOCO[b], x + 0.25, 3.65, 2.35, 0.55, { tam: 15, negrito: true, cor: COR.tinta, ordem: b });
+  texto(roteiro, ASSUNTO_DO_BLOCO[b], x + 0.25, 4.25, 2.35, 1.2, { tam: 13, cor: COR.suave, ordem: b });
+  if (b < 4) {
+    roteiro.addShape(pres.shapes.RIGHT_ARROW, { x: x + 2.81, y: 3.5, w: 0.24, h: 0.3, fill: { color: COR.ambar },
+      line: { color: COR.ambar }, ...anim(b) });
+  }
 }
+cartao(roteiro, 0.6, 5.8, 12.1, 0.75, { fundo: COR.nevoa, semSombra: true, ordem: 5 });
+selo(roteiro, 0.85, 5.9, "!", { d: 0.54, tam: 16, ordem: 5 });
+texto(roteiro, "A história é um cenário hipotético; os números vêm da nossa carga com os dados reais.", 1.6, 5.8, 10.9, 0.75,
+  { tam: 15, valign: "middle", ordem: 5 });
 
 if (numero !== TOTAL_SLIDES) throw new Error(`a apresentação tem ${numero} slides, e o rodapé diz ${TOTAL_SLIDES}`);
 
