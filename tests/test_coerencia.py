@@ -26,6 +26,7 @@ RELATORIO = DOCS / "relatorio" / "relatorio-projeto1.tex"
 GERADOR = DOCS / "apresentacao" / "gerar.js"
 SLIDES = DOCS / "apresentacao" / "apresentacao-projeto1.pptx"
 HTML = DOCS / "apresentacao" / "apresentacao-projeto1.html"
+PDF_SLIDES = DOCS / "apresentacao" / "apresentacao-projeto1.pdf"
 MODELAGEM = DOCS / "modelagem"
 
 INTEGRANTES = [
@@ -208,6 +209,14 @@ def test_versao_html_abre_sozinha():
         "https://fonts.googleapis.com", "https://fonts.gstatic.com",
         "https://fonts.googleapis.com/css2?family=Public+Sans:wght@400..800&family=Space+Grotesk:wght@400..700&display=swap",
     }
+
+
+def test_pdf_da_apresentacao_tem_uma_pagina_por_slide():
+    """O PDF é a apresentação que o GitHub mostra no navegador. Sai do HTML (?imprimir); slide novo pede PDF novo."""
+    paginas = len(re.findall(rb"/Type\s*/Page(?![s\w])", PDF_SLIDES.read_bytes()))
+    with zipfile.ZipFile(SLIDES) as z:
+        slides = [n for n in z.namelist() if re.fullmatch(r"ppt/slides/slide\d+\.xml", n)]
+    assert paginas == len(slides) == len(secoes_html())
 
 
 # ----------------------------------------------------------------------------- links e pendências

@@ -18,7 +18,7 @@ Nossa lista do que já está pronto e do que ainda falta antes de entregar. O en
 | Povoamento de cada atributo e de cada fato, com integração | relatório, seções 1.5 a 1.7 (coluna "Povoamento" em cada dimensão) | pronto |
 | Hierarquias com o operador de ordenação parcial e função de agregação de cada fato | relatório, seção 2 | pronto |
 | Chave artificial, bugiganga, dimensão degenerada, campo artificial de fatos sem fato | relatório, seções 2.6 e 1.5 | pronto |
-| Apresentação com motivação do tema e dos assuntos, fontes, estrelas, constelação, consultas e decisões; todos apresentam, com tempo homogêneo | [apresentacao/apresentacao-projeto1.pptx](apresentacao/apresentacao-projeto1.pptx), 24 slides em quatro blocos de 5 minutos; a mesma apresentação em [HTML](apresentacao/apresentacao-projeto1.html), para o navegador | pronta; falta ensaiar |
+| Apresentação com motivação do tema e dos assuntos, fontes, estrelas, constelação, consultas e decisões; todos apresentam, com tempo homogêneo | [apresentacao/apresentacao-projeto1.pptx](apresentacao/apresentacao-projeto1.pptx), 24 slides em quatro blocos de 5 minutos; a mesma apresentação em [HTML](apresentacao/apresentacao-projeto1.html), para o navegador, e em [PDF](apresentacao/apresentacao-projeto1.pdf), para ver no GitHub | pronta; falta ensaiar |
 
 Os números do relatório, da documentação e dos slides vêm da carga com os dados reais: SME de 2015 a 2024 e Censo 2022, com as oito consultas medidas.
 
