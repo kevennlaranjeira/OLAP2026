@@ -1,6 +1,6 @@
 # Consultas
 
-Escrevemos oito consultas para cobrir as operações que o enunciado pede: três de roll-up ou drill-down (o mínimo é duas), uma de slice and dice, uma de pivot e três de drill-across. Cada uma está num arquivo em [`src/dw_sme/sql/consultas/`](../src/dw_sme/sql/consultas/), com um cabeçalho que traz código, tipo, pergunta, justificativa e fatos usados. `dw-sme consultar` roda todas e grava um CSV por consulta em `data/relatorios/consultas/`.
+Escrevemos oito consultas para cobrir as operações que o enunciado pede: três de roll-up ou drill-down (o mínimo é duas), uma de slice and dice, uma de pivot e três de drill-across. Cada uma está num arquivo em [`src/dw_sme/sql/consultas/`](../src/dw_sme/sql/consultas/), com um cabeçalho que traz código, tipo, pergunta, justificativa e fatos usados. `dw-sme consultar` roda todas e grava um CSV por consulta em `data/relatorios/consultas/`. No banco da carga real, as oito somam 0,42 s, no melhor de três execuções num notebook (DuckDB 1.5); cada uma leva de 11 a 117 ms.
 
 | Consulta | Operação | Fatos | Linhas no resultado real |
 |---|---|---|---|

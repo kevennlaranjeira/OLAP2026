@@ -121,11 +121,11 @@ def notas_dos_slides() -> list[str]:
         return [z.read(n).decode("utf-8") for n in sorted(nomes, key=lambda n: int(re.findall(r"\d+", n)[0]))]
 
 
-def test_vinte_e_seis_slides_em_quatro_blocos():
+def test_vinte_e_oito_slides_em_quatro_blocos():
     with zipfile.ZipFile(SLIDES) as z:
         slides = [n for n in z.namelist() if re.fullmatch(r"ppt/slides/slide\d+\.xml", n)]
-    assert len(slides) == 26
-    assert "26 slides" in ler(DOCS / "08-pendencias-da-entrega.md")
+    assert len(slides) == 28
+    assert "28 slides" in ler(DOCS / "08-pendencias-da-entrega.md")
     notas = " ".join(notas_dos_slides())
     for bloco in range(1, 5):
         assert f"(bloco {bloco} de 4)" in notas
@@ -142,12 +142,12 @@ def test_slides_com_numero_de_pagina_transicao_e_animacao():
     assert animados >= 15, f"só {animados} slides com animação de entrada"
 
 
-TEMPO_COMBINADO = {1: 6.5, 2: 5.0, 3: 5.0, 4: 5.0}
+TEMPO_COMBINADO = {1: 7.0, 2: 5.0, 3: 5.0, 4: 5.0}
 
 
 def test_cada_integrante_apresenta_no_tempo_combinado():
-    """Enunciado: todos apresentam, com tempo homogêneo. Os blocos 2 a 4 têm 5 minutos; o bloco 1 tem 1,5 a mais porque
-    abre a história e vende a proposta, escolha registrada em docs/08 com o que fazer se a professora segurar os 20."""
+    """Enunciado: todos apresentam, com tempo homogêneo. Os blocos 2 a 4 têm 5 minutos; o bloco 1 tem 2 a mais porque
+    abre a apresentação e vende a proposta, escolha registrada em docs/08 com o que fazer se a professora segurar os 20."""
     tempos = {}
     for nota in notas_dos_slides():
         achado = re.search(r"Apresenta: ([^(]+) \(bloco (\d) de 4\)\. Tempo previsto: ([\d,]+) min", nota)
@@ -156,7 +156,7 @@ def test_cada_integrante_apresenta_no_tempo_combinado():
         assert nome == INTEGRANTES[bloco - 1][0]
         tempos[bloco] = tempos.get(bloco, 0) + minutos
     assert tempos == TEMPO_COMBINADO, f"tempos por integrante: {tempos}"
-    assert "6,5 minutos" in ler(DOCS / "08-pendencias-da-entrega.md")
+    assert "7 minutos" in ler(DOCS / "08-pendencias-da-entrega.md")
 
 
 # ----------------------------------------------------------------------------- versão em HTML
@@ -174,9 +174,9 @@ def lista(texto: str, padrao: str) -> list[float]:
 
 def test_versao_html_tem_os_mesmos_slides_apresentadores_e_tempos():
     secoes = secoes_html()
-    assert len(secoes) == 26
+    assert len(secoes) == 28
     for numero, secao in enumerate(secoes[1:], start=2):
-        assert f"<b>{numero}</b></span> / 26" in secao, f"slide {numero} sem o número da página"
+        assert f"<b>{numero}</b></span> / 28" in secao, f"slide {numero} sem o número da página"
     notas_html = [re.search(r"<aside>(.*?)</aside>", s, re.S).group(1) for s in secoes]
     assert [APRESENTADOR.search(n).groups() for n in notas_html] == \
         [APRESENTADOR.search(n).groups() for n in notas_dos_slides()]
@@ -191,7 +191,7 @@ def test_graficos_da_versao_html_usam_os_numeros_dos_slides():
     assert [float(a) for a, _ in turmas] == lista(js, r'name: "2019", labels: \[[^\]]+\], values: \[([^\]]+)\]')
     assert [float(b) for _, b in turmas] == lista(js, r'name: "2024", labels: \[[^\]]+\], values: \[([^\]]+)\]')
     for numero in ["124.741", "3.633", "13,4 mi", "26.889", "551 mil", "514.131", "598.406", "94,8% a 98,6%",
-                   "6.543", "402 escolas", "24.398", "8.018", "11.498", "82,7", "71,6", "2,5%", "2.502", "1.131", "PERSONA HIPOTÉTICA", "CENÁRIO HIPOTÉTICO"]:
+                   "6.543", "402 escolas", "24.398", "8.018", "11.498", "82,7", "71,6", "2.502", "1.131", "38.869", "0,42 s", "CENÁRIO HIPOTÉTICO"]:
         assert numero in js and numero in html, f"{numero} não está nas duas versões"
 
 
