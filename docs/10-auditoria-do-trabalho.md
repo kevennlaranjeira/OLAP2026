@@ -7,7 +7,7 @@ Nossas anotações da revisão de ponta a ponta do repositório: código, proces
 | Frente | Como | Resultado |
 |---|---|---|
 | Testes e lint | `pytest` (505 testes) e `ruff`, a cada push no GitHub, com Python 3.11 e 3.13 | todos passam; cobertura de 99% |
-| Coerência entre documentos | [tests/test_coerencia.py](../tests/test_coerencia.py), 54 testes | contagens, consultas, integrantes, links, textos pendentes, hierarquias e números iguais em README, docs/, relatório e nas duas versões da apresentação (`.pptx` e HTML); o PDF com uma página por slide; os quatro blocos com o mesmo tempo |
+| Coerência entre documentos | [tests/test_coerencia.py](../tests/test_coerencia.py), 54 testes | contagens, consultas, integrantes, links, textos pendentes, hierarquias e números iguais em README, docs/, relatório e nas duas versões da apresentação (`.pptx` e HTML); o PDF com uma página por slide; o tempo combinado de cada bloco |
 | Modelo dimensional | [tests/test_modelo.py](../tests/test_modelo.py), 22 testes, e as verificações Q13 e Q14 | ver [09](09-verificacao-da-modelagem.md) |
 | Funcionamento | [tests/test_funcionamento.py](../tests/test_funcionamento.py), 14 testes | recarga sem duplicar; `verificar` e `tudo` saem com 1 em FALHA; 72.900 matrículas sintéticas conservam as contagens entre os fatos; consultas iguais quando repetidas e quando o dado entra em outra ordem; caminho com apóstrofo; carga que falha no meio preserva o banco anterior |
 | Checagem de tipos | `pyright` | nenhum erro de tipo real; os avisos restantes vêm dos stubs do pandas e do DuckDB (ver [07](07-como-executar.md)) |
@@ -18,7 +18,7 @@ Nossas anotações da revisão de ponta a ponta do repositório: código, proces
 | Saídas das consultas | leitura dos 8 CSV e do relatório de qualidade | totais com "(TODAS)", anos sem separador de milhar, contagens como inteiro |
 | Imagens dos esquemas | `figuras.tex` compilado de novo e cada página comparada com o PNG do repositório; hash das imagens dentro do `.pptx` e do HTML | os 6 PNG idênticos pixel a pixel; as duas apresentações usam os PNG atuais, conferido a cada push |
 | PDFs | relatório e PDF de modelagem compilados com XeLaTeX; o fluxo `relatorio.yml` do GitHub compila o relatório a cada mudança em `docs/relatorio/` e deixa o PDF para baixar | compilam sem erro; nenhuma caixa vazando a margem |
-| Revisão visual | 25 slides em cada versão da apresentação, 27 páginas do relatório e 7 do PDF de modelagem renderizados | sem texto cortado ou sobreposto |
+| Revisão visual | 26 slides em cada versão da apresentação, 27 páginas do relatório e 7 do PDF de modelagem renderizados | sem texto cortado ou sobreposto |
 
 ## Erros encontrados e corrigidos
 
