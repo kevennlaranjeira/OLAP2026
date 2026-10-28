@@ -41,7 +41,7 @@ OLAP2026/
       esquemas/*.tex             desenhos das estrelas e da constelação (TikZ)
     apresentacao/
       gerar.js                   script que gera os slides
-      apresentacao-projeto1.pptx slides gerados (21 slides)
+      apresentacao-projeto1.pptx slides gerados (24 slides)
       apresentacao-projeto1.html a mesma apresentação, para abrir no navegador
       embutir_figuras.py         atualiza as figuras guardadas dentro do HTML
     modelagem/                   os mesmos esquemas em PNG e num PDF separado
@@ -179,13 +179,13 @@ O texto de cada slide está no `gerar.js`, em blocos marcados com comentários c
 Também funciona, com duas ressalvas:
 
 - se alguém rodar o `gerar.js` depois, as edições feitas à mão se perdem, porque o script gera o arquivo do zero;
-- os testes conferem que existem 21 slides, que toda nota começa com `Apresenta: <nome> (bloco N de 4). Tempo previsto: X min.` e que os quatro blocos somam o mesmo tempo. Mantenha esse formato nas notas.
+- os testes conferem que existem 24 slides, que toda nota começa com `Apresenta: <nome> (bloco N de 4). Tempo previsto: X min.` e que os quatro blocos somam o mesmo tempo. Mantenha esse formato nas notas.
 
 A gente precisa combinar qual dos dois caminhos vai usar até a entrega.
 
 ### Versão em HTML
 
-O arquivo [`docs/apresentacao/apresentacao-projeto1.html`](apresentacao/apresentacao-projeto1.html) traz os mesmos 21 slides, com as mesmas notas e os mesmos tempos. Ele abre com dois cliques em qualquer navegador e funciona sozinho, porque as figuras dos esquemas estão guardadas dentro dele. Só a fonte vem da internet; sem conexão, o texto aparece em Arial.
+O arquivo [`docs/apresentacao/apresentacao-projeto1.html`](apresentacao/apresentacao-projeto1.html) traz os mesmos 24 slides, com as mesmas notas e os mesmos tempos. Ele abre com dois cliques em qualquer navegador e funciona sozinho, porque as figuras dos esquemas estão guardadas dentro dele. Só a fonte vem da internet; sem conexão, o texto aparece em Arial.
 
 | Tecla | O que faz |
 |---|---|
@@ -284,7 +284,7 @@ Reescrever um parágrafo do relatório não quebra teste. Os testes reclamam qua
 | Se você mudar... | Também precisa mudar | Teste que acusa |
 |---|---|---|
 | nome ou Nº USP de um integrante | README, `relatorio-projeto1.tex`, `gerar.js` e `apresentacao-projeto1.html` | `test_integrantes_e_numeros_usp_iguais_em_todo_lugar` |
-| o tipo de uma consulta (ex.: drill-down) | o arquivo SQL, `docs/05-consultas.md`, o título `\subsection{Consulta N: tipo}`, a tabela de consultas do `gerar.js` e o slide 17 do HTML | `test_consultas_iguais_na_documentacao_no_relatorio_e_nos_slides` |
+| o tipo de uma consulta (ex.: drill-down) | o arquivo SQL, `docs/05-consultas.md`, o título `\subsection{Consulta N: tipo}`, a tabela de consultas do `gerar.js` e o slide 20 do HTML | `test_consultas_iguais_na_documentacao_no_relatorio_e_nos_slides` |
 | uma hierarquia (`\hier{...}`) | o DDL em `src/dw_sme/sql/ddl/` e `docs/03-modelo-dimensional.md` | `test_hierarquias_iguais_no_relatorio_no_ddl_e_na_documentacao` |
 | uma caixa ou ligação de um esquema | o DDL (as caixas mostram as colunas das tabelas) | `test_caixas_do_desenho_batem_com_o_ddl` e vizinhos em `test_modelo.py` |
 | a matriz de barramento | o DDL e `docs/modelagem/modelagem.tex` | `test_matriz_de_barramento_bate_com_o_ddl` |

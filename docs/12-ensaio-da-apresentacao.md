@@ -6,9 +6,12 @@ A apresentação é no dia 29 de outubro e deve durar 20 minutos: quatro blocos 
 
 A prefeitura de São Paulo publica quem espera vaga na educação infantil, por distrito, e cada matrícula da rede municipal. Separadas, essas bases não dizem onde abrir vagas. O data warehouse junta fila, matrícula, ocupação das turmas, desfecho da matrícula e a população do Censo 2022 numa constelação de cinco fatos e catorze dimensões, e responde perguntas de gestor com oito consultas OLAP sobre os dados reais de 2015 a 2024.
 
+O bloco 1 conta isso como uma proposta. Começa pela Ana, uma persona hipotética: mãe no Grajaú, com um filho de 1 ano na fila de creche. Depois vêm o problema na cidade, a nossa solução e a resposta para ela com os números reais do distrito, que mostram onde a próxima vaga pesa mais.
+
 | Número | O que mostra |
 |---|---|
 | -97% | fila de creche em junho, de 124.741 crianças (2015) para 3.633 (2024) |
+| 8.018 para 88 | fila de creche em junho no Grajaú, o distrito da Ana, de 2015 para 2024 |
 | 85% | da creche é rede conveniada, quase toda em jornada integral |
 | 86 por 100 | matrículas por 100 crianças de 0 a 4 anos; 25 distritos abaixo de 50 e 25 acima de 100 |
 | 13,4 milhões | matrículas carregadas, com 551 mil turmas e 26.889 setores censitários |
@@ -21,42 +24,49 @@ Uns 40 minutos, com todos de computador aberto na [versão em HTML](apresentacao
 
 | Tempo | O que fazer |
 |---|---|
-| 5 min | Contar a ideia em um minuto e mostrar os slides 3 a 6, que dão o problema e os cinco assuntos. |
+| 5 min | Contar a ideia em um minuto e mostrar os slides 2 a 8, que vão da Ana aos cinco assuntos. |
 | 10 min | Mostrar o projeto funcionando: rodar os testes, abrir o relatório e um CSV de consulta. |
 | 15 min | Cada integrante percorre o próprio bloco com as notas abertas (tecla N) e diz em voz alta a mensagem de cada slide. |
 | 10 min | Ensaio corrido, cronometrando 5 minutos por pessoa, e uma rodada das perguntas prováveis. |
 
-No fim dos slides 6, 11 e 16, quem está falando passa a palavra.
+No fim dos slides 9, 14 e 19, quem está falando passa a palavra.
 
 ## A mensagem de cada slide
 
 | Slide | Título | Diga isto |
 |---|---|---|
-| 1 | Capa | Grupo, disciplina e a pergunta do trabalho: onde falta vaga e onde a oferta já está cheia. |
-| 2 | Roteiro | Quatro integrantes, quatro blocos, na ordem do enunciado. |
-| 3 | O problema | A fila de creche em junho caiu de 124.741 para 3.633, mas o gestor ainda precisa cruzar bases diferentes. |
-| 4 | Perguntas do gestor | Quatro decisões de política pública, cada uma ligada às consultas que a respondem. |
-| 5 | Por que São Paulo | Fila e matrícula publicadas em dado aberto; o modelo vale para São Carlos assim que a fila for publicada. |
-| 6 | Cinco assuntos | Quatro viram tabelas de fatos, a oferta por setor sai das dimensões e o desfecho é o quinto processo. |
-| 7 | Três fontes | 13,4 milhões de matrículas, 44 meses de fila e 26.889 setores do Censo 2022. |
-| 8 | Integração | O mesmo dado em formas diferentes; a reconciliação entre as bases da SME fica abaixo de 1%. |
-| 9 | Problemas nos dados | Código da escola recuperado em 94,8% a 98,6% das matrículas; medida não publicada fica nula, nunca zero. |
-| 10 | Grão e aditividade | Fila e população são estoques: somam no território, não no tempo; taxas saem sempre das somas. |
-| 11 | Estrela Matrícula | Data com dois papéis, campo artificial igual a 1, três bugigangas, duas degeneradas e Escola tipo 2. |
-| 12 | Estrela Fila | Distrito × mês × etapa; estoque com duas hierarquias de tempo. |
-| 13 | Estrela Desfecho | Agregado da matrícula; taxas recalculadas pelas contagens, nunca média de taxas. |
-| 14 | Estrela Ocupação de Turma | Ninguém publica a capacidade, então medimos a ocupação: soma de alunos dividida por soma de turmas. |
-| 15 | Estrela População | Setor censitário, 11,4 milhões de moradores; Faixa Etária é o rollup encolhido de Idade. |
-| 16 | Constelação | Cinco fatos, catorze dimensões, Território nos cinco, rollups encolhidos tracejados. |
-| 17 | Oito consultas | Três roll-up ou drill-down, uma slice and dice, uma pivot e três drill-across, cada uma com o resultado real. |
-| 18 | Fila e oferta | Queda de 97% na fila; fração fora da rede de 34% para 1%; 85% da creche conveniada. |
-| 19 | População e ocupação | 86 matrículas por 100 crianças, com distritos muito longe da média; creche com cerca de 11 por turma. |
-| 20 | Decisões | Destacar as duas mais perguntadas: rollups encolhidos e nulo não é zero. |
-| 21 | Encerramento | Relatório, repositório e carga real sem nenhuma FALHA; abrir para perguntas. |
+| 1 | Capa | Grupo, disciplina e tema, em poucos segundos. |
+| 2 | A Ana | Persona hipotética no Grajaú, o distrito com mais crianças de 0 a 4 anos, onde a fila de creche caiu de 8.018 (2015) para 88 (2024). |
+| 3 | O problema | A fila da cidade caiu de 124.741 para 3.633, mas ainda há fila nos 96 distritos e a oferta por criança varia muito: a pergunta agora é onde. |
+| 4 | Nossa solução | Hoje são três bases que não conversam; o data warehouse junta fila, matrícula, ocupação e população num lugar só. |
+| 5 | Perguntas do gestor | Quatro decisões de política pública, cada uma ligada às consultas que a respondem. |
+| 6 | De volta à Ana | Grajaú contra Tremembé: com as bases cruzadas, a próxima vaga pesa mais no Tremembé (fila de 153 e 71,6 matrículas por 100 crianças). |
+| 7 | Por que São Paulo | Fila e matrícula publicadas em dado aberto; o modelo vale para São Carlos assim que a fila for publicada. |
+| 8 | Cinco assuntos | Quatro viram tabelas de fatos, a oferta por setor sai das dimensões e o desfecho é o quinto processo. |
+| 9 | Roteiro | O caminho do resto da apresentação; passar a palavra ao Thiago. |
+| 10 | Três fontes | 13,4 milhões de matrículas, 44 meses de fila e 26.889 setores do Censo 2022. |
+| 11 | Integração | O mesmo dado em formas diferentes; a reconciliação entre as bases da SME fica abaixo de 1%. |
+| 12 | Problemas nos dados | Código da escola recuperado em 94,8% a 98,6% das matrículas; medida não publicada fica nula, nunca zero. |
+| 13 | Grão e aditividade | Fila e população são estoques: somam no território, não no tempo; taxas saem sempre das somas. |
+| 14 | Estrela Matrícula | Data com dois papéis, campo artificial igual a 1, três bugigangas, duas degeneradas e Escola tipo 2. |
+| 15 | Estrela Fila | Distrito × mês × etapa; estoque com duas hierarquias de tempo. |
+| 16 | Estrela Desfecho | Agregado da matrícula; taxas recalculadas pelas contagens, nunca média de taxas. |
+| 17 | Estrela Ocupação de Turma | Ninguém publica a capacidade, então medimos a ocupação: soma de alunos dividida por soma de turmas. |
+| 18 | Estrela População | Setor censitário, 11,4 milhões de moradores; Faixa Etária é o rollup encolhido de Idade. |
+| 19 | Constelação | Cinco fatos, catorze dimensões, Território nos cinco, rollups encolhidos tracejados. |
+| 20 | Oito consultas | Três roll-up ou drill-down, uma slice and dice, uma pivot e três drill-across, cada uma com o resultado real. |
+| 21 | Fila e oferta | Queda de 97% na fila; fração fora da rede de 34% para 1%; 85% da creche conveniada. |
+| 22 | População e ocupação | 86 matrículas por 100 crianças, com distritos muito longe da média; creche com cerca de 11 por turma. |
+| 23 | Decisões | Destacar as duas mais perguntadas: rollups encolhidos e nulo não é zero. |
+| 24 | Encerramento | Relatório, repositório e carga real sem nenhuma FALHA; abrir para perguntas. |
 
 ## Perguntas prováveis
 
 Durante a apresentação há perguntas sobre o trabalho. Entre parênteses, quem responde primeiro. As decisões completas, com a alternativa descartada, estão em [06 Decisões](06-decisoes.md).
+
+**A Ana existe?** (Kevenn) Não. É uma persona hipotética, criada para mostrar o problema pelo lado de uma família. Os números do Grajaú e do Tremembé são reais e saem das consultas 5 e 7 sobre a carga.
+
+**Por que o Tremembé?** (Kevenn) É um exemplo do que o cruzamento mostra: em junho de 2024 o Tremembé tinha a segunda maior fila de creche da cidade (153) e 71,6 matrículas por 100 crianças de 0 a 4 anos, abaixo da média de 86. A consulta 7 traz os 96 distritos, e o Luís mostra a distribuição no bloco 4.
 
 **Por que São Paulo e não São Carlos?** (Kevenn) São Paulo publica o microdado de cada matrícula e a fila por distrito, então a demanda é medida e não estimada. O modelo vale para São Carlos: matrícula, turma e desfecho vêm do registro de qualquer sistema escolar, e o Censo 2022 tem a população por setor de todos os municípios.
 
@@ -92,6 +102,6 @@ Para a apresentação basta abrir [apresentacao-projeto1.html](apresentacao/apre
 
 - Abrir o HTML no computador da sala antes da aula e testar setas, F e N.
 - Levar o `.pptx` e o PDF do relatório num pendrive, para o caso de não haver internet. Sem internet, o HTML abre com a fonte Arial e continua legível.
-- Combinar quem controla os slides e o sinal de passagem de bloco no fim dos slides 6, 11 e 16.
+- Combinar quem controla os slides e o sinal de passagem de bloco no fim dos slides 9, 14 e 19.
 - Cada integrante sabe responder as perguntas do próprio bloco.
 - Entregar o PDF do relatório no local definido no critério de avaliação da disciplina.

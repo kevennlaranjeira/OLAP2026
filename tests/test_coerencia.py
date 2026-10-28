@@ -120,11 +120,11 @@ def notas_dos_slides() -> list[str]:
         return [z.read(n).decode("utf-8") for n in sorted(nomes, key=lambda n: int(re.findall(r"\d+", n)[0]))]
 
 
-def test_vinte_e_um_slides_em_quatro_blocos():
+def test_vinte_e_quatro_slides_em_quatro_blocos():
     with zipfile.ZipFile(SLIDES) as z:
         slides = [n for n in z.namelist() if re.fullmatch(r"ppt/slides/slide\d+\.xml", n)]
-    assert len(slides) == 21
-    assert "21 slides" in ler(DOCS / "08-pendencias-da-entrega.md")
+    assert len(slides) == 24
+    assert "24 slides" in ler(DOCS / "08-pendencias-da-entrega.md")
     notas = " ".join(notas_dos_slides())
     for bloco in range(1, 5):
         assert f"(bloco {bloco} de 4)" in notas
@@ -169,9 +169,9 @@ def lista(texto: str, padrao: str) -> list[float]:
 
 def test_versao_html_tem_os_mesmos_slides_apresentadores_e_tempos():
     secoes = secoes_html()
-    assert len(secoes) == 21
+    assert len(secoes) == 24
     for numero, secao in enumerate(secoes[1:], start=2):
-        assert f"<b>{numero}</b></span> / 21" in secao, f"slide {numero} sem o número da página"
+        assert f"<b>{numero}</b></span> / 24" in secao, f"slide {numero} sem o número da página"
     notas_html = [re.search(r"<aside>(.*?)</aside>", s, re.S).group(1) for s in secoes]
     assert [APRESENTADOR.search(n).groups() for n in notas_html] == \
         [APRESENTADOR.search(n).groups() for n in notas_dos_slides()]
@@ -186,7 +186,7 @@ def test_graficos_da_versao_html_usam_os_numeros_dos_slides():
     assert [float(a) for a, _ in turmas] == lista(js, r'name: "2019", labels: \[[^\]]+\], values: \[([^\]]+)\]')
     assert [float(b) for _, b in turmas] == lista(js, r'name: "2024", labels: \[[^\]]+\], values: \[([^\]]+)\]')
     for numero in ["124.741", "3.633", "13,4 mi", "26.889", "551 mil", "514.131", "598.406", "94,8% a 98,6%",
-                   "6.543", "402 escolas"]:
+                   "6.543", "402 escolas", "24.398", "8.018", "11.498", "82,7", "71,6", "PERSONA HIPOTÉTICA"]:
         assert numero in js and numero in html, f"{numero} não está nas duas versões"
 
 

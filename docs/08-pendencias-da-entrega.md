@@ -18,7 +18,7 @@ Nossa lista do que já está pronto e do que ainda falta antes de entregar. O en
 | Povoamento de cada atributo e de cada fato, com integração | relatório, seções 1.5 a 1.7 (coluna "Povoamento" em cada dimensão) | pronto |
 | Hierarquias com o operador de ordenação parcial e função de agregação de cada fato | relatório, seção 2 | pronto |
 | Chave artificial, bugiganga, dimensão degenerada, campo artificial de fatos sem fato | relatório, seções 2.6 e 1.5 | pronto |
-| Apresentação com motivação do tema e dos assuntos, fontes, estrelas, constelação, consultas e decisões; todos apresentam, com tempo homogêneo | [apresentacao/apresentacao-projeto1.pptx](apresentacao/apresentacao-projeto1.pptx), 21 slides em quatro blocos de 5 minutos; a mesma apresentação em [HTML](apresentacao/apresentacao-projeto1.html), para o navegador | pronta; falta ensaiar |
+| Apresentação com motivação do tema e dos assuntos, fontes, estrelas, constelação, consultas e decisões; todos apresentam, com tempo homogêneo | [apresentacao/apresentacao-projeto1.pptx](apresentacao/apresentacao-projeto1.pptx), 24 slides em quatro blocos de 5 minutos; a mesma apresentação em [HTML](apresentacao/apresentacao-projeto1.html), para o navegador | pronta; falta ensaiar |
 
 Os números do relatório, da documentação e dos slides vêm da carga com os dados reais: SME de 2015 a 2024 e Censo 2022, com as oito consultas medidas.
 
@@ -26,14 +26,14 @@ Os números do relatório, da documentação e dos slides vêm da carga com os d
 
 1. **Conferir a notação dos esquemas com a das aulas.** A verificação completa da modelagem está em [09 Verificação da modelagem](09-verificacao-da-modelagem.md). Os desenhos seguem a notação do artigo da disciplina (caixa com o nome da tabela, PK e FK, fato no centro com borda grossa) e as hierarquias usam `≤`. O enunciado diz que a notação tem de ser a mesma da sala de aula. Se a das aulas for diferente, os desenhos estão em `docs/relatorio/esquemas/*.tex` e o estilo comum em `estilo.tex`.
 
-2. **Ensaiar a apresentação.** As apresentações serão no dia 29 de outubro, e a de cada grupo deve durar 20 minutos. O slide 2 mostra o roteiro, e as notas de cada slide dizem quem apresenta, o tempo previsto e o que falar:
+2. **Ensaiar a apresentação.** As apresentações serão no dia 29 de outubro, e a de cada grupo deve durar 20 minutos. O slide 9 fecha o bloco 1 com o roteiro, e as notas de cada slide dizem quem apresenta, o tempo previsto e o que falar:
 
    | Bloco | Integrante | Slides | Conteúdo | Tempo |
    |---|---|---|---|---|
-   | 1 | Kevenn Laranjeira de Oliveira | 1 a 6 | abertura, roteiro, problema, perguntas do gestor, por que São Paulo, os cinco assuntos e por que importam | 5 min |
-   | 2 | Thiago Rodrigues Gouveia da Silva | 7 a 11 | fontes, integração, problemas nos dados, grão e aditividade, estrela Matrícula | 5 min |
-   | 3 | Daniel Afonso Borges dos Santos | 12 a 16 | estrelas Fila, Desfecho, Ocupação de Turma e População, constelação | 5 min |
-   | 4 | Luís Antônio Arruda Soares | 17 a 21 | consultas, resultados com os dados reais, decisões, encerramento | 5 min |
+   | 1 | Kevenn Laranjeira de Oliveira | 1 a 9 | abertura, a persona (a Ana, hipotética), o problema, a nossa solução, as perguntas do gestor, a resposta para a Ana com os dados reais, por que São Paulo, os cinco assuntos e o roteiro | 5 min |
+   | 2 | Thiago Rodrigues Gouveia da Silva | 10 a 14 | fontes, integração, problemas nos dados, grão e aditividade, estrela Matrícula | 5 min |
+   | 3 | Daniel Afonso Borges dos Santos | 15 a 19 | estrelas Fila, Desfecho, Ocupação de Turma e População, constelação | 5 min |
+   | 4 | Luís Antônio Arruda Soares | 20 a 24 | consultas, resultados com os dados reais, decisões, encerramento | 5 min |
 
    O enunciado exige que todos apresentem e que o tempo de cada um seja homogêneo; um teste confere que os quatro blocos somam o mesmo tempo nas notas. Os quatro blocos de 5 minutos fecham os 20 minutos pedidos; as perguntas vêm durante a apresentação. A mensagem de cada slide, as perguntas prováveis e o checklist do dia estão em [12 Ensaio da apresentação](12-ensaio-da-apresentacao.md).
 
