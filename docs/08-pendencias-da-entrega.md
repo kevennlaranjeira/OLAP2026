@@ -18,7 +18,7 @@ Nossa lista do que já está pronto e do que ainda falta antes de entregar. O en
 | Povoamento de cada atributo e de cada fato, com integração | relatório, seções 1.5 a 1.7 (coluna "Povoamento" em cada dimensão) | pronto |
 | Hierarquias com o operador de ordenação parcial e função de agregação de cada fato | relatório, seção 2 | pronto |
 | Chave artificial, bugiganga, dimensão degenerada, campo artificial de fatos sem fato | relatório, seções 2.6 e 1.5 | pronto |
-| Apresentação com motivação do tema e dos assuntos, fontes, estrelas, constelação, consultas e decisões; todos apresentam, com tempo homogêneo | [apresentacao/apresentacao-projeto1.pptx](apresentacao/apresentacao-projeto1.pptx), 29 slides em quatro blocos, 7 minutos para o bloco 1 e 5 para cada um dos outros; a mesma apresentação em [HTML](apresentacao/apresentacao-projeto1.html), para o navegador, e em [PDF](apresentacao/apresentacao-projeto1.pdf), para ver no GitHub | pronta; falta ensaiar |
+| Apresentação com motivação do tema e dos assuntos, fontes, estrelas, constelação, consultas e decisões; todos apresentam, com tempo homogêneo | [apresentacao/apresentacao-projeto1.pptx](apresentacao/apresentacao-projeto1.pptx), 28 slides em quatro blocos, 7 minutos para o bloco 1 e 5 para cada um dos outros; a mesma apresentação em [HTML](apresentacao/apresentacao-projeto1.html), para o navegador, e em [PDF](apresentacao/apresentacao-projeto1.pdf), para ver no GitHub | pronta; falta ensaiar |
 
 Os números do relatório, da documentação e dos slides vêm da carga com os dados reais: SME de 2015 a 2024 e Censo 2022, com as oito consultas medidas.
 
@@ -31,9 +31,9 @@ Os números do relatório, da documentação e dos slides vêm da carga com os d
    | Bloco | Integrante | Slides | Conteúdo | Tempo |
    |---|---|---|---|---|
    | 1 | Kevenn Laranjeira de Oliveira | 1 a 11 | abertura com uma pergunta, a queda da fila de 2015 a 2024, e se fosse o seu filho?, o problema (onde abrir vaga), os dados que se repetem e não conversam, a nossa solução, consultas mais confiáveis e mais rápidas, o ciclo do dado à vaga, por que São Paulo, os cinco assuntos e os passos da proposta | 7 min |
-   | 2 | Thiago Rodrigues Gouveia da Silva | 12 a 17 | passo 1, os dados: fontes, integração, problemas nos dados, grão e aditividade, estrela Matrícula | 5 min |
-   | 3 | Daniel Afonso Borges dos Santos | 18 a 22 | passo 2, o modelo: estrelas Fila, Desfecho, Ocupação de Turma e População, constelação | 5 min |
-   | 4 | Luís Antônio Arruda Soares | 23 a 29 | passo 3, as respostas: consultas, resultados com os dados reais, decisões, um exemplo (Grajaú e Tremembé), a volta à pergunta do começo e o encerramento | 5 min |
+   | 2 | Thiago Rodrigues Gouveia da Silva | 12 a 16 | passo 1, os dados: fontes, integração, problemas nos dados, grão e aditividade, estrela Matrícula | 5 min |
+   | 3 | Daniel Afonso Borges dos Santos | 17 a 21 | passo 2, o modelo: estrelas Fila, Desfecho, Ocupação de Turma e População, constelação | 5 min |
+   | 4 | Luís Antônio Arruda Soares | 22 a 28 | passo 3, as respostas: consultas, resultados com os dados reais, decisões, um exemplo (Grajaú e Tremembé), a volta à pergunta do começo e o encerramento | 5 min |
 
    O enunciado pede que todos apresentem, com tempo homogêneo. Os blocos 2, 3 e 4 têm 5 minutos; o bloco 1 ficou com 7 minutos, por decisão nossa, porque abre a apresentação e vende a proposta, e o total passa a 22 minutos. Se a professora segurar os 20 minutos, o Kevenn encurta os slides 5 e 7. Um teste confere o tempo de cada bloco nas notas. As perguntas vêm durante a apresentação. A mensagem de cada slide, as perguntas prováveis e o checklist do dia estão em [12 Ensaio da apresentação](12-ensaio-da-apresentacao.md).
 

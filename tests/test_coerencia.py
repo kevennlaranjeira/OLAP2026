@@ -121,11 +121,11 @@ def notas_dos_slides() -> list[str]:
         return [z.read(n).decode("utf-8") for n in sorted(nomes, key=lambda n: int(re.findall(r"\d+", n)[0]))]
 
 
-def test_vinte_e_nove_slides_em_quatro_blocos():
+def test_vinte_e_oito_slides_em_quatro_blocos():
     with zipfile.ZipFile(SLIDES) as z:
         slides = [n for n in z.namelist() if re.fullmatch(r"ppt/slides/slide\d+\.xml", n)]
-    assert len(slides) == 29
-    assert "29 slides" in ler(DOCS / "08-pendencias-da-entrega.md")
+    assert len(slides) == 28
+    assert "28 slides" in ler(DOCS / "08-pendencias-da-entrega.md")
     notas = " ".join(notas_dos_slides())
     for bloco in range(1, 5):
         assert f"(bloco {bloco} de 4)" in notas
@@ -174,9 +174,9 @@ def lista(texto: str, padrao: str) -> list[float]:
 
 def test_versao_html_tem_os_mesmos_slides_apresentadores_e_tempos():
     secoes = secoes_html()
-    assert len(secoes) == 29
+    assert len(secoes) == 28
     for numero, secao in enumerate(secoes[1:], start=2):
-        assert f"<b>{numero}</b></span> / 29" in secao, f"slide {numero} sem o número da página"
+        assert f"<b>{numero}</b></span> / 28" in secao, f"slide {numero} sem o número da página"
     notas_html = [re.search(r"<aside>(.*?)</aside>", s, re.S).group(1) for s in secoes]
     assert [APRESENTADOR.search(n).groups() for n in notas_html] == \
         [APRESENTADOR.search(n).groups() for n in notas_dos_slides()]

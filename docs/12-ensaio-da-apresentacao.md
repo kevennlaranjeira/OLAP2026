@@ -31,7 +31,7 @@ Uns 40 minutos, com todos de computador aberto na [versão em HTML](apresentacao
 | 15 min | Cada integrante percorre o próprio bloco com as notas abertas (tecla N) e diz em voz alta a mensagem de cada slide. |
 | 10 min | Ensaio corrido, cronometrando 7 minutos para o Kevenn e 5 para cada um dos outros, e uma rodada das perguntas prováveis. |
 
-No fim dos slides 11, 17 e 22, quem está falando passa a palavra.
+No fim dos slides 11, 16 e 21, quem está falando passa a palavra.
 
 ## A mensagem de cada slide
 
@@ -50,22 +50,21 @@ No fim dos slides 11, 17 e 22, quem está falando passa a palavra.
 | 11 | Imagine | A prefeitura adota a proposta: o passo 1 é do Thiago, o passo 2 do Daniel e o passo 3 do Luís. Passar a palavra. |
 | 12 | Três fontes, três perguntas | Passo 1: quem já tem vaga (13,4 milhões de matrículas), quem espera (44 meses de fila) e quantas crianças moram ali (26.889 setores). O Tremembé é o exemplo que segue até o slide 16. |
 | 13 | Integração | Como chega, regra, resultado: TREMEMBE e Tremembé viram a mesma linha; idade exata vira faixa do IBGE; CD_SETOR é homônimo. Prova: 240.905 contra 240.840, abaixo de 1%. |
-| 14 | Problemas nos dados (1 de 2) | Escola, fila e turno: à esquerda o dado como chegou, à direita o que fizemos em passos. O mesmo 9,20961E+15 em duas escolas; código recuperado em 94,8% a 98,6%. A coluna (2) da fila com dois sentidos. |
-| 15 | Problemas nos dados (2 de 2) | Idade, datas e IBGE: 2021 − 2018 − 1 = 2 anos; 45397 = 15/04/2024; os 6.543 X ficam nulos. Nulo não é zero. |
-| 16 | Grão e aditividade | Grão: uma linha da fila é Tremembé, jun/2024, creche, 153; a criança é uma das 153. Aditividade: soma distritos (153 + 88), não meses. |
-| 17 | Estrela Matrícula | Cada recurso resolve um problema: duas datas dizem quem estava ativo em 30/06; campo = 1 vira soma; bugigangas, degeneradas e Escola tipo 2. Passar ao Daniel. |
-| 18 | Estrela Fila | Passo 2: distrito × mês × etapa, com duas hierarquias de tempo. |
-| 19 | Estrela Desfecho | O que vem depois do acesso; taxas recalculadas pelas contagens, nunca média de taxas. |
-| 20 | Estrela Ocupação de Turma | Ninguém publica a capacidade, então medimos a ocupação; no Tremembé, 10,7 crianças por turma de creche em 2024. |
-| 21 | Estrela População | Setores censitários somados por distrito; Faixa Etária é o rollup encolhido de Idade. |
-| 22 | Constelação | Território está nos cinco fatos e liga fila, matrícula, ocupação, desfecho e população. Passar ao Luís. |
-| 23 | Oito consultas | Passo 3: três roll-up ou drill-down, uma slice and dice, uma pivot e três drill-across, cada uma com o resultado real. |
-| 24 | Fila e oferta | Queda de 97% na fila; fração fora da rede de 34% para 1%; 85% da creche conveniada. |
-| 25 | População e ocupação | 86 matrículas por 100 crianças, com distritos muito longe da média; o Tremembé tem 71,6. |
-| 26 | Decisões | Por que confiar nos números: rollups encolhidos e nulo não é zero. |
-| 27 | Um exemplo | Pelo tamanho, a escolha seria o Grajaú; com as bases cruzadas, a próxima vaga vai para o Tremembé. |
-| 28 | De volta à pergunta | Cenário hipotético: a prefeitura abre vagas onde a fila resiste e a família volta a trabalhar; o que a proposta entrega. |
-| 29 | Encerramento | A proposta está pronta: relatório, repositório e carga real sem nenhuma FALHA. Abrir para perguntas. |
+| 14 | Um problema, de ponta a ponta | O código da escola: como chegou (o mesmo 9,20961E+15 em duas escolas), três passos (medir o ano, procurar por nome, tipo e distrito, decidir) e como ficou; 94,8% a 98,6% recuperado. Os outros problemas seguem a mesma lógica. |
+| 15 | Grão e aditividade | Grão: uma linha da fila é Tremembé, jun/2024, creche, 153; a criança é uma das 153. Aditividade: soma distritos (153 + 88), não meses. |
+| 16 | Estrela Matrícula | Cada recurso resolve um problema: duas datas dizem quem estava ativo em 30/06; campo = 1 vira soma; bugigangas, degeneradas e Escola tipo 2. Passar ao Daniel. |
+| 17 | Estrela Fila | Passo 2: distrito × mês × etapa, com duas hierarquias de tempo. |
+| 18 | Estrela Desfecho | O que vem depois do acesso; taxas recalculadas pelas contagens, nunca média de taxas. |
+| 19 | Estrela Ocupação de Turma | Ninguém publica a capacidade, então medimos a ocupação; no Tremembé, 10,7 crianças por turma de creche em 2024. |
+| 20 | Estrela População | Setores censitários somados por distrito; Faixa Etária é o rollup encolhido de Idade. |
+| 21 | Constelação | Território está nos cinco fatos e liga fila, matrícula, ocupação, desfecho e população. Passar ao Luís. |
+| 22 | Oito consultas | Passo 3: três roll-up ou drill-down, uma slice and dice, uma pivot e três drill-across, cada uma com o resultado real. |
+| 23 | Fila e oferta | Queda de 97% na fila; fração fora da rede de 34% para 1%; 85% da creche conveniada. |
+| 24 | População e ocupação | 86 matrículas por 100 crianças, com distritos muito longe da média; o Tremembé tem 71,6. |
+| 25 | Decisões | Por que confiar nos números: rollups encolhidos e nulo não é zero. |
+| 26 | Um exemplo | Pelo tamanho, a escolha seria o Grajaú; com as bases cruzadas, a próxima vaga vai para o Tremembé. |
+| 27 | De volta à pergunta | Cenário hipotético: a prefeitura abre vagas onde a fila resiste e a família volta a trabalhar; o que a proposta entrega. |
+| 28 | Encerramento | A proposta está pronta: relatório, repositório e carga real sem nenhuma FALHA. Abrir para perguntas. |
 
 ## Perguntas prováveis
 
@@ -115,6 +114,6 @@ Para a apresentação basta abrir [apresentacao-projeto1.html](apresentacao/apre
 
 - Abrir o HTML no computador da sala antes da aula e testar setas, F e N.
 - Levar o `.pptx` e o PDF do relatório num pendrive, para o caso de não haver internet. Sem internet, o HTML abre com a fonte Arial e continua legível.
-- Combinar quem controla os slides e o sinal de passagem de bloco no fim dos slides 11, 17 e 22.
+- Combinar quem controla os slides e o sinal de passagem de bloco no fim dos slides 11, 16 e 21.
 - Cada integrante sabe responder as perguntas do próprio bloco.
 - Entregar o PDF do relatório no local definido no critério de avaliação da disciplina.
