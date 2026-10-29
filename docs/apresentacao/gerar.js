@@ -541,24 +541,16 @@ function amostra(s, conteudo, x, y, w, ordem) {
   fontes.forEach(([quem, pergunta, nome, valor, rotulo, linha], i) => {
     const x = 0.6 + i * 4.1;
     const o = i + 1;
-    cartao(s, x, 1.6, 3.9, 3.75, { ordem: o });
-    texto(s, quem, x + 0.3, 1.8, 3.4, 0.28, { tam: 10, negrito: true, cor: COR.ambarTexto, espacamento: 1, ordem: o });
-    texto(s, pergunta, x + 0.3, 2.1, 3.4, 0.42, { tam: 19, negrito: true, cor: COR.tinta, ordem: o });
-    texto(s, nome, x + 0.3, 2.55, 3.4, 0.3, { tam: 12, cor: COR.suave, ordem: o });
-    texto(s, valor, x + 0.3, 2.9, 3.4, 0.6, { tam: 32, negrito: true, cor: COR.cobalto, ordem: o });
-    texto(s, rotulo, x + 0.3, 3.5, 3.4, 0.3, { tam: 12, cor: COR.suave, ordem: o });
-    s.addShape(pres.shapes.LINE, { x: x + 0.3, y: 4.0, w: 3.3, h: 0, line: { color: COR.borda, width: 0.75 }, ...anim(o) });
-    texto(s, "UMA LINHA É", x + 0.3, 4.1, 3.4, 0.25, { tam: 10, negrito: true, cor: COR.suave, espacamento: 1, ordem: o });
-    texto(s, linha, x + 0.3, 4.38, 3.35, 0.8, { tam: 14, cor: COR.tinta, ordem: o });
+    cartao(s, x, 1.6, 3.9, 5.0, { ordem: o });
+    texto(s, quem, x + 0.3, 1.85, 3.4, 0.28, { tam: 11, negrito: true, cor: COR.ambarTexto, espacamento: 1, ordem: o });
+    texto(s, pergunta, x + 0.3, 2.2, 3.45, 0.5, { tam: 20, negrito: true, cor: COR.tinta, ordem: o });
+    texto(s, nome, x + 0.3, 2.78, 3.4, 0.3, { tam: 13, cor: COR.suave, ordem: o });
+    texto(s, valor, x + 0.3, 3.25, 3.4, 0.85, { tam: 44, negrito: true, cor: COR.cobalto, ordem: o });
+    texto(s, rotulo, x + 0.3, 4.15, 3.4, 0.3, { tam: 14, cor: COR.suave, ordem: o });
+    s.addShape(pres.shapes.LINE, { x: x + 0.3, y: 5.15, w: 3.3, h: 0, line: { color: COR.borda, width: 0.75 }, ...anim(o) });
+    texto(s, "UMA LINHA É", x + 0.3, 5.25, 3.4, 0.25, { tam: 11, negrito: true, cor: COR.suave, espacamento: 1, ordem: o });
+    texto(s, linha, x + 0.3, 5.55, 3.35, 0.9, { tam: 16, cor: COR.tinta, ordem: o });
   });
-  cartao(s, 0.6, 5.55, 12.1, 1.0, { fundo: COR.nevoa, semSombra: true, ordem: 4 });
-  selo(s, 0.85, 5.8, "→", { d: 0.5, tam: 16, ordem: 4 });
-  s.addText([
-    { text: "O exemplo que vamos seguir: o Tremembé. ", options: { bold: true, color: COR.tinta } },
-    { text: "Em junho de 2024, 153 crianças esperavam creche lá; o Censo conta 11.498 crianças de 0 a 4 anos morando no " +
-      "distrito; e cada matrícula das escolas do distrito é uma linha do microdado." },
-  ], { x: 1.6, y: 5.6, w: 10.9, h: 0.9, fontFace: FONTE, fontSize: 14, color: COR.texto, margin: 0, isTextBox: true,
-    valign: "middle", ...anim(4) });
 }
 
 // ------------------------------------------------------------------ 13. integração
