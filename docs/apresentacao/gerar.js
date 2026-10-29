@@ -611,50 +611,46 @@ function amostra(s, conteudo, x, y, w, ordem) {
 
 // ------------------------------------------------------------------ 14. qualidade
 {
-  const s = novoSlide("Problemas reais nos dados: como chegou e o que fizemos", 2, 1,
-    "Cada cartão mostra o valor como ele chegou e o que fizemos com ele; cada regra foi medida nos dados reais e tem teste. " +
-    "O mais grave é o primeiro: de 2022 a 2024 o código da escola chega em notação científica, como 9,20961E+15, e o mesmo " +
-    "código passa a valer para centenas de escolas. Recuperamos o código real casando nome, tipo e distrito com o último ano " +
-    "confiável, para 94,8% a 98,6% das matrículas. Os outros passam rápido: a planilha de fila muda o sentido das colunas " +
-    "numeradas, e lemos o sentido no rodapé; o turno de 2021 vem só como código; a idade vem com vírgula, vazia ou com " +
-    "nascimento em 1900; a data vem como número serial do Excel, 45397 é 15 de abril de 2024. O último traz o princípio do " +
-    "trabalho: o IBGE esconde valores de setores pequenos com um X, e esses 6.543 valores ficam nulos, nunca zero. Nulo " +
-    "quer dizer não publicado; zero quer dizer nenhuma criança. Depois de cada carga rodam catorze verificações automáticas, " +
-    "e na carga real nenhuma deu FALHA.");
-  const probs = [
-    ["Código da escola, 2022 a 2024", "9,20961E+15", "", "código real recuperado pelo nome, tipo e distrito em 94,8% a 98,6% das matrículas"],
-    ["Planilha de fila em sete formatos", "(1) (2) (3)", " com sentido que muda", "colunas lidas do cabeçalho e o sentido de cada número lido do rodapé de cada arquivo"],
-    ["Turno não publicado em 2021", "9", " sem descrição", "código de 2021 = código de 2020 + 3, conferido pelo horário: 9 é integral, das 7h às 17h"],
-    ["Idade em formato errado", "5,00", " ou vazia, ou nascida em 1900", "recalculada pela data de nascimento; idade impossível vira não informada"],
-    ["Datas em cinco formatos", "45397", " (serial do Excel)", "lida como 15/04/2024; data fora do ano letivo é descartada"],
-    ["Valores suprimidos pelo IBGE", "X", " em setores pequenos", "6.543 valores ficam nulos, nunca zero"],
+  const s = novoSlide("Problemas reais nos dados: o que fizemos e por quê", 2, 1,
+    "Cada linha se lê da esquerda para a direita: o problema, como o dado chegou, a regra que aplicamos e por que ela importa. " +
+    "Cada regra foi medida nos dados reais e tem teste. Gastar metade do minuto na primeira linha: em 2022 o código da escola " +
+    "vem embaralhado e em 2023 e 2024 chega em notação científica, como 9,20961E+15, e o mesmo código passa a valer para " +
+    "centenas de escolas. Medimos isso ano a ano no próprio dado e, nos anos ruins, achamos cada escola pelo nome, tipo e " +
+    "distrito no último ano confiável; assim 94,8% a 98,6% das matrículas ficam com o código real, e o resto recebe uma chave " +
+    "sintética, nunca um chute. Depois, uma frase por linha: a coluna (2) da fila muda de sentido, e lemos o sentido no " +
+    "rodapé; o turno de 2021 é o código de 2020 mais 3; a idade é recalculada pela data de nascimento; 45397 é 15 de abril de " +
+    "2024 no Excel; e os 6.543 X do IBGE ficam nulos, porque nulo quer dizer não publicado e zero quer dizer nenhuma criança. " +
+    "Depois de cada carga rodam catorze verificações automáticas, e na carga real nenhuma deu FALHA.");
+  const linhas = [
+    ["1  Código da escola", "2022: embaralhado. 2023 e 2024: \"9,20961E+15\"; em 2023, 182 códigos para 3.858 escolas",
+      "Medimos cada ano no próprio dado (notação científica? código repetido?). Nos anos ruins, achamos a mesma escola pelo " +
+      "nome, tipo e distrito no último ano confiável e copiamos o código de lá. Sem par seguro, chave sintética, nunca um chute.",
+      "94,8% a 98,6% das matrículas ligadas ao código real; sem isso, centenas de escolas virariam uma só."],
+    ["2  Planilha de fila em sete formatos", "a coluna \"(2)\" é \"preferiu esperar uma unidade\" em 2019 e \"mais de 30 dias\" desde 2020",
+      "Lemos o cabeçalho e as notas de rodapé de cada arquivo e traduzimos cada nota. Nota desconhecida para a carga, em vez " +
+      "de gravar o número.",
+      "Nenhum número da fila entra com o sentido trocado."],
+    ["3  Turno não publicado em 2021", "só o código \"9\", sem descrição",
+      "Descobrimos que o código de 2021 é o de 2020 somado de 3 e conferimos pelos horários: 9 é integral, das 7h às 17h. " +
+      "Sem código, o turno sai do horário da turma.",
+      "Turno e jornada comparáveis em todos os anos."],
+    ["4  Idade em formato errado", "\"5,00\", vazia, ou nascimento em 1900 (115 a 124 anos)",
+      "Usamos a idade publicada se for plausível; senão, calculamos pela data de nascimento, em 31 de março. Nascimento em " +
+      "1900 vira não informada.",
+      "Sem isso, a faixa de 0 a 4 anos comparada com o Censo sairia errada."],
+    ["5  Datas em cinco formatos", "\"45397\" (serial do Excel) e outros quatro formatos",
+      "Lemos todos. O serial conta dias desde 30/12/1899: 45397 é 15/04/2024. Data fora de um ano em volta do ano letivo é " +
+      "descartada.",
+      "As datas dizem quem estava matriculado em 30 de junho, o número que se compara com a fila."],
+    ["6  Valores suprimidos pelo IBGE", "\"X\" no lugar do número, em setores pequenos",
+      "Só aceitamos números; o X vira nulo. Foram 6.543 valores. Se a maioria não fosse número, a leitura pararia.",
+      "Nulo é \"não publicado\"; zero seria \"nenhuma criança\", o que é falso."],
   ];
-  probs.forEach(([t, chegou, resto, feito], i) => {
-    const x = 0.6 + (i % 3) * 4.1;
-    const y = 1.6 + Math.floor(i / 3) * 1.85;
-    const o = i + 1;
-    cartao(s, x, y, 3.9, 1.7, { borda: i === 0 ? COR.cobalto : undefined, ordem: o });
-    selo(s, x + 0.22, y + 0.2, String(o), { d: 0.4, tam: 13, ordem: o });
-    texto(s, t, x + 0.75, y + 0.2, 3.0, 0.4, { tam: 14, negrito: true, cor: COR.tinta, valign: "middle", ordem: o });
-    s.addText([
-      { text: "chegou  ", options: { color: COR.suave } },
-      { text: chegou, options: { fontFace: MONO, color: COR.texto, highlight: COR.nevoa } },
-      { text: resto, options: { color: COR.suave } },
-    ], { x: x + 0.25, y: y + 0.7, w: 3.45, h: 0.3, fontFace: FONTE, fontSize: 12, margin: 0, isTextBox: true, ...anim(o) });
-    s.addText([
-      { text: "→ ", options: { bold: true, color: COR.ambar } },
-      { text: feito },
-    ], { x: x + 0.25, y: y + 1.02, w: 3.45, h: 0.6, fontFace: FONTE, fontSize: 12.5, color: COR.texto, margin: 0,
-      isTextBox: true, valign: "top", ...anim(o) });
+  tabela(s, ["Problema", "Como chegou", "O que fizemos", "Por que importa"], linhas, {
+    primeiraEmNegrito: true,
+    tabela: { x: 0.6, y: 1.55, w: 12.1, colW: [2.05, 2.45, 4.75, 2.85], fontSize: 12, valign: "top",
+      margin: [0.05, 0.1, 0.05, 0.1] },
   });
-  cartao(s, 0.6, 5.35, 12.1, 1.15, { fundo: COR.nevoa, semSombra: true, ordem: 7 });
-  selo(s, 0.85, 5.66, "≠", { d: 0.54, tam: 18, ordem: 7 });
-  s.addText([
-    { text: "Nulo não é zero. ", options: { bold: true, color: COR.tinta } },
-    { text: "Nulo quer dizer \"não publicado\"; zero quer dizer \"nenhuma criança\". Depois de cada carga rodam 14 " +
-      "verificações automáticas, e na carga real nenhuma deu FALHA." },
-  ], { x: 1.65, y: 5.4, w: 10.85, h: 1.05, fontFace: FONTE, fontSize: 15, color: COR.texto, margin: 0, isTextBox: true,
-    valign: "middle", ...anim(7) });
 }
 
 // ------------------------------------------------------------------ 15. grão e aditividade
