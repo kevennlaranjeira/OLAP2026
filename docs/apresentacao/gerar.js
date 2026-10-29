@@ -16,7 +16,7 @@ const pptxgen = require(MODULO_PPTX);
 
 const AQUI = __dirname;
 const FIG = (nome) => path.join(AQUI, "..", "modelagem", nome);
-const TOTAL_SLIDES = 28;
+const TOTAL_SLIDES = 29;
 
 const COR = {
   tinta: "1B2A4A",        // azul-ardósia profundo, cor dominante
@@ -522,7 +522,7 @@ function amostra(s, conteudo, x, y, w, ordem) {
 
 // ------------------------------------------------------------------ 12. fontes
 {
-  const s = novoSlide("Três fontes, três perguntas sobre cada distrito", 2, 1,
+  const s = novoSlide("Três fontes, três perguntas sobre cada distrito", 2, 0.75,
     "Passo 1: os dados entram. Para decidir onde abrir vaga, precisamos de três respostas sobre cada distrito, e cada uma " +
     "vem de uma fonte. Quem já tem vaga: o microdado de matrículas da SME, 13,4 milhões de linhas, uma por aluno numa turma. " +
     "Quem espera vaga: a planilha de demanda da SME, 44 meses de fila, uma linha por distrito com uma coluna por etapa. " +
@@ -609,51 +609,123 @@ function amostra(s, conteudo, x, y, w, ordem) {
     valign: "middle", ...anim(5) });
 }
 
-// ------------------------------------------------------------------ 14. qualidade
-{
-  const s = novoSlide("Problemas reais nos dados: o que fizemos e por quê", 2, 1,
-    "Cada linha se lê da esquerda para a direita: o problema, como o dado chegou, a regra que aplicamos e por que ela importa. " +
-    "Cada regra foi medida nos dados reais e tem teste. Gastar metade do minuto na primeira linha: em 2022 o código da escola " +
-    "vem embaralhado e em 2023 e 2024 chega em notação científica, como 9,20961E+15, e o mesmo código passa a valer para " +
-    "centenas de escolas. Medimos isso ano a ano no próprio dado e, nos anos ruins, achamos cada escola pelo nome, tipo e " +
-    "distrito no último ano confiável; assim 94,8% a 98,6% das matrículas ficam com o código real, e o resto recebe uma chave " +
-    "sintética, nunca um chute. Depois, uma frase por linha: a coluna (2) da fila muda de sentido, e lemos o sentido no " +
-    "rodapé; o turno de 2021 é o código de 2020 mais 3; a idade é recalculada pela data de nascimento; 45397 é 15 de abril de " +
-    "2024 no Excel; e os 6.543 X do IBGE ficam nulos, porque nulo quer dizer não publicado e zero quer dizer nenhuma criança. " +
-    "Depois de cada carga rodam catorze verificações automáticas, e na carga real nenhuma deu FALHA.");
-  const linhas = [
-    ["1  Código da escola", "2022: embaralhado. 2023 e 2024: \"9,20961E+15\"; em 2023, 182 códigos para 3.858 escolas",
-      "Medimos cada ano no próprio dado (notação científica? código repetido?). Nos anos ruins, achamos a mesma escola pelo " +
-      "nome, tipo e distrito no último ano confiável e copiamos o código de lá. Sem par seguro, chave sintética, nunca um chute.",
-      "94,8% a 98,6% das matrículas ligadas ao código real; sem isso, centenas de escolas virariam uma só."],
-    ["2  Planilha de fila em sete formatos", "a coluna \"(2)\" é \"preferiu esperar uma unidade\" em 2019 e \"mais de 30 dias\" desde 2020",
-      "Lemos o cabeçalho e as notas de rodapé de cada arquivo e traduzimos cada nota. Nota desconhecida para a carga, em vez " +
-      "de gravar o número.",
-      "Nenhum número da fila entra com o sentido trocado."],
-    ["3  Turno não publicado em 2021", "só o código \"9\", sem descrição",
-      "Descobrimos que o código de 2021 é o de 2020 somado de 3 e conferimos pelos horários: 9 é integral, das 7h às 17h. " +
-      "Sem código, o turno sai do horário da turma.",
-      "Turno e jornada comparáveis em todos os anos."],
-    ["4  Idade em formato errado", "\"5,00\", vazia, ou nascimento em 1900 (115 a 124 anos)",
-      "Usamos a idade publicada se for plausível; senão, calculamos pela data de nascimento, em 31 de março. Nascimento em " +
-      "1900 vira não informada.",
-      "Sem isso, a faixa de 0 a 4 anos comparada com o Censo sairia errada."],
-    ["5  Datas em cinco formatos", "\"45397\" (serial do Excel) e outros quatro formatos",
-      "Lemos todos. O serial conta dias desde 30/12/1899: 45397 é 15/04/2024. Data fora de um ano em volta do ano letivo é " +
-      "descartada.",
-      "As datas dizem quem estava matriculado em 30 de junho, o número que se compara com a fila."],
-    ["6  Valores suprimidos pelo IBGE", "\"X\" no lugar do número, em setores pequenos",
-      "Só aceitamos números; o X vira nulo. Foram 6.543 valores. Se a maioria não fosse número, a leitura pararia.",
-      "Nulo é \"não publicado\"; zero seria \"nenhuma criança\", o que é falso."],
-  ];
-  tabela(s, ["Problema", "Como chegou", "O que fizemos", "Por que importa"], linhas, {
-    primeiraEmNegrito: true,
-    tabela: { x: 0.6, y: 1.55, w: 12.1, colW: [2.05, 2.45, 4.75, 2.85], fontSize: 12, valign: "top",
-      margin: [0.05, 0.1, 0.05, 0.1] },
+// ------------------------------------------------------------------ 14 e 15. problemas nos dados, três por slide
+// Cada cartão: à esquerda, o dado como chegou (com exemplo); à direita, o que fizemos, em passos, e o resultado.
+function problema(s, numero, titulo, y, notaChegou, chegou, passos, resultado, ordem) {
+  cartao(s, 0.6, y, 12.1, 1.55, { ordem });
+  selo(s, 0.8, y + 0.12, String(numero), { d: 0.3, tam: 11, ordem });
+  texto(s, titulo, 1.2, y + 0.1, 4.9, 0.34, { tam: 15, negrito: true, cor: COR.tinta, valign: "middle", ordem });
+  s.addText([
+    { text: "COMO CHEGOU", options: { bold: true, color: COR.suave, charSpacing: 1 } },
+    { text: notaChegou ? `  ${notaChegou}` : "", options: { color: COR.suave } },
+  ], { x: 0.8, y: y + 0.48, w: 5.5, h: 0.2, fontFace: FONTE, fontSize: 8.5, margin: 0, isTextBox: true, ...anim(ordem) });
+  chegou(y + 0.66);
+  s.addShape(pres.shapes.LINE, { x: 6.55, y: y + 0.15, w: 0, h: 1.25, line: { color: COR.borda, width: 0.75 }, ...anim(ordem) });
+  texto(s, "O QUE FIZEMOS", 6.75, y + 0.12, 5.7, 0.2, { tam: 8.5, negrito: true, cor: COR.suave, espacamento: 1, ordem });
+  passos.forEach((p, i) => {
+    const yp = y + 0.37 + i * 0.27;
+    selo(s, 6.75, yp + 0.02, String(i + 1), { d: 0.2, tam: 8, fundo: COR.tinta, cor: COR.branco, ordem });
+    texto(s, p, 7.05, yp, 5.5, 0.25, { tam: 11, valign: "middle", ordem });
   });
+  texto(s, resultado, 6.75, y + 1.22, 5.8, 0.25, { tam: 11, negrito: true, cor: COR.cobalto, valign: "middle", ordem });
 }
 
-// ------------------------------------------------------------------ 15. grão e aditividade
+function miniTabela(s, y, cabecalho, linhas, destaque, colW) {
+  const cab = cabecalho.map((t) => ({ text: t, options: { bold: true, color: COR.suave, fontSize: 7.5 } }));
+  const corpo = linhas.map((l, i) => l.map((t) => ({ text: t, options: { fill: { color: i === destaque ? "FFF4E2" : COR.branco } } })));
+  s.addTable([cab, ...corpo], { x: 0.8, y, w: 5.5, colW, rowH: 0.16, fontFace: MONO, fontSize: 9, color: COR.texto,
+    border: { type: "solid", color: "E6ECF5", pt: 0.5 }, valign: "middle", margin: [0.01, 0.06, 0.01, 0] });
+}
+
+{
+  const s = novoSlide("Problemas nos dados (1 de 2): escola, fila e turno", 2, 0.75,
+    "Dois slides de problemas, três em cada um. Em cada cartão, à esquerda, o dado como chegou; à direita, o que fizemos, em " +
+    "passos. Um: o código da escola. Em 2021 a UNIAO DE VILA NOVA I tem o código 19459; em 2022 o código vem embaralhado; em " +
+    "2023 vem em notação científica, e o mesmo 9,20961E+15 aparece também na BEIJA FLOR, outra escola. Medimos isso ano a ano, " +
+    "procuramos cada escola pelo nome, tipo e distrito em 2021 e copiamos o código; quando há ambiguidade, chave sintética, " +
+    "nunca um chute. Resultado: 94,8% a 98,6% das matrículas com o código real. Dois: a coluna (2) da fila quer dizer recusou " +
+    "vaga e preferiu esperar uma unidade em 2019 e espera de mais de 30 dias em 2024; lemos o sentido no rodapé de cada " +
+    "arquivo, e nota desconhecida para a carga. Três: o turno de 2021 vem só como código; o código é o de 2020 somado de 3, " +
+    "conferido pelos horários. (Os exemplos de escola são do teste do projeto, no formato dos arquivos; os rodapés da fila " +
+    "são reais.)");
+  problema(s, 1, "Código da escola", 1.55, "· exemplo no formato do arquivo",
+    (y) => miniTabela(s, y, ["ano", "código publicado", "escola"], [
+      ["2021", "19459", "UNIAO DE VILA NOVA I"],
+      ["2022", "9209611322271640", "UNIAO DE VILA NOVA I"],
+      ["2023", "9,20961E+15", "UNIAO DE VILA NOVA I"],
+      ["2023", "9,20961E+15", "BEIJA FLOR  <- mesmo código, outra escola"],
+    ], 3, [0.5, 1.5, 3.5]),
+    ["Mede cada ano no dado: tem \"E+\" ou um código em duas escolas? Ano corrompido.",
+      "Procura a escola por nome + tipo + distrito em 2021, o último ano confiável.",
+      "Um código só: copia (volta a ser 19459). Ambíguo ou escola nova: chave SINT-…"],
+    "94,8% a 98,6% das matrículas de 2022 a 2024 com o código real.", 1);
+  problema(s, 2, "Planilha de fila em sete formatos", 3.2, "· a mesma coluna (2), dois sentidos",
+    (y) => [["set/2019", "\"(2) - Demanda que recusou vaga oferecida e optou por aguardar numa unidade específica\""],
+      ["abr/2024", "\"(2) - Demanda sem opção por unidade específica em espera a mais de 30 dias\""]].forEach(([quando, frase], i) =>
+      s.addText([
+        { text: `${quando}  `, options: { fontFace: MONO, bold: true, color: COR.suave } },
+        { text: frase, options: { italic: true, color: COR.texto } },
+      ], { x: 0.8, y: y + i * 0.36, w: 5.5, h: 0.34, fontFace: FONTE, fontSize: 10, margin: 0, isTextBox: true,
+        valign: "top", ...anim(2) })),
+    ["Lê as duas linhas de cabeçalho: grupo e etapa de cada coluna, sem posição fixa.",
+      "Traduz cada nota (n) do rodapé por palavras-chave: \"mais de 30\", \"unidade específica\".",
+      "Nota desconhecida: a carga para, em vez de gravar o número com sentido errado."],
+    "Nenhum número entra trocado; o que não foi publicado fica nulo.", 2);
+  problema(s, 3, "Turno não publicado em 2021", 4.85, "",
+    (y) => miniTabela(s, y, ["ano", "código", "descrição", "horário"], [
+      ["2020", "6", "INTEGRAL", "7h às 17h"],
+      ["2021", "9", "(vazia)", "7h às 17h"],
+      ["2022 (19.954 linhas)", "(vazio)", "(vazia)", "7h às 17h"],
+    ], 1, [2.0, 0.9, 1.3, 1.3]),
+    ["Usa a descrição publicada, quando existe.",
+      "Em 2021, código − 3 = código de 2020: 9 − 3 = 6, integral. Conferido pelo horário.",
+      "Sem descrição nem código: pelo horário (noite após 18h; integral com 7 h ou mais)."],
+    "Cada turno guarda a origem: publicado, código de 2021 ou horário.", 3);
+}
+
+{
+  const s = novoSlide("Problemas nos dados (2 de 2): idade, datas e IBGE", 2, 0.75,
+    "Mais três, no mesmo formato. Quatro: a idade vem com vírgula, vazia, com nascimento em 1900 ou com mês 18. Usamos a " +
+    "publicada quando é plausível; senão, calculamos em 31 de março: quem nasceu em maio de 2018 tem 2 anos em 2021. Mês " +
+    "impossível vira idade estimada, e nascimento em 1900 vira não informada. Cinco: as datas vêm em cinco formatos; 45397 é o " +
+    "jeito do Excel guardar 15 de abril de 2024. Com início e fim da matrícula sabemos quem estava matriculado em 30 de junho. " +
+    "Seis: o IBGE esconde valores de setores pequenos com um X; esses 6.543 valores ficam nulos, porque nulo quer dizer não " +
+    "publicado e zero quer dizer nenhuma criança. Depois de cada carga rodam catorze verificações automáticas, e na carga " +
+    "real nenhuma deu FALHA.");
+  problema(s, 4, "Idade em formato errado", 1.55, "",
+    (y) => miniTabela(s, y, ["ano", "idade publicada", "nascimento"], [
+      ["2020", "5,00", ""],
+      ["2021", "(vazia)", "05/2018"],
+      ["2022", "122", "1900"],
+      ["2022", "(vazia)", "mês 18"],
+    ], -1, [0.8, 2.3, 2.4]),
+    ["Idade publicada entre 0 e 99 (aceita \"5,00\"): usa.",
+      "Senão, calcula em 31/03: 2021 − 2018 − 1 (nasceu depois de março) = 2 anos.",
+      "Mês impossível: estima pelo ano e marca \"estimada\". Antes de 1901: não informada."],
+    "A idade alimenta a faixa de 0 a 4 anos comparada com o Censo.", 1);
+  problema(s, 5, "Datas em cinco formatos", 3.2, "",
+    (y) => miniTabela(s, y, ["como chega", "quando"], [
+      ["2019-02-04 00:00:00", "2015-2019 e 2022"],
+      ["1/10/2020 00:02:24", "2020"],
+      ["01/02/2023 00:00", "2023-2024"],
+      ["45397", "metade de 2024"],
+    ], 3, [2.8, 2.7]),
+    ["Cinco dígitos: serial do Excel, dias desde 30/12/1899. 45397 = 15/04/2024.",
+      "Senão, tenta os formatos de texto um por um. 2021 não tem data: \"não informada\".",
+      "Fora de 1º/1 do ano anterior a 31/12 do ano seguinte: data descartada."],
+    "Com início e fim, sabemos quem estava matriculado em 30 de junho.", 2);
+  problema(s, 6, "Valores suprimidos pelo IBGE", 4.85, "· exemplo ilustrativo",
+    (y) => miniTabela(s, y, ["setor censitário", "0 a 4 anos", "5 a 9 anos"], [
+      ["3550308…", "37", "41"],
+      ["3550308…", "X", "X"],
+    ], 1, [2.3, 1.6, 1.6]),
+    ["Só dígitos viram número; o X vira nulo: \"não publicado\".",
+      "Conta os nulos: 6.543 na carga real, e a verificação Q12 avisa.",
+      "Se a maioria dos valores não for número, a leitura para: o layout do arquivo mudou."],
+    "Nulo não é zero: zero diria \"nenhuma criança mora ali\".", 3);
+}
+
+// ------------------------------------------------------------------ 16. grão e aditividade
 {
   const s = novoSlide("Grão: o que é uma linha. Aditividade: o que soma.", 2, 1,
     "Dois conceitos, cada um com uma pergunta. Grão: o que uma linha da tabela representa? É a primeira decisão do modelo, " +
@@ -708,9 +780,9 @@ function amostra(s, conteudo, x, y, w, ordem) {
     tabela: { x: 0.6, y: 4.35, w: 12.1, colW: [2.4, 3.9, 5.8], fontSize: 12.5, rowH: 0.35 } });
 }
 
-// ------------------------------------------------------------------ 16. estrela matrícula
+// ------------------------------------------------------------------ 17. estrela matrícula
 {
-  const s = novoSlide("Esquema estrela Matrícula", 2, 1,
+  const s = novoSlide("Esquema estrela Matrícula", 2, 0.75,
     "A primeira estrela do modelo: o fato Matrícula no centro, dez dimensões em volta, e cada recurso de modelagem resolve " +
     "um problema concreto. Um: a dimensão Data entra duas vezes, como início e fim da matrícula, como a internação e a alta " +
     "do artigo da disciplina; com as duas datas sabemos se a matrícula estava ativa em 30 de junho, que é o número que se " +
@@ -753,7 +825,7 @@ function estrela(titulo, arquivo, descricao, lista, notas) {
   return s;
 }
 
-// ------------------------------------------------------------------ 17. estrela fila
+// ------------------------------------------------------------------ 18. estrela fila
 estrela("Esquema estrela Fila", "estrela-fila.png",
   "Esquema estrela Fila: tabela de fatos Fila ligada às dimensões Tempo, Território e Etapa", [
     "Grão: distrito × mês × etapa.",
@@ -768,7 +840,7 @@ estrela("Esquema estrela Fila", "estrela-fila.png",
   "Tempo tem duas hierarquias porque a fila foi trimestral até 2022 e bimestral depois. " +
   "A fila é estoque: soma entre distritos e etapas, mas no tempo se escolhe um mês, nunca se soma.");
 
-// ------------------------------------------------------------------ 18. estrela desfecho
+// ------------------------------------------------------------------ 19. estrela desfecho
 estrela("Esquema estrela Desfecho", "estrela-desfecho.png",
   "Esquema estrela Desfecho: tabela de fatos Desfecho ligada a Ano Letivo, Escola, Território e Série", [
     "Grão: escola × ano letivo × série.",
@@ -782,7 +854,7 @@ estrela("Esquema estrela Desfecho", "estrela-desfecho.png",
   "Na educação infantil não há aprovação, então a taxa fica nula. Esta estrela olha o que vem depois do acesso: quem sai " +
   "da fila e consegue a vaga passa a contar aqui.");
 
-// ------------------------------------------------------------------ 19. estrela ocupação de turma
+// ------------------------------------------------------------------ 20. estrela ocupação de turma
 estrela("Esquema estrela Ocupação de Turma", "estrela-turma.png",
   "Esquema estrela Ocupação de Turma: tabela de fatos ligada a Ano Letivo, Escola, Território, Série e Turno", [
     "Grão: turma × ano letivo.",
@@ -795,7 +867,7 @@ estrela("Esquema estrela Ocupação de Turma", "estrela-turma.png",
   "os alunos ativos em 30 de junho por turma em funcionamento. A média é sempre soma de alunos dividida por soma de turmas. " +
   "No Tremembé, as 578 turmas de creche tinham em média 10,7 crianças em junho de 2024, perto da média da cidade, de 11,0.");
 
-// ------------------------------------------------------------------ 20. estrela população
+// ------------------------------------------------------------------ 21. estrela população
 estrela("Esquema estrela População", "estrela-populacao.png",
   "Esquema estrela População: tabela de fatos População ligada a Tempo, Setor Censitário, Território e Faixa Etária", [
     "Grão: setor censitário × faixa etária × data do Censo.",
@@ -809,7 +881,7 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   "Faixa Etária é o rollup encolhido de Idade que conforma com a matrícula. As 11.498 crianças de 0 a 4 anos do Tremembé " +
   "são a soma dos setores censitários do distrito.");
 
-// ------------------------------------------------------------------ 21. constelação
+// ------------------------------------------------------------------ 22. constelação
 {
   const s = novoSlide("Constelação de fatos", 3, 1,
     "Cinco fatos, catorze dimensões. Território é compartilhado pelos cinco. Processo de projeto: matriz de barramento com fato e " +
@@ -825,7 +897,7 @@ estrela("Esquema estrela População", "estrela-populacao.png",
 
 // ================================================================== bloco 4: passo 3, as respostas
 
-// ------------------------------------------------------------------ 22. consultas
+// ------------------------------------------------------------------ 23. consultas
 {
   const s = novoSlide("Oito consultas OLAP", 4, 1,
     "Passo 3: as perguntas do gestor viram consultas. " +
@@ -851,7 +923,7 @@ estrela("Esquema estrela População", "estrela-populacao.png",
     0.6, 6.55, 12.1, 0.32, { tam: 13, negrito: true, cor: COR.tinta, ordem: 1 });
 }
 
-// ------------------------------------------------------------------ 23. resultados: fila e oferta
+// ------------------------------------------------------------------ 24. resultados: fila e oferta
 {
   const s = novoSlide("Resultados: fila e oferta de creche", 4, 0.75,
     "Consulta 5 na carga com os dados reais de 2015 a 2024. A fila de creche em junho caiu 97% em dez anos e a " +
@@ -882,7 +954,7 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   fonte(s, "Fonte: SME-SP, Demanda Registrada e Matrículas e Microdados de Matrículas; consultas 3 e 5.");
 }
 
-// ------------------------------------------------------------------ 24. resultados: população e ocupação
+// ------------------------------------------------------------------ 25. resultados: população e ocupação
 {
   const s = novoSlide("Resultados: população e ocupação das turmas", 4, 0.75,
     "Consulta 7, na data do Censo: 598.406 crianças de 0 a 4 anos moram no município e a rede municipal tinha 514.131 matrículas " +
@@ -913,7 +985,7 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   fonte(s, "Fonte: Censo 2022 (IBGE) e Microdados de Matrículas (SME-SP); consultas 7 e 8.");
 }
 
-// ------------------------------------------------------------------ 25. decisões
+// ------------------------------------------------------------------ 26. decisões
 {
   const s = novoSlide("Decisões de projeto em destaque", 4, 0.5,
     "Antes da decisão final, por que confiar nesses números. Seis das 23 decisões documentadas no repositório. Cada uma tem a alternativa descartada e o argumento. " +
@@ -936,7 +1008,7 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   });
 }
 
-// ------------------------------------------------------------------ 26. um exemplo: Grajaú contra Tremembé
+// ------------------------------------------------------------------ 27. um exemplo: Grajaú contra Tremembé
 {
   const s = novoSlide("Um exemplo: a próxima vaga vai para o Tremembé", 4, 0.75,
     "Um exemplo do passo de localizar, com números reais. Olhando só o tamanho, o gestor escolheria o Grajaú: é o distrito " +
@@ -976,7 +1048,7 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   fonte(s, "Fonte: consultas 5 e 7; a matrícula conta onde fica a escola, e a população, onde mora a criança.");
 }
 
-// ------------------------------------------------------------------ 27. de volta à pergunta do começo
+// ------------------------------------------------------------------ 28. de volta à pergunta do começo
 {
   const s = novoSlide("De volta à pergunta: e se fosse o seu filho?", 4, 0.75,
     "Voltar à pergunta do começo. Se fosse o seu filho, o que mudaria com o data warehouse? A prefeitura enxergaria onde a " +
@@ -1011,7 +1083,7 @@ estrela("Esquema estrela População", "estrela-populacao.png",
   fonte(s, "Cenário hipotético. Números reais das consultas 5, 7 e 8 e da nossa carga.");
 }
 
-// ------------------------------------------------------------------ 28. encerramento
+// ------------------------------------------------------------------ 29. encerramento
 {
   const s = novoSlide("Obrigado. Perguntas?", 4, 0.5,
     "Encerramento. A proposta está pronta: o repositório tem o pipeline completo, os testes e a " +

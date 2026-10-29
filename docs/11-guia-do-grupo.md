@@ -41,7 +41,7 @@ OLAP2026/
       esquemas/*.tex             desenhos das estrelas e da constelação (TikZ)
     apresentacao/
       gerar.js                   script que gera os slides
-      apresentacao-projeto1.pptx slides gerados (28 slides)
+      apresentacao-projeto1.pptx slides gerados (29 slides)
       apresentacao-projeto1.html a mesma apresentação, para abrir no navegador
       apresentacao-projeto1.pdf  a mesma apresentação em PDF, que o GitHub mostra sem baixar
       embutir_figuras.py         atualiza as figuras guardadas dentro do HTML
@@ -180,13 +180,13 @@ O texto de cada slide está no `gerar.js`, em blocos marcados com comentários c
 Também funciona, com duas ressalvas:
 
 - se alguém rodar o `gerar.js` depois, as edições feitas à mão se perdem, porque o script gera o arquivo do zero;
-- os testes conferem que existem 28 slides, que toda nota começa com `Apresenta: <nome> (bloco N de 4). Tempo previsto: X min.` e que cada bloco soma o tempo combinado (7 minutos no bloco 1 e 5 nos outros). Mantenha esse formato nas notas.
+- os testes conferem que existem 29 slides, que toda nota começa com `Apresenta: <nome> (bloco N de 4). Tempo previsto: X min.` e que cada bloco soma o tempo combinado (7 minutos no bloco 1 e 5 nos outros). Mantenha esse formato nas notas.
 
 A gente precisa combinar qual dos dois caminhos vai usar até a entrega.
 
 ### Versão em HTML
 
-O arquivo [`docs/apresentacao/apresentacao-projeto1.html`](apresentacao/apresentacao-projeto1.html) traz os mesmos 28 slides, com as mesmas notas e os mesmos tempos. Ele abre com dois cliques em qualquer navegador e funciona sozinho, porque as figuras dos esquemas estão guardadas dentro dele. Só a fonte vem da internet; sem conexão, o texto aparece em Arial.
+O arquivo [`docs/apresentacao/apresentacao-projeto1.html`](apresentacao/apresentacao-projeto1.html) traz os mesmos 29 slides, com as mesmas notas e os mesmos tempos. Ele abre com dois cliques em qualquer navegador e funciona sozinho, porque as figuras dos esquemas estão guardadas dentro dele. Só a fonte vem da internet; sem conexão, o texto aparece em Arial.
 
 | Tecla | O que faz |
 |---|---|
@@ -196,7 +196,7 @@ O arquivo [`docs/apresentacao/apresentacao-projeto1.html`](apresentacao/apresent
 | N | mostra ou esconde as notas de quem apresenta |
 | Home e End | primeiro e último slide |
 
-O endereço termina com o número do slide (`#23`), e dá para abrir direto nele. Os cartões entram em sequência, e os gráficos dos slides 23 e 24 se desenham quando o slide aparece, com os números da carga real.
+O endereço termina com o número do slide (`#23`), e dá para abrir direto nele. Os cartões entram em sequência, e os gráficos dos slides 24 e 25 se desenham quando o slide aparece, com os números da carga real.
 
 Para gerar um PDF, abra o arquivo com `?imprimir` no fim do endereço (`apresentacao-projeto1.html?imprimir`), aperte Ctrl+P e escolha "Salvar como PDF". Sai uma página por slide, com os gráficos já desenhados. O [`apresentacao-projeto1.pdf`](apresentacao/apresentacao-projeto1.pdf) do repositório foi gerado assim e serve para ver os slides no próprio GitHub, sem baixar nada. Quem mudar os slides gera o PDF de novo e salva por cima dele; um teste confere que ele tem uma página por slide.
 
