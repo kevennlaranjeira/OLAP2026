@@ -683,14 +683,14 @@ function amostra(s, conteudo, x, y, w, ordem) {
     "das 153; quando consegue a vaga, vira uma linha do fato Matrícula. Aditividade: posso somar essa medida? Somar " +
     "distritos pode: 153 do Tremembé mais 88 do Grajaú dá 241 crianças na fila. Somar meses não pode: a fila é um estoque, " +
     "um retrato numa data, e quem esperou de abril a junho apareceria duas vezes. Taxas e médias nunca se somam: " +
-    "recalculamos a partir das contagens. A tabela embaixo resume os cinco fatos: matrícula, desfecho e ocupação somam; " +
+    "recalculamos a partir das contagens. A tabela em cima resume os cinco fatos: matrícula, desfecho e ocupação somam; " +
     "fila e população são estoques.");
-  cartao(s, 0.6, 1.6, 5.95, 2.6, { ordem: 1 });
-  texto(s, "GRÃO = O QUE UMA LINHA REPRESENTA", 0.85, 1.75, 5.5, 0.25, { tam: 10, negrito: true, cor: COR.ambarTexto,
+  cartao(s, 0.6, 3.85, 5.95, 2.6, { ordem: 1 });
+  texto(s, "GRÃO = O QUE UMA LINHA REPRESENTA", 0.85, 4.0, 5.5, 0.25, { tam: 10, negrito: true, cor: COR.ambarTexto,
     espacamento: 1, ordem: 1 });
   const celula = (t, destaque) => ({ text: t, options: { fill: { color: destaque ? "FFF4E2" : COR.nevoa },
     bold: destaque, color: destaque ? COR.ambarTexto : COR.texto } });
-  [["fato Fila", ["TREMEMBE", "jun/2024", "CRECHE", "153"], 2.05], ["fato Matrícula", ["um aluno", "uma turma", "2024", "1"], 2.75]]
+  [["fato Fila", ["TREMEMBE", "jun/2024", "CRECHE", "153"], 4.3], ["fato Matrícula", ["um aluno", "uma turma", "2024", "1"], 5.0]]
     .forEach(([rotulo, valores, y]) => {
       texto(s, rotulo, 0.85, y, 3.0, 0.25, { tam: 11, negrito: true, cor: COR.suave, ordem: 1 });
       s.addTable([valores.map((v, j) => celula(v, j === 3))], { x: 0.85, y: y + 0.27, w: 5.45, rowH: 0.34,
@@ -701,17 +701,17 @@ function amostra(s, conteudo, x, y, w, ordem) {
     { text: "Uma criança não é uma linha da fila: " },
     { text: "é uma das 153", options: { bold: true, color: COR.tinta } },
     { text: ". Quando consegue a vaga, vira uma linha do fato Matrícula." },
-  ], { x: 0.85, y: 3.48, w: 5.45, h: 0.62, fontFace: FONTE, fontSize: 13, color: COR.texto, margin: 0, isTextBox: true,
+  ], { x: 0.85, y: 5.73, w: 5.45, h: 0.62, fontFace: FONTE, fontSize: 13, color: COR.texto, margin: 0, isTextBox: true,
     valign: "top", ...anim(1) });
 
-  cartao(s, 6.75, 1.6, 5.95, 2.6, { ordem: 2 });
-  texto(s, "ADITIVIDADE = POSSO SOMAR?", 7.0, 1.75, 5.5, 0.25, { tam: 10, negrito: true, cor: COR.ambarTexto,
+  cartao(s, 6.75, 3.85, 5.95, 2.6, { ordem: 2 });
+  texto(s, "ADITIVIDADE = POSSO SOMAR?", 7.0, 4.0, 5.5, 0.25, { tam: 10, negrito: true, cor: COR.ambarTexto,
     espacamento: 1, ordem: 2 });
   [["✓", COR.cobalto, "Somar distritos: ", "Tremembé + Grajaú em junho de 2024 = 153 + 88 = 241 crianças na fila."],
     ["✗", COR.ambarTexto, "Somar meses: ", "fila de abril + fila de junho conta duas vezes quem continuou esperando. A fila é um estoque."],
     ["÷", COR.suave, "Taxas e médias: ", "nunca somar nem tirar média; recalcular das somas (abandonos ÷ matrículas)."],
   ].forEach(([sinal, fundo, termo, exemplo], i) => {
-    const y = 2.1 + i * 0.68;
+    const y = 4.35 + i * 0.68;
     selo(s, 7.0, y + 0.03, sinal, { d: 0.34, tam: 13, fundo, cor: COR.branco, ordem: 2 });
     s.addText([{ text: termo, options: { bold: true, color: COR.tinta } }, { text: exemplo }],
       { x: 7.5, y, w: 5.0, h: 0.62, fontFace: FONTE, fontSize: 13, color: COR.texto, margin: 0, isTextBox: true,
@@ -726,7 +726,7 @@ function amostra(s, conteudo, x, y, w, ordem) {
     ["Ocupação de Turma", "turma × ano", "aditivo nas contagens; alunos por turma recalculado"],
     ["População", "setor censitário × faixa × Censo", "semiaditivo: soma setores e faixas, não Censos"],
   ], { primeiraEmNegrito: true, corDaColuna: corSomar,
-    tabela: { x: 0.6, y: 4.35, w: 12.1, colW: [2.4, 3.9, 5.8], fontSize: 12.5, rowH: 0.35 } });
+    tabela: { x: 0.6, y: 1.6, w: 12.1, colW: [2.4, 3.9, 5.8], fontSize: 12.5, rowH: 0.35 } });
 }
 
 // ------------------------------------------------------------------ 16. estrela matrícula
