@@ -31,6 +31,7 @@ const COR = {
   claroNoEscuro: "C9D3E6",
 };
 const FONTE = "Calibri";
+const MONO = "Consolas";   // valores como chegam da fonte
 
 const INTEGRANTES = [
   ["Kevenn Laranjeira de Oliveira", "18046529"],
@@ -116,7 +117,7 @@ function cartao(s, x, y, w, h, opcoes = {}) {
 
 function texto(s, conteudo, x, y, w, h, opcoes = {}) {
   s.addText(conteudo, {
-    x, y, w, h, fontFace: FONTE, fontSize: opcoes.tam || 15, bold: Boolean(opcoes.negrito),
+    x, y, w, h, fontFace: opcoes.fonte || FONTE, fontSize: opcoes.tam || 15, bold: Boolean(opcoes.negrito),
     italic: Boolean(opcoes.italico), color: opcoes.cor || COR.texto, align: opcoes.alinhar || "left",
     valign: opcoes.valign || "top", margin: 0, isTextBox: true, paraSpaceAfter: opcoes.espaco || 0,
     charSpacing: opcoes.espacamento, ...(opcoes.ordem ? anim(opcoes.ordem) : {}),
@@ -510,127 +511,236 @@ const roteiro = novoSlide("Imagine que a prefeitura adote a nossa proposta", 1, 
 
 // ================================================================== bloco 2: passo 1, os dados
 
+// O bloco 2 segue um distrito, o Tremembé, por todos os slides: cada conceito aparece primeiro num exemplo concreto.
+
+// valor como ele chega na fonte, em fonte monoespaçada sobre fundo cinza
+function amostra(s, conteudo, x, y, w, ordem) {
+  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h: 0.3, rectRadius: 0.06, fill: { color: COR.nevoa },
+    line: { color: COR.borda, width: 0.5 }, ...anim(ordem) });
+  texto(s, conteudo, x, y, w, 0.3, { tam: 12, fonte: MONO, alinhar: "center", valign: "middle", ordem });
+}
+
 // ------------------------------------------------------------------ 12. fontes
 {
-  const s = novoSlide("Três fontes de dados reais e oficiais", 2, 1,
-    "Passo 1: os dados entram. A fila de cada distrito vem da planilha de demanda, as matrículas vêm do microdado e as " +
-    "crianças de cada setor vêm do Censo. " +
-    "Duas fontes da SME no Portal de Dados Abertos da Prefeitura, com grão, formato e vocabulário diferentes, e o Censo 2022 do IBGE. " +
-    "A fila tem sete formatos entre 2006 e 2026, e o significado das colunas numeradas muda com o formato. " +
-    "O Censo traz a demanda potencial: quantas crianças moram em cada setor. Na carga real entraram 26.889 setores do município, " +
-    "todos ligados a um distrito da SME.");
+  const s = novoSlide("Três fontes, três perguntas sobre cada distrito", 2, 1,
+    "Passo 1: os dados entram. Para decidir onde abrir vaga, precisamos de três respostas sobre cada distrito, e cada uma " +
+    "vem de uma fonte. Quem já tem vaga: o microdado de matrículas da SME, 13,4 milhões de linhas, uma por aluno numa turma. " +
+    "Quem espera vaga: a planilha de demanda da SME, 44 meses de fila, uma linha por distrito com uma coluna por etapa. " +
+    "Quantas crianças moram ali: o Censo 2022 do IBGE, 26.889 setores, uma linha por setor com uma coluna por faixa de idade. " +
+    "Repare que cada fonte tem um tamanho de linha diferente; é isso que os próximos slides resolvem. Para não ficar " +
+    "abstrato, vamos seguir um distrito, o Tremembé: 153 crianças na fila de creche em junho de 2024 e 11.498 crianças de " +
+    "0 a 4 anos morando lá.");
   const fontes = [
-    ["SME-SP · ANUAL", "Microdados de Matrículas", "13,4 mi", "matrículas de escolarização, 2015 a 2024",
-      "Uma linha por vínculo aluno-turma: escola, turma, turno, série, idade, perfil, deficiência, datas e desfecho."],
-    ["SME-SP · TRIMESTRAL E BIMESTRAL", "Demanda Registrada e Matrículas", "44 meses", "44 meses (33 arquivos) × 96 distritos no recorte",
-      "Por distrito e etapa: matrículas, matrículas em processo e fila. Trimestral até 2022, bimestral desde 2023; sete formatos diferentes."],
-    ["IBGE · AGREGADOS POR SETORES", "Censo Demográfico 2022", "26.889", "setores do município, 11,4 milhões de moradores",
-      "Pessoas residentes por setor censitário e grupo de idade (variáveis V01031 a V01041); referência 31/07/2022."],
+    ["SME-SP · ANUAL", "Quem já tem vaga?", "Microdados de Matrículas", "13,4 mi", "matrículas, 2015 a 2024",
+      "um aluno numa turma, num ano letivo"],
+    ["SME-SP · TRIMESTRAL E BIMESTRAL", "Quem espera vaga?", "Demanda Registrada e Matrículas", "44 meses",
+      "de fila, 96 distritos em cada mês", "um distrito num mês, com uma coluna por etapa"],
+    ["IBGE · CENSO 2022", "Quantas crianças moram ali?", "Agregados por Setores Censitários", "26.889",
+      "setores, 11,4 milhões de moradores", "um setor censitário, com uma coluna por faixa de idade"],
   ];
-  fontes.forEach(([quem, nome, valor, rotulo, desc], i) => {
+  fontes.forEach(([quem, pergunta, nome, valor, rotulo, linha], i) => {
     const x = 0.6 + i * 4.1;
-    cartao(s, x, 1.75, 3.9, 4.8, { ordem: i + 1 });
-    texto(s, quem, x + 0.3, 1.97, 3.4, 0.3, { tam: 11, negrito: true, cor: COR.ambarTexto, espacamento: 1, ordem: i + 1 });
-    texto(s, nome, x + 0.3, 2.3, 3.4, 0.75, { tam: 18, negrito: true, cor: COR.tinta, ordem: i + 1 });
-    texto(s, valor, x + 0.3, 3.1, 3.4, 0.75, { tam: 36, negrito: true, cor: COR.cobalto, ordem: i + 1 });
-    texto(s, rotulo, x + 0.3, 3.85, 3.4, 0.5, { tam: 12, cor: COR.suave, ordem: i + 1 });
-    texto(s, desc, x + 0.3, 4.45, 3.35, 1.95, { tam: 14, ordem: i + 1 });
+    const o = i + 1;
+    cartao(s, x, 1.6, 3.9, 3.75, { ordem: o });
+    texto(s, quem, x + 0.3, 1.8, 3.4, 0.28, { tam: 10, negrito: true, cor: COR.ambarTexto, espacamento: 1, ordem: o });
+    texto(s, pergunta, x + 0.3, 2.1, 3.4, 0.42, { tam: 19, negrito: true, cor: COR.tinta, ordem: o });
+    texto(s, nome, x + 0.3, 2.55, 3.4, 0.3, { tam: 12, cor: COR.suave, ordem: o });
+    texto(s, valor, x + 0.3, 2.9, 3.4, 0.6, { tam: 32, negrito: true, cor: COR.cobalto, ordem: o });
+    texto(s, rotulo, x + 0.3, 3.5, 3.4, 0.3, { tam: 12, cor: COR.suave, ordem: o });
+    s.addShape(pres.shapes.LINE, { x: x + 0.3, y: 4.0, w: 3.3, h: 0, line: { color: COR.borda, width: 0.75 }, ...anim(o) });
+    texto(s, "UMA LINHA É", x + 0.3, 4.1, 3.4, 0.25, { tam: 10, negrito: true, cor: COR.suave, espacamento: 1, ordem: o });
+    texto(s, linha, x + 0.3, 4.38, 3.35, 0.8, { tam: 14, cor: COR.tinta, ordem: o });
   });
+  cartao(s, 0.6, 5.55, 12.1, 1.0, { fundo: COR.nevoa, semSombra: true, ordem: 4 });
+  selo(s, 0.85, 5.8, "→", { d: 0.5, tam: 16, ordem: 4 });
+  s.addText([
+    { text: "O exemplo que vamos seguir: o Tremembé. ", options: { bold: true, color: COR.tinta } },
+    { text: "Em junho de 2024, 153 crianças esperavam creche lá; o Censo conta 11.498 crianças de 0 a 4 anos morando no " +
+      "distrito; e cada matrícula das escolas do distrito é uma linha do microdado." },
+  ], { x: 1.6, y: 5.6, w: 10.9, h: 0.9, fontFace: FONTE, fontSize: 14, color: COR.texto, margin: 0, isTextBox: true,
+    valign: "middle", ...anim(4) });
 }
 
 // ------------------------------------------------------------------ 13. integração
 {
-  const s = novoSlide("Integração: o mesmo dado em formas diferentes", 2, 1,
-    "Exemplos de integração exigidos no enunciado. Distrito: maiúsculas sem acento na SME, com acento no IBGE; a regra de " +
-    "normalização é a mesma. Idade: simples no microdado, grupos de cinco anos no IBGE; a dimensão Idade carrega a faixa do IBGE. " +
-    "CD_SETOR é um homônimo: na SME é setor administrativo de 4 dígitos, no IBGE setor censitário de 15. " +
-    "A prova de que a integração entre as bases da SME está certa: contando no microdado as matrículas ativas em junho, " +
-    "a diferença para a planilha fica abaixo de 1% de 2015 a 2020. O Tremembé, por exemplo, vem como TREMEMBE na SME e " +
-    "Tremembé no IBGE; depois da normalização, os dois viram a mesma linha da dimensão Território.");
-  tabela(s, ["Dado", "SME", "IBGE", "No data warehouse"], [
-    ["Distrito", "AGUA RASA", "Água Rasa + código de 9 dígitos", "nome normalizado, chave da dimensão Território"],
-    ["Idade", "idade simples em 31/03", "grupo de 0 a 4, 5 a 9, ...", "faixa IBGE na dimensão Idade"],
-    ["Etapa", "Creche, Pré Escola (fila); MODALIDADE (microdado)", "não se aplica", "catálogo único de etapas"],
-    ["Setor", "CD_SETOR: 4 dígitos, administrativo", "CD_SETOR: 15 dígitos, censitário", "homônimo: nunca cruzados"],
-  ], { primeiraEmNegrito: true, tabela: { x: 0.6, y: 1.7, w: 12.1, colW: [1.6, 3.6, 3.3, 3.6], fontSize: 14, rowH: 0.62 } });
-  cartao(s, 0.6, 5.0, 12.1, 1.5, { fundo: COR.nevoa, semSombra: true, ordem: 1 });
-  texto(s, "< 1%", 0.9, 5.1, 2.2, 1.3, { tam: 44, negrito: true, cor: COR.cobalto, valign: "middle", ordem: 1 });
+  const s = novoSlide("Integração: o mesmo dado, escrito de jeitos diferentes", 2, 1,
+    "Integrar é fazer as fontes falarem a mesma língua. Leia cada linha da esquerda para a direita: como o dado chega, a " +
+    "regra que aplicamos e o que fica no data warehouse. Distrito: a fila escreve TREMEMBE com um espaço sobrando no fim, a " +
+    "matrícula escreve TREMEMBE, o IBGE escreve Tremembé com acento; a mesma regra de normalização transforma os três numa " +
+    "única linha da dimensão Território. Idade: a matrícula traz a idade exata, o IBGE só o grupo de 0 a 4; cada idade " +
+    "ganha a faixa do IBGE, e as duas bases passam a ser comparadas na mesma faixa. Setor: as duas bases usam o nome " +
+    "CD_SETOR para coisas diferentes, setor administrativo de 4 dígitos e setor censitário de 15; é um homônimo, então viram " +
+    "atributos separados e nunca são cruzados. Como sabemos que deu certo: contamos a mesma coisa nas duas bases da SME. " +
+    "Matrículas de creche ativas em junho de 2015: 240.905 no microdado e 240.840 na planilha. De 2015 a 2020 a diferença " +
+    "fica abaixo de 1%.");
+  [["COMO CHEGA", 0.6], ["REGRA", 5.75], ["NO DATA WAREHOUSE", 9.2]].forEach(([t, x]) =>
+    texto(s, t, x, 1.55, 3.0, 0.25, { tam: 10, negrito: true, cor: COR.suave, espacamento: 1, ordem: 1 }));
+  const linhas = [
+    ["Distrito", [["fila", "\"TREMEMBE \"", 1.3], ["matrícula", "\"TREMEMBE\"", 1.2], ["IBGE", "\"Tremembé\"", 1.2]],
+      "maiúsculas, sem acento, sem espaço sobrando", "TREMEMBE: uma única linha da dimensão Território"],
+    ["Idade", [["matrícula: idade exata", "2 anos", 1.6], ["IBGE: só o grupo", "0 a 4 anos", 1.6]],
+      "cada idade ganha a faixa do IBGE em que cai", "matrícula e população comparadas na mesma faixa, 0 a 4 anos"],
+    ["Setor", [["SME: administrativo", "CD_SETOR, 4 dígitos", 2.0], ["IBGE: censitário", "CD_SETOR, 15 dígitos", 2.1]],
+      "mesmo nome, coisas diferentes: um homônimo", "dois atributos com nomes distintos, nunca cruzados"],
+  ];
+  linhas.forEach(([dado, amostras, regra, resultado], i) => {
+    const y = 1.85 + i * 1.05;
+    const o = i + 2;
+    cartao(s, 0.6, y, 12.1, 0.92, { semSombra: true, ordem: o });
+    texto(s, dado, 0.8, y + 0.07, 2.0, 0.28, { tam: 13, negrito: true, cor: COR.tinta, ordem: o });
+    let x = 0.8;
+    amostras.forEach(([origem, valor, w]) => {
+      texto(s, origem, x, y + 0.34, w + 0.4, 0.22, { tam: 10, cor: COR.suave, ordem: o });
+      amostra(s, valor, x, y + 0.56, w, o);
+      x += w + 0.15;
+    });
+    texto(s, "→", 5.2, y, 0.45, 0.92, { tam: 24, cor: COR.ambar, alinhar: "center", valign: "middle", ordem: o });
+    texto(s, regra, 5.75, y, 2.95, 0.92, { tam: 13, valign: "middle", ordem: o });
+    texto(s, "→", 8.7, y, 0.45, 0.92, { tam: 24, cor: COR.ambar, alinhar: "center", valign: "middle", ordem: o });
+    texto(s, resultado, 9.2, y, 3.3, 0.92, { tam: 13, cor: COR.cobalto, valign: "middle", ordem: o });
+  });
+  cartao(s, 0.6, 5.1, 12.1, 1.4, { fundo: COR.nevoa, semSombra: true, ordem: 5 });
+  texto(s, "< 1%", 0.9, 5.2, 2.2, 1.2, { tam: 44, negrito: true, cor: COR.cobalto, valign: "middle", ordem: 5 });
   s.addText([
-    { text: "Reconciliação: ", options: { bold: true, color: COR.tinta } },
-    { text: "matrículas ativas em junho no microdado contra a matrícula da planilha de fila, por distrito e etapa: diferença abaixo de 1% de 2015 a 2020 (creche: +0,03% em 2015, +0,17% em 2019)." },
-  ], { x: 3.2, y: 5.1, w: 9.3, h: 1.3, fontFace: FONTE, fontSize: 15, color: COR.texto, margin: 0, isTextBox: true,
-    valign: "middle", ...anim(1) });
+    { text: "Como sabemos que deu certo? ", options: { bold: true, color: COR.tinta } },
+    { text: "Contamos a mesma coisa nas duas bases da SME: as matrículas de creche ativas em junho de 2015 foram 240.905 no " +
+      "microdado e 240.840 na planilha da fila. De 2015 a 2020 a diferença fica abaixo de 1%." },
+  ], { x: 3.2, y: 5.2, w: 9.3, h: 1.2, fontFace: FONTE, fontSize: 15, color: COR.texto, margin: 0, isTextBox: true,
+    valign: "middle", ...anim(5) });
 }
 
 // ------------------------------------------------------------------ 14. qualidade
 {
-  const s = novoSlide("Problemas reais nos dados e como foram tratados", 2, 1,
-    "Cada problema foi medido nos dados reais e tratado por uma regra testada. O mais grave: de 2022 a 2024 o código da escola " +
-    "chega corrompido; recuperamos o código real pelo nome, tipo e distrito para 94,8% a 98,6% das matrículas. " +
-    "Princípio: medida não publicada fica nula, nunca zero. O pipeline roda catorze verificações automáticas depois de cada carga; " +
-    "na carga real nenhuma deu FALHA. É por esse cuidado que a fila de cada distrito chega ao modelo com o sentido certo.");
+  const s = novoSlide("Problemas reais nos dados: como chegou e o que fizemos", 2, 1,
+    "Cada cartão mostra o valor como ele chegou e o que fizemos com ele; cada regra foi medida nos dados reais e tem teste. " +
+    "O mais grave é o primeiro: de 2022 a 2024 o código da escola chega em notação científica, como 9,20961E+15, e o mesmo " +
+    "código passa a valer para centenas de escolas. Recuperamos o código real casando nome, tipo e distrito com o último ano " +
+    "confiável, para 94,8% a 98,6% das matrículas. Os outros passam rápido: a planilha de fila muda o sentido das colunas " +
+    "numeradas, e lemos o sentido no rodapé; o turno de 2021 vem só como código; a idade vem com vírgula, vazia ou com " +
+    "nascimento em 1900; a data vem como número serial do Excel, 45397 é 15 de abril de 2024. O último traz o princípio do " +
+    "trabalho: o IBGE esconde valores de setores pequenos com um X, e esses 6.543 valores ficam nulos, nunca zero. Nulo " +
+    "quer dizer não publicado; zero quer dizer nenhuma criança. Depois de cada carga rodam catorze verificações automáticas, " +
+    "e na carga real nenhuma deu FALHA.");
   const probs = [
-    ["Código da escola corrompido (2022-2024)", "recuperado pelo nome, tipo e distrito em 94,8% a 98,6% das matrículas"],
-    ["Sete formatos da planilha de fila", "colunas lidas do cabeçalho; significado de (1), (2), (3) lido do rodapé"],
-    ["Turno não publicado em 2021", "deduzido do código da turma, conferido pelos horários"],
-    ["Idade com vírgula, nula ou nascida em 1900", "recalculada pelo nascimento; impossível vira não informada"],
-    ["Datas em cinco formatos, inclusive serial do Excel", "todos lidos; fora da janela do ano letivo, descartadas"],
-    ["Valores suprimidos pelo IBGE em setores pequenos", "6.543 valores ficam nulos, nunca zero"],
+    ["Código da escola, 2022 a 2024", "9,20961E+15", "", "código real recuperado pelo nome, tipo e distrito em 94,8% a 98,6% das matrículas"],
+    ["Planilha de fila em sete formatos", "(1) (2) (3)", " com sentido que muda", "colunas lidas do cabeçalho e o sentido de cada número lido do rodapé de cada arquivo"],
+    ["Turno não publicado em 2021", "9", " sem descrição", "código de 2021 = código de 2020 + 3, conferido pelo horário: 9 é integral, das 7h às 17h"],
+    ["Idade em formato errado", "5,00", " ou vazia, ou nascida em 1900", "recalculada pela data de nascimento; idade impossível vira não informada"],
+    ["Datas em cinco formatos", "45397", " (serial do Excel)", "lida como 15/04/2024; data fora do ano letivo é descartada"],
+    ["Valores suprimidos pelo IBGE", "X", " em setores pequenos", "6.543 valores ficam nulos, nunca zero"],
   ];
-  probs.forEach(([t, c], i) => {
+  probs.forEach(([t, chegou, resto, feito], i) => {
     const x = 0.6 + (i % 3) * 4.1;
-    const y = 1.75 + Math.floor(i / 3) * 2.45;
-    cartao(s, x, y, 3.9, 2.2, { ordem: i + 1 });
-    selo(s, x + 0.25, y + 0.27, String(i + 1), { d: 0.48, tam: 14, ordem: i + 1 });
-    texto(s, t, x + 0.9, y + 0.22, 2.8, 0.85, { tam: 15, negrito: true, cor: COR.tinta, ordem: i + 1 });
-    texto(s, c, x + 0.3, y + 1.15, 3.35, 0.95, { tam: 14, ordem: i + 1 });
+    const y = 1.6 + Math.floor(i / 3) * 1.85;
+    const o = i + 1;
+    cartao(s, x, y, 3.9, 1.7, { borda: i === 0 ? COR.cobalto : undefined, ordem: o });
+    selo(s, x + 0.22, y + 0.2, String(o), { d: 0.4, tam: 13, ordem: o });
+    texto(s, t, x + 0.75, y + 0.2, 3.0, 0.4, { tam: 14, negrito: true, cor: COR.tinta, valign: "middle", ordem: o });
+    s.addText([
+      { text: "chegou  ", options: { color: COR.suave } },
+      { text: chegou, options: { fontFace: MONO, color: COR.texto, highlight: COR.nevoa } },
+      { text: resto, options: { color: COR.suave } },
+    ], { x: x + 0.25, y: y + 0.7, w: 3.45, h: 0.3, fontFace: FONTE, fontSize: 12, margin: 0, isTextBox: true, ...anim(o) });
+    s.addText([
+      { text: "→ ", options: { bold: true, color: COR.ambar } },
+      { text: feito },
+    ], { x: x + 0.25, y: y + 1.02, w: 3.45, h: 0.6, fontFace: FONTE, fontSize: 12.5, color: COR.texto, margin: 0,
+      isTextBox: true, valign: "top", ...anim(o) });
   });
+  cartao(s, 0.6, 5.35, 12.1, 1.15, { fundo: COR.nevoa, semSombra: true, ordem: 7 });
+  selo(s, 0.85, 5.66, "≠", { d: 0.54, tam: 18, ordem: 7 });
+  s.addText([
+    { text: "Nulo não é zero. ", options: { bold: true, color: COR.tinta } },
+    { text: "Nulo quer dizer \"não publicado\"; zero quer dizer \"nenhuma criança\". Depois de cada carga rodam 14 " +
+      "verificações automáticas, e na carga real nenhuma deu FALHA." },
+  ], { x: 1.65, y: 5.4, w: 10.85, h: 1.05, fontFace: FONTE, fontSize: 15, color: COR.texto, margin: 0, isTextBox: true,
+    valign: "middle", ...anim(7) });
 }
 
 // ------------------------------------------------------------------ 15. grão e aditividade
 {
-  const s = novoSlide("Grão e aditividade dos fatos", 2, 1,
-    "Grão declarado antes das dimensões. Matrícula no grão mais fino que a fonte permite; fila no grão em que a prefeitura publica; " +
-    "desfecho e ocupação são fatos agregados do fato de matrícula; população no grão do IBGE. " +
-    "Fila e população são estoques: somam no território, não no tempo. Taxas e alunos por turma são derivados não aditivos, " +
-    "sempre recalculados a partir das somas. Uma criança não é uma linha da fila: a fila é publicada por distrito, mês " +
-    "e etapa, então cada criança entra numa contagem, como as 153 da linha Tremembé, junho de 2024, creche. Quando consegue " +
-    "a vaga, ela passa a ser uma linha do fato Matrícula.");
-  const corAditividade = (j, t) => (j !== 3 ? null : t.startsWith("semiaditivo") ? COR.ambarTexto : COR.cobalto);
-  tabela(s, ["Tabela de fatos", "Grão", "Fatos", "Aditividade"], [
-    ["Matrícula", "vínculo aluno-turma × ano", "quantidade (=1), dias de matrícula", "aditivo"],
-    ["Fila", "distrito × mês × etapa", "matrículas, em processo, demanda e categorias", "semiaditivo (estoque)"],
-    ["Desfecho", "escola × ano × série", "contagens por desfecho; taxas", "aditivo; taxas não aditivas"],
-    ["Ocupação de Turma", "turma × ano", "turmas, matrículas, ativas em junho; alunos por turma", "aditivo; média não aditiva"],
-    ["População", "setor censitário × faixa × Censo", "pessoas", "semiaditivo (estoque)"],
-  ], { primeiraEmNegrito: true, corDaColuna: corAditividade,
-    tabela: { x: 0.6, y: 1.7, w: 12.1, colW: [2.3, 3.1, 4.0, 2.7], fontSize: 15, rowH: 0.66 } });
-  [["aditivo", "soma em todas as dimensões", COR.cobalto], ["semiaditivo", "estoque: não soma no tempo", COR.ambarTexto],
-    ["não aditivo", "recalculado a partir das somas", COR.suave]].forEach(([rotulo, desc, cor], i) => {
-    const x = 0.6 + i * 4.1;
-    etiqueta(s, rotulo, x, 5.95, 1.55, { fundo: cor, ordem: i + 1 });
-    texto(s, desc, x + 1.7, 5.95, 2.3, 0.34, { tam: 12, cor: COR.suave, valign: "middle", ordem: i + 1 });
+  const s = novoSlide("Grão: o que é uma linha. Aditividade: o que soma.", 2, 1,
+    "Dois conceitos, cada um com uma pergunta. Grão: o que uma linha da tabela representa? É a primeira decisão do modelo, " +
+    "tomada antes das dimensões. No fato Fila, uma linha é o Tremembé, junho de 2024, creche, com o número 153. No fato " +
+    "Matrícula, uma linha é um aluno numa turma, com o número 1. Por isso uma criança não é uma linha da fila: ela é uma " +
+    "das 153; quando consegue a vaga, vira uma linha do fato Matrícula. Aditividade: posso somar essa medida? Somar " +
+    "distritos pode: 153 do Tremembé mais 88 do Grajaú dá 241 crianças na fila. Somar meses não pode: a fila é um estoque, " +
+    "um retrato numa data, e quem esperou de abril a junho apareceria duas vezes. Taxas e médias nunca se somam: " +
+    "recalculamos a partir das contagens. A tabela embaixo resume os cinco fatos: matrícula, desfecho e ocupação somam; " +
+    "fila e população são estoques.");
+  cartao(s, 0.6, 1.6, 5.95, 2.6, { ordem: 1 });
+  texto(s, "GRÃO = O QUE UMA LINHA REPRESENTA", 0.85, 1.75, 5.5, 0.25, { tam: 10, negrito: true, cor: COR.ambarTexto,
+    espacamento: 1, ordem: 1 });
+  const celula = (t, destaque) => ({ text: t, options: { fill: { color: destaque ? "FFF4E2" : COR.nevoa },
+    bold: destaque, color: destaque ? COR.ambarTexto : COR.texto } });
+  [["fato Fila", ["TREMEMBE", "jun/2024", "CRECHE", "153"], 2.05], ["fato Matrícula", ["um aluno", "uma turma", "2024", "1"], 2.75]]
+    .forEach(([rotulo, valores, y]) => {
+      texto(s, rotulo, 0.85, y, 3.0, 0.25, { tam: 11, negrito: true, cor: COR.suave, ordem: 1 });
+      s.addTable([valores.map((v, j) => celula(v, j === 3))], { x: 0.85, y: y + 0.27, w: 5.45, rowH: 0.34,
+        fontFace: MONO, fontSize: 12, border: { type: "solid", color: COR.borda, pt: 0.75 }, valign: "middle",
+        margin: [0.03, 0.08, 0.03, 0.08] });
+    });
+  s.addText([
+    { text: "Uma criança não é uma linha da fila: " },
+    { text: "é uma das 153", options: { bold: true, color: COR.tinta } },
+    { text: ". Quando consegue a vaga, vira uma linha do fato Matrícula." },
+  ], { x: 0.85, y: 3.48, w: 5.45, h: 0.62, fontFace: FONTE, fontSize: 13, color: COR.texto, margin: 0, isTextBox: true,
+    valign: "top", ...anim(1) });
+
+  cartao(s, 6.75, 1.6, 5.95, 2.6, { ordem: 2 });
+  texto(s, "ADITIVIDADE = POSSO SOMAR?", 7.0, 1.75, 5.5, 0.25, { tam: 10, negrito: true, cor: COR.ambarTexto,
+    espacamento: 1, ordem: 2 });
+  [["✓", COR.cobalto, "Somar distritos: ", "Tremembé + Grajaú em junho de 2024 = 153 + 88 = 241 crianças na fila."],
+    ["✗", COR.ambarTexto, "Somar meses: ", "fila de abril + fila de junho conta duas vezes quem continuou esperando. A fila é um estoque."],
+    ["÷", COR.suave, "Taxas e médias: ", "nunca somar nem tirar média; recalcular das somas (abandonos ÷ matrículas)."],
+  ].forEach(([sinal, fundo, termo, exemplo], i) => {
+    const y = 2.1 + i * 0.68;
+    selo(s, 7.0, y + 0.03, sinal, { d: 0.34, tam: 13, fundo, cor: COR.branco, ordem: 2 });
+    s.addText([{ text: termo, options: { bold: true, color: COR.tinta } }, { text: exemplo }],
+      { x: 7.5, y, w: 5.0, h: 0.62, fontFace: FONTE, fontSize: 13, color: COR.texto, margin: 0, isTextBox: true,
+        valign: "top", ...anim(2) });
   });
+
+  const corSomar = (j, t) => (j !== 2 ? null : t.startsWith("semiaditivo") ? COR.ambarTexto : COR.cobalto);
+  tabela(s, ["Tabela de fatos", "Uma linha é", "Pode somar?"], [
+    ["Matrícula", "um vínculo aluno-turma × ano", "aditivo: soma em tudo"],
+    ["Fila", "distrito × mês × etapa", "semiaditivo: soma distritos e etapas, não meses"],
+    ["Desfecho", "escola × ano × série", "aditivo nas contagens; taxas recalculadas"],
+    ["Ocupação de Turma", "turma × ano", "aditivo nas contagens; alunos por turma recalculado"],
+    ["População", "setor censitário × faixa × Censo", "semiaditivo: soma setores e faixas, não Censos"],
+  ], { primeiraEmNegrito: true, corDaColuna: corSomar,
+    tabela: { x: 0.6, y: 4.35, w: 12.1, colW: [2.4, 3.9, 5.8], fontSize: 12.5, rowH: 0.35 } });
 }
 
 // ------------------------------------------------------------------ 16. estrela matrícula
 {
   const s = novoSlide("Esquema estrela Matrícula", 2, 1,
-    "Fato no centro, dez dimensões. Dimensão Data com dois papéis, início e fim da matrícula, como a data de internação e de alta " +
-    "do artigo da disciplina: as duas datas permitem contar matrículas ativas em um dia. O fato principal é a ocorrência do vínculo, contada por um campo artificial igual a 1, técnica de tabela de fatos sem fato; a única medida é dias de matrícula. " +
-    "Três bugigangas. Duas degeneradas. Escola é mudança lenta tipo 2. Fechar o passo 1 e passar a palavra ao Daniel: os " +
-    "dados estão limpos e integrados, e o passo 2 é o modelo.");
+    "A primeira estrela do modelo: o fato Matrícula no centro, dez dimensões em volta, e cada recurso de modelagem resolve " +
+    "um problema concreto. Um: a dimensão Data entra duas vezes, como início e fim da matrícula, como a internação e a alta " +
+    "do artigo da disciplina; com as duas datas sabemos se a matrícula estava ativa em 30 de junho, que é o número que se " +
+    "compara com a fila. Dois: cada linha tem um campo igual a 1, técnica das tabelas de fatos sem fato, e contar matrículas " +
+    "vira uma soma; a outra medida é dias de matrícula. Três: sexo, raça, deficiências e situação são mais de 30 " +
+    "indicadores; em vez de 30 dimensões minúsculas, ficam em 3 dimensões bugiganga. Quatro: id da turma e código da " +
+    "matrícula ficam no fato, sem tabela própria; são dimensões degeneradas. Cinco: a escola é mudança lenta tipo 2; 402 " +
+    "escolas mudam de nome ou tipo na série, e a matrícula de 2017 continua com o nome que a escola tinha em 2017. Fechar o " +
+    "passo 1: os dados estão limpos e integrados, e o passo 2 é o modelo. Passar a palavra ao Daniel.");
   figuraEmMoldura(s, "estrela-matricula.png", 0.6, 1.6, 8.2, 5.0,
     "Esquema estrela Matrícula: tabela de fatos Matrícula no centro, ligada a dez dimensões", 1);
   cartao(s, 9.05, 1.6, 3.65, 5.0, { fundo: COR.nevoa, semSombra: true, ordem: 2 });
-  s.addText(itens([
-    "Data com dois papéis: início e fim da matrícula.",
-    "Ocorrência contada por campo artificial (= 1), como em fatos sem fato.",
-    "Bugigangas: Perfil, Deficiência, Situação.",
-    "Degeneradas: id turma, código da matrícula.",
-    "Escola: mudança lenta tipo 2.",
-    "Hierarquias: dia ≤ mês ≤ trimestre ≤ semestre ≤ ano; série ≤ etapa ≤ nível; idade ≤ faixa IBGE.",
-  ], 14), { x: 9.25, y: 1.8, w: 3.3, h: 4.65, fontFace: FONTE, margin: 0, isTextBox: true, valign: "top", ...anim(2) });
+  texto(s, "CADA RECURSO RESOLVE UM PROBLEMA", 9.25, 1.78, 3.3, 0.25, { tam: 10, negrito: true, cor: COR.suave,
+    espacamento: 1, ordem: 2 });
+  [["Data com dois papéis", " (início e fim): diz se a matrícula estava ativa em 30 de junho, o número que se compara com a fila."],
+    ["Campo igual a 1", " em cada linha: contar matrículas vira uma soma. Dias de matrícula é a outra medida."],
+    ["Bugigangas", " (Perfil, Deficiência, Situação): mais de 30 indicadores em 3 dimensões, e não em 30."],
+    ["Degeneradas", " (id da turma, código da matrícula): identificadores que ficam no fato, sem tabela própria."],
+    ["Escola tipo 2", ": a escola que muda de nome ganha uma versão nova, e a matrícula antiga guarda o nome da época."],
+  ].forEach(([termo, resto], i) => {
+    const y = 2.15 + i * 0.88;
+    selo(s, 9.25, y + 0.02, String(i + 1), { d: 0.3, tam: 11, ordem: i + 3 });
+    s.addText([{ text: termo, options: { bold: true, color: COR.tinta } }, { text: resto }],
+      { x: 9.65, y, w: 2.9, h: 0.82, fontFace: FONTE, fontSize: 12, color: COR.texto, margin: 0, isTextBox: true,
+        valign: "top", ...anim(i + 3) });
+  });
 }
 
 // ================================================================== bloco 3: passo 2, o modelo

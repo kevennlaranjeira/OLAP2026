@@ -48,11 +48,11 @@ No fim dos slides 11, 16 e 21, quem está falando passa a palavra.
 | 9 | Por que São Paulo | Fila e matrícula publicadas em dado aberto; o modelo vale para São Carlos assim que a fila for publicada. |
 | 10 | Cinco assuntos | Cada assunto responde a uma parte da decisão de onde abrir vagas; quatro viram tabelas de fatos. |
 | 11 | Imagine | A prefeitura adota a proposta: o passo 1 é do Thiago, o passo 2 do Daniel e o passo 3 do Luís. Passar a palavra. |
-| 12 | Três fontes | Passo 1: a fila de cada distrito, as matrículas e o Censo; 13,4 milhões de matrículas, 44 meses de fila e 26.889 setores. |
-| 13 | Integração | O mesmo dado em formas diferentes: TREMEMBE e Tremembé viram a mesma linha; a reconciliação fica abaixo de 1%. |
-| 14 | Problemas nos dados | Código da escola recuperado em 94,8% a 98,6% das matrículas; medida não publicada fica nula, nunca zero. |
-| 15 | Grão e aditividade | Uma criança não é uma linha da fila: ela entra numa contagem por distrito, mês e etapa; fila e população são estoques. |
-| 16 | Estrela Matrícula | Data com dois papéis, campo artificial igual a 1, bugigangas, degeneradas e Escola tipo 2. Passar ao Daniel. |
+| 12 | Três fontes, três perguntas | Passo 1: quem já tem vaga (13,4 milhões de matrículas), quem espera (44 meses de fila) e quantas crianças moram ali (26.889 setores). O Tremembé é o exemplo que segue até o slide 16. |
+| 13 | Integração | Como chega, regra, resultado: TREMEMBE e Tremembé viram a mesma linha; idade exata vira faixa do IBGE; CD_SETOR é homônimo. Prova: 240.905 contra 240.840, abaixo de 1%. |
+| 14 | Problemas nos dados | Cada cartão mostra o valor como chegou (9,20961E+15, 45397, X) e o que fizemos; código da escola recuperado em 94,8% a 98,6%. Nulo não é zero. |
+| 15 | Grão e aditividade | Grão: uma linha da fila é Tremembé, jun/2024, creche, 153; a criança é uma das 153. Aditividade: soma distritos (153 + 88), não meses. |
+| 16 | Estrela Matrícula | Cada recurso resolve um problema: duas datas dizem quem estava ativo em 30/06; campo = 1 vira soma; bugigangas, degeneradas e Escola tipo 2. Passar ao Daniel. |
 | 17 | Estrela Fila | Passo 2: distrito × mês × etapa, com duas hierarquias de tempo. |
 | 18 | Estrela Desfecho | O que vem depois do acesso; taxas recalculadas pelas contagens, nunca média de taxas. |
 | 19 | Estrela Ocupação de Turma | Ninguém publica a capacidade, então medimos a ocupação; no Tremembé, 10,7 crianças por turma de creche em 2024. |
