@@ -609,52 +609,69 @@ function amostra(s, conteudo, x, y, w, ordem) {
     valign: "middle", ...anim(5) });
 }
 
-// ------------------------------------------------------------------ 14. qualidade
+// ------------------------------------------------------------------ 14. um problema real, de ponta a ponta
+// Um só exemplo de transformação, o código da escola: como chegou, os três passos e como ficou.
 {
-  const s = novoSlide("Problemas reais nos dados: como chegou e o que fizemos", 2, 1,
-    "Cada cartão mostra o valor como ele chegou e o que fizemos com ele; cada regra foi medida nos dados reais e tem teste. " +
-    "O mais grave é o primeiro: de 2022 a 2024 o código da escola chega em notação científica, como 9,20961E+15, e o mesmo " +
-    "código passa a valer para centenas de escolas. Recuperamos o código real casando nome, tipo e distrito com o último ano " +
-    "confiável, para 94,8% a 98,6% das matrículas. Os outros passam rápido: a planilha de fila muda o sentido das colunas " +
-    "numeradas, e lemos o sentido no rodapé; o turno de 2021 vem só como código; a idade vem com vírgula, vazia ou com " +
-    "nascimento em 1900; a data vem como número serial do Excel, 45397 é 15 de abril de 2024. O último traz o princípio do " +
-    "trabalho: o IBGE esconde valores de setores pequenos com um X, e esses 6.543 valores ficam nulos, nunca zero. Nulo " +
-    "quer dizer não publicado; zero quer dizer nenhuma criança. Depois de cada carga rodam catorze verificações automáticas, " +
-    "e na carga real nenhuma deu FALHA.");
-  const probs = [
-    ["Código da escola, 2022 a 2024", "9,20961E+15", "", "código real recuperado pelo nome, tipo e distrito em 94,8% a 98,6% das matrículas"],
-    ["Planilha de fila em sete formatos", "(1) (2) (3)", " com sentido que muda", "colunas lidas do cabeçalho e o sentido de cada número lido do rodapé de cada arquivo"],
-    ["Turno não publicado em 2021", "9", " sem descrição", "código de 2021 = código de 2020 + 3, conferido pelo horário: 9 é integral, das 7h às 17h"],
-    ["Idade em formato errado", "5,00", " ou vazia, ou nascida em 1900", "recalculada pela data de nascimento; idade impossível vira não informada"],
-    ["Datas em cinco formatos", "45397", " (serial do Excel)", "lida como 15/04/2024; data fora do ano letivo é descartada"],
-    ["Valores suprimidos pelo IBGE", "X", " em setores pequenos", "6.543 valores ficam nulos, nunca zero"],
-  ];
-  probs.forEach(([t, chegou, resto, feito], i) => {
-    const x = 0.6 + (i % 3) * 4.1;
-    const y = 1.6 + Math.floor(i / 3) * 1.85;
-    const o = i + 1;
-    cartao(s, x, y, 3.9, 1.7, { borda: i === 0 ? COR.cobalto : undefined, ordem: o });
-    selo(s, x + 0.22, y + 0.2, String(o), { d: 0.4, tam: 13, ordem: o });
-    texto(s, t, x + 0.75, y + 0.2, 3.0, 0.4, { tam: 14, negrito: true, cor: COR.tinta, valign: "middle", ordem: o });
-    s.addText([
-      { text: "chegou  ", options: { color: COR.suave } },
-      { text: chegou, options: { fontFace: MONO, color: COR.texto, highlight: COR.nevoa } },
-      { text: resto, options: { color: COR.suave } },
-    ], { x: x + 0.25, y: y + 0.7, w: 3.45, h: 0.3, fontFace: FONTE, fontSize: 12, margin: 0, isTextBox: true, ...anim(o) });
-    s.addText([
-      { text: "→ ", options: { bold: true, color: COR.ambar } },
-      { text: feito },
-    ], { x: x + 0.25, y: y + 1.02, w: 3.45, h: 0.6, fontFace: FONTE, fontSize: 12.5, color: COR.texto, margin: 0,
-      isTextBox: true, valign: "top", ...anim(o) });
+  const s = novoSlide("Um problema real, de ponta a ponta: o código da escola", 2, 1,
+    "Os dados reais chegaram com vários defeitos; vou mostrar um, de ponta a ponta, porque é o mais grave e mostra como " +
+    "tratamos todos. À esquerda, como o código da escola chega. Em 2021 a UNIAO DE VILA NOVA I tem o código 19459. Em 2022 o " +
+    "código vem embaralhado. Em 2023 vem em notação científica, 9,20961E+15, e o mesmo código aparece também na BEIJA FLOR, " +
+    "outra escola: o código deixou de identificar a escola. O que fizemos, em três passos. Um: medimos cada ano no próprio " +
+    "dado; em 2023 há E+ e um código em duas escolas, então o ano está corrompido, e 2021 é o último ano confiável. Dois: " +
+    "procuramos a escola pelo nome, tipo e distrito em 2021; a UNIAO DE VILA NOVA I, EMEI da Vila Jacuí, tem um único código, " +
+    "19459. Três: um código só, copiamos; a BEIJA FLOR tem duas escolas com esse nome em 2021, então é ambígua e recebe uma " +
+    "chave sintética, nunca um chute. À direita, como ficou. Resultado: 94,8% a 98,6% das matrículas de 2022 a 2024 ficam com " +
+    "o código real. Os outros problemas (fila em sete formatos, turno de 2021, idade, datas e valores escondidos pelo IBGE) " +
+    "seguem a mesma lógica: medir, corrigir com uma regra testada e, na dúvida, não inventar; o que não foi publicado fica " +
+    "nulo, nunca zero, como os 6.543 valores que o IBGE esconde em setores pequenos. Depois de cada carga rodam catorze verificações automáticas, e nenhuma deu FALHA. (O exemplo é do " +
+    "teste do projeto, no formato dos arquivos.)");
+  const quadro = (x, titulo, cabecalho, linhas, destaque, azul, ordem, borda) => {
+    cartao(s, x, 1.6, 5.3, 1.85, { borda, ordem });
+    texto(s, titulo, x + 0.2, 1.72, 4.9, 0.25, { tam: 10, negrito: true, cor: COR.suave, espacamento: 1, ordem });
+    const cab = cabecalho.map((t) => ({ text: t, options: { bold: true, color: COR.suave, fontSize: 9 } }));
+    const corpo = linhas.map((l, i) => l.map((t, j) => ({ text: t, options: {
+      fill: { color: destaque.includes(i) ? "FFF4E2" : COR.branco },
+      bold: azul && j === 1, color: azul && j === 1 ? COR.cobalto : COR.texto } })));
+    s.addTable([cab, ...corpo], { x: x + 0.2, y: 2.02, w: 4.9, colW: [0.6, 1.95, 2.35], rowH: 0.26, fontFace: MONO,
+      fontSize: 12, border: { type: "solid", color: "E6ECF5", pt: 0.5 }, valign: "middle", margin: [0.02, 0.06, 0.02, 0] });
+  };
+  quadro(0.6, "COMO CHEGOU  · exemplo no formato do arquivo", ["ano", "código publicado", "escola"], [
+    ["2021", "19459", "UNIAO DE VILA NOVA I"],
+    ["2022", "9209611322271640", "UNIAO DE VILA NOVA I"],
+    ["2023", "9,20961E+15", "UNIAO DE VILA NOVA I"],
+    ["2023", "9,20961E+15", "BEIJA FLOR"],
+  ], [2, 3], false, 1);
+  texto(s, "→", 5.9, 2.15, 1.5, 0.7, { tam: 40, negrito: true, cor: COR.ambar, alinhar: "center", valign: "middle", ordem: 5 });
+  quadro(7.4, "COMO FICOU NO DATA WAREHOUSE", ["ano", "código no DW", "como"], [
+    ["2021", "19459", "publicado"],
+    ["2022", "19459", "recuperado"],
+    ["2023", "19459", "recuperado"],
+    ["2023", "SINT-…", "chave sintética"],
+  ], [], true, 5, COR.cobalto);
+  [["Medir o ano", [["Em 2023 há \"E+\" e "], ["o mesmo código em duas escolas", true],
+    [": o ano está corrompido. 2021 é o último ano confiável."]]],
+  ["Procurar a escola", [["Junta "], ["nome + tipo + distrito", true],
+    [" e procura em 2021: UNIAO DE VILA NOVA I, EMEI, Vila Jacuí, tem um único código, 19459."]]],
+  ["Decidir o código", [["Um código só: "], ["copia", true], [". BEIJA FLOR tem duas escolas com esse nome em 2021: ambígua, " +
+    "recebe "], ["chave sintética", true], [", nunca um chute."]]],
+  ].forEach(([titulo, partes], i) => {
+    const x = 0.6 + i * 4.1;
+    const o = i + 2;
+    cartao(s, x, 3.68, 3.9, 1.42, { ordem: o });
+    selo(s, x + 0.2, 3.82, String(i + 1), { d: 0.32, tam: 12, ordem: o });
+    texto(s, titulo, x + 0.62, 3.8, 3.1, 0.36, { tam: 15, negrito: true, cor: COR.tinta, valign: "middle", ordem: o });
+    s.addText(partes.map(([t, negrito]) => ({ text: t, options: { bold: Boolean(negrito), color: negrito ? COR.tinta : COR.texto } })),
+      { x: x + 0.2, y: 4.25, w: 3.5, h: 0.8, fontFace: FONTE, fontSize: 12.5, margin: 0, isTextBox: true, valign: "top",
+        ...anim(o) });
   });
-  cartao(s, 0.6, 5.35, 12.1, 1.15, { fundo: COR.nevoa, semSombra: true, ordem: 7 });
-  selo(s, 0.85, 5.66, "≠", { d: 0.54, tam: 18, ordem: 7 });
+  cartao(s, 0.6, 5.3, 12.1, 0.95, { fundo: COR.nevoa, semSombra: true, ordem: 6 });
+  texto(s, "94,8% a 98,6%", 0.85, 5.3, 3.4, 0.95, { tam: 30, negrito: true, cor: COR.cobalto, valign: "middle", ordem: 6 });
   s.addText([
-    { text: "Nulo não é zero. ", options: { bold: true, color: COR.tinta } },
-    { text: "Nulo quer dizer \"não publicado\"; zero quer dizer \"nenhuma criança\". Depois de cada carga rodam 14 " +
-      "verificações automáticas, e na carga real nenhuma deu FALHA." },
-  ], { x: 1.65, y: 5.4, w: 10.85, h: 1.05, fontFace: FONTE, fontSize: 15, color: COR.texto, margin: 0, isTextBox: true,
-    valign: "middle", ...anim(7) });
+    { text: "das matrículas de 2022 a 2024 ficam com o código real. Os outros problemas (fila, turno, idade, datas, IBGE) " +
+      "seguem a mesma lógica: " },
+    { text: "medir, corrigir com regra testada e, na dúvida, não inventar.", options: { bold: true, color: COR.tinta } },
+  ], { x: 4.3, y: 5.35, w: 8.2, h: 0.85, fontFace: FONTE, fontSize: 13.5, color: COR.texto, margin: 0, isTextBox: true,
+    valign: "middle", ...anim(6) });
 }
 
 // ------------------------------------------------------------------ 15. grão e aditividade

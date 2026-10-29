@@ -50,7 +50,7 @@ No fim dos slides 11, 16 e 21, quem está falando passa a palavra.
 | 11 | Imagine | A prefeitura adota a proposta: o passo 1 é do Thiago, o passo 2 do Daniel e o passo 3 do Luís. Passar a palavra. |
 | 12 | Três fontes, três perguntas | Passo 1: quem já tem vaga (13,4 milhões de matrículas), quem espera (44 meses de fila) e quantas crianças moram ali (26.889 setores). O Tremembé é o exemplo que segue até o slide 16. |
 | 13 | Integração | Como chega, regra, resultado: TREMEMBE e Tremembé viram a mesma linha; idade exata vira faixa do IBGE; CD_SETOR é homônimo. Prova: 240.905 contra 240.840, abaixo de 1%. |
-| 14 | Problemas nos dados | Cada cartão mostra o valor como chegou (9,20961E+15, 45397, X) e o que fizemos; código da escola recuperado em 94,8% a 98,6%. Nulo não é zero. |
+| 14 | Um problema, de ponta a ponta | O código da escola: como chegou (o mesmo 9,20961E+15 em duas escolas), três passos (medir o ano, procurar por nome, tipo e distrito, decidir) e como ficou; 94,8% a 98,6% recuperado. Os outros problemas seguem a mesma lógica. |
 | 15 | Grão e aditividade | Grão: uma linha da fila é Tremembé, jun/2024, creche, 153; a criança é uma das 153. Aditividade: soma distritos (153 + 88), não meses. |
 | 16 | Estrela Matrícula | Cada recurso resolve um problema: duas datas dizem quem estava ativo em 30/06; campo = 1 vira soma; bugigangas, degeneradas e Escola tipo 2. Passar ao Daniel. |
 | 17 | Estrela Fila | Passo 2: distrito × mês × etapa, com duas hierarquias de tempo. |
